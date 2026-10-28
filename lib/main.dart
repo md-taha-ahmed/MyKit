@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,8 @@ Future<void> main() async {
     androidNotificationChannelName: 'Music playback',
     androidNotificationOngoing: true,
   );
+  // Movies & Series: libmpv video player.
+  MediaKit.ensureInitialized();
   // Books: PDF engine (also used outside widgets to render covers).
   await pdfrxFlutterInitialize();
   final prefs = await SharedPreferences.getInstance();

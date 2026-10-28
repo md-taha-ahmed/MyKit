@@ -125,6 +125,33 @@ MyKit hosts real Mihon/Tachiyomi extension APKs (extension lib 1.4 / 1.6).
   vertical/webtoon), progress and read chapters.
 - Not yet: source filters, source preference screens, downloads, library update checks, tracking.
 
+## Movies & Series (beta) — Stremio add-ons
+
+Browse, pick a source and play, using the [Stremio add-on protocol](https://github.com/Stremio/stremio-addon-sdk/tree/master/docs/api).
+
+- **Add-ons** (`lib/features/movies/data/datasources/stremio_addon_client.dart`): any add-on can be installed by its
+  `manifest.json` URL or `stremio://` link. Defaults: **Cinemeta** (catalogs, search, details),
+  **Torrentio** (streams) and **OpenSubtitles v3** (subtitles). Configured add-ons (e.g. Torrentio with a debrid
+  service) are installed from the install link their configure page gives; a debrid stream is a direct URL and
+  plays without the torrent engine.
+- **Torrent streaming** (`android/.../torrent/`): libtorrent (libtorrent4j) downloads only the chosen file,
+  sequentially; `TorrentHttpServer` serves it on `http://127.0.0.1` with `Range` support, waiting for whatever
+  the player reads next, so seeking works. A window of 24–96 MB ahead of the read position gets top piece
+  priority (moved on seek); only the piece the player is blocked on gets a deadline — libtorrent's deadline mode
+  requests one block per peer at a time and throttles downloads if used for the whole buffer. Playback starts
+  after a ~3 MB prebuffer plus the file's last piece (MP4/MKV indexes). The engine starts when the tool opens and
+  adds a fresh public tracker list (ngosang/trackerslist). One stream at a time; files are deleted when the
+  player closes. arm64/armv7 only.
+- **Slow torrents**: mobile carriers often throttle BitTorrent (total speed stays flat however many peers send);
+  Wi-Fi, a P2P-friendly VPN or a debrid service avoid that.
+- **Player**: libmpv via media_kit (MKV, HEVC, AC3/DTS…): online subtitles (preferred language remembered,
+  delay ±), embedded subtitle and audio tracks, resume position, "open in another player" (VLC, MX…).
+- **App**: Movies | Series tabs with Continue watching and catalog rows, search (titles or an IMDb link/id),
+  details with seasons/episodes, sources with quality filter, seeders and size.
+- Not yet: downloads for offline, next-episode autoplay, library/watchlist, catalog filters (genre).
+- Torrents share what you download with other peers, and your IP is visible to them. Only stream what you have
+  the right to watch.
+
 ## App icon
 
 - Android 8+ uses the adaptive vector icon: `android/app/src/main/res/drawable/ic_launcher_{background,foreground,monochrome}.xml`

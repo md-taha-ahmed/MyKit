@@ -5,6 +5,7 @@ import com.mdtaha.mykit.apps.ExternalAppsChannel
 import com.mdtaha.mykit.calendar.CalendarChannel
 import com.mdtaha.mykit.manga.MangaChannel
 import com.mdtaha.mykit.media.MediaLibraryChannel
+import com.mdtaha.mykit.torrent.TorrentChannel
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 
@@ -14,6 +15,7 @@ class MainActivity : AudioServiceActivity() {
     private var mediaLibraryChannel: MediaLibraryChannel? = null
     private var mangaChannel: MangaChannel? = null
     private var externalAppsChannel: ExternalAppsChannel? = null
+    private var torrentChannel: TorrentChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -22,6 +24,7 @@ class MainActivity : AudioServiceActivity() {
         mediaLibraryChannel = MediaLibraryChannel(this, messenger)
         mangaChannel = MangaChannel(applicationContext, messenger)
         externalAppsChannel = ExternalAppsChannel(this, messenger)
+        torrentChannel = TorrentChannel(applicationContext, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -33,6 +36,8 @@ class MainActivity : AudioServiceActivity() {
         mangaChannel = null
         externalAppsChannel?.dispose()
         externalAppsChannel = null
+        torrentChannel?.dispose()
+        torrentChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

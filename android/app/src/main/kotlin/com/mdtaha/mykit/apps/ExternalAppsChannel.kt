@@ -36,6 +36,9 @@ class ExternalAppsChannel(
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "openYoutube" -> result.success(openYoutube(call.argument<String>("url")!!))
+            "openVideo" -> result.success(
+                openVideo(call.argument<String>("url")!!, call.argument<String>("title")),
+            )
             else -> result.notImplemented()
         }
     }
@@ -56,6 +59,19 @@ class ExternalAppsChannel(
             }
         }
         return null
+    }
+
+    /** Lets the user pick a video player (VLC, MX Player, …). False if none. */
+    private fun openVideo(url: String, title: String?): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(Uri.parse(url), "video/*")
+            .apply { if (title != null) putExtra("title", title) }
+        return try {
+            activity.startActivity(Intent.createChooser(intent, title ?: "Open with"))
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun isEnabled(pkg: String): Boolean = try {

@@ -33,23 +33,7 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
     final titles = ['Library', 'Browse', 'Extensions'];
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(titles[_tab]),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                border: Border.all(color: mangaAccent),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Text(
-                'BETA',
-                style: TextStyle(fontSize: 10, color: mangaAccent),
-              ),
-            ),
-          ],
-        ),
+        title: Text(titles[_tab]),
         actions: [
           if (_tab != 0)
             IconButton(

@@ -15,3 +15,10 @@ licensed under the Apache License, Version 2.0
 Changes: dependency injection, logging, preferences and string resources were
 replaced with MyKit equivalents; `NetworkHelper` and `AppInfo` were rewritten.
 `ExtensionHost.kt` follows the design of Mihon's `ExtensionLoader`.
+
+## Libraries used by Movies & Series
+
+- libtorrent4j (https://github.com/aldenml/libtorrent4j), MIT License, which bundles
+  libtorrent (https://libtorrent.org), BSD 3-Clause License.
+- media_kit (https://github.com/media-kit/media-kit), MIT License, which bundles
+  libmpv and FFmpeg builds licensed under the LGPL.

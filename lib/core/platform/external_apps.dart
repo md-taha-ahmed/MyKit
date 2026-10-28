@@ -18,4 +18,18 @@ abstract final class ExternalApps {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
   }
+
+  /// Opens a video URL in an external player chosen by the user.
+  /// Returns false if no installed app can play it.
+  static Future<bool> openVideo(String url, {String? title}) async {
+    try {
+      return await _channel.invokeMethod<bool>('openVideo', {
+            'url': url,
+            'title': title,
+          }) ??
+          false;
+    } on PlatformException {
+      return false;
+    }
+  }
 }
