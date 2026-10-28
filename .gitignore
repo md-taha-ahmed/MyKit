@@ -46,3 +46,6 @@ app.*.map.json
 
 # Gradle build outputs inside android/
 /android/build/
+
+# Local secrets (Google OAuth client for the YouTube import)
+/config/*.local.json

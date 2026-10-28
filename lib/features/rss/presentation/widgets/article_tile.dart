@@ -22,6 +22,7 @@ class ArticleTile extends StatelessWidget {
     required this.isRead,
     this.isSaved = false,
     this.isLiked = false,
+    this.isVideo = false,
     required this.onTap,
   });
 
@@ -30,6 +31,9 @@ class ArticleTile extends StatelessWidget {
   final bool isRead;
   final bool isSaved;
   final bool isLiked;
+
+  /// A YouTube video (from a channel feed).
+  final bool isVideo;
   final VoidCallback onTap;
 
   @override
@@ -60,6 +64,15 @@ class ArticleTile extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: accent,
                               shape: BoxShape.circle,
+                            ),
+                          ),
+                        if (isVideo)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 4),
+                            child: Icon(
+                              Icons.play_circle_fill,
+                              size: 14,
+                              color: Color(0xFFFF3B30),
                             ),
                           ),
                         Expanded(
@@ -132,13 +145,34 @@ class ArticleTile extends StatelessWidget {
                 const SizedBox(width: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    article.imageUrl!,
-                    width: 84,
-                    height: 84,
-                    fit: BoxFit.cover,
-                    cacheWidth: 252,
-                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Image.network(
+                        article.imageUrl!,
+                        // Videos get a 16:9 thumbnail, articles a square.
+                        width: isVideo ? 112 : 84,
+                        height: isVideo ? 63 : 84,
+                        fit: BoxFit.cover,
+                        cacheWidth: 336,
+                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                      ),
+                      if (isVideo)
+                        const DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Color(0x99000000),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.play_arrow,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],

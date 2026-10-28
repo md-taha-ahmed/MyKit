@@ -95,6 +95,33 @@ void main() {
     expect(feed.articles[1].imageUrl, 'https://x/medium.jpg');
   });
 
+  test('YouTube channel feed', () {
+    const xml = '''<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"
+      xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+  <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UC1"/>
+  <title>Some Channel</title>
+  <link rel="alternate" href="https://www.youtube.com/channel/UC1"/>
+  <entry>
+    <id>yt:video:abc123</id>
+    <yt:videoId>abc123</yt:videoId>
+    <title>Video title</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=abc123"/>
+    <published>2026-10-27T10:00:00+00:00</published>
+    <media:group>
+      <media:title>Video title</media:title>
+      <media:thumbnail url="https://i3.ytimg.com/vi/abc123/hqdefault.jpg" width="480" height="360"/>
+      <media:description>What this video is about.</media:description>
+    </media:group>
+  </entry>
+</feed>''';
+    final feed = FeedParser.tryParse(xml)!;
+    final a = feed.articles.single;
+    expect(feed.title, 'Some Channel');
+    expect(a.link, 'https://www.youtube.com/watch?v=abc123');
+    expect(a.imageUrl, 'https://i3.ytimg.com/vi/abc123/hqdefault.jpg');
+    expect(a.summary, 'What this video is about.');
+  });
+
   test('HTML pages are not feeds', () {
     expect(FeedParser.tryParse('<html><body>hi</body></html>'), isNull);
     expect(FeedParser.tryParse('not xml at all'), isNull);

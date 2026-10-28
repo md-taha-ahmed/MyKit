@@ -46,6 +46,16 @@ class FeedArticlesScreen extends ConsumerWidget {
               ref.read(rssReadIdsProvider.notifier).markRead(ids);
             },
           ),
+          IconButton(
+            tooltip: 'Mark all as unread',
+            icon: const Icon(Icons.mark_email_unread_outlined),
+            onPressed: () {
+              final ids = ref
+                  .read(filteredArticlesProvider(filter))
+                  .map((a) => a.id);
+              ref.read(rssReadIdsProvider.notifier).markAllUnread(ids);
+            },
+          ),
         ],
       ),
       body: ArticleList(

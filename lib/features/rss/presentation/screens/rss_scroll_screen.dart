@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/platform/external_apps.dart';
 import '../../domain/entities/feed_article.dart';
 import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
@@ -15,13 +17,16 @@ const _likeColor = Color(0xFFFF5A6E);
 const _cardColor = Color(0xFF17171A);
 
 /// Full-screen, swipe-up feed of article briefs (one per screen).
-/// Half photo, half article. Double-tap to like; action bar to like,
+/// Half photo, half article, shuffled (YouTube videos mixed in). Double-tap to like; action bar to like,
 /// bookmark, delete or read the full article.
 class RssScrollScreen extends ConsumerStatefulWidget {
-  const RssScrollScreen({super.key, this.categoryId});
+  const RssScrollScreen({super.key, this.categoryId, this.feedId});
 
   /// Same values as the home chips (null = all, or saved/liked filters).
   final String? categoryId;
+
+  /// Show a single feed instead of a category.
+  final String? feedId;
 
   @override
   ConsumerState<RssScrollScreen> createState() => _RssScrollScreenState();
@@ -33,7 +38,8 @@ class _RssScrollScreenState extends ConsumerState<RssScrollScreen> {
   /// Snapshot of the list so deleting doesn't make pages jump under the finger.
   List<FeedArticle>? _articles;
 
-  ArticleFilter get _filter => (categoryId: widget.categoryId, feedId: null);
+  ArticleFilter get _filter =>
+      (categoryId: widget.categoryId, feedId: widget.feedId);
 
   @override
   void dispose() {
@@ -47,6 +53,18 @@ class _RssScrollScreenState extends ConsumerState<RssScrollScreen> {
     ref.read(rssReadIdsProvider.notifier).markRead([articles[i].id]);
   }
 
+  /// Random mix of everything (so videos and articles interleave instead of
+  /// sorting by date), unread first.
+  List<FeedArticle> _mixed(List<FeedArticle> articles) {
+    final read = ref.read(rssReadIdsProvider);
+    final rnd = Random();
+    final unread = articles.where((a) => !read.contains(a.id)).toList()
+      ..shuffle(rnd);
+    final seen = articles.where((a) => read.contains(a.id)).toList()
+      ..shuffle(rnd);
+    return [...unread, ...seen];
+  }
+
   Future<void> _delete(FeedArticle article) async {
     final fromSaved = widget.categoryId == savedArticlesFilter;
     await deleteArticle(context, ref, article, fromSaved: fromSaved);
@@ -57,7 +75,7 @@ class _RssScrollScreenState extends ConsumerState<RssScrollScreen> {
   @override
   Widget build(BuildContext context) {
     // Take the snapshot once; new articles from a refresh don't reshuffle pages.
-    _articles ??= ref.read(filteredArticlesProvider(_filter));
+    _articles ??= _mixed(ref.read(filteredArticlesProvider(_filter)));
     final articles = _articles!;
     final library = ref.watch(rssLibraryProvider);
 
@@ -88,6 +106,8 @@ class _RssScrollScreenState extends ConsumerState<RssScrollScreen> {
                   return _BriefPage(
                     article: article,
                     feedTitle: library.feedById(article.feedId)?.title ?? '',
+                    isVideo:
+                        library.feedById(article.feedId)?.isYoutube ?? false,
                     position: '${i + 1} / ${articles.length}',
                     onDelete: () => _delete(article),
                   );
@@ -104,12 +124,14 @@ class _BriefPage extends ConsumerStatefulWidget {
     required this.feedTitle,
     required this.position,
     required this.onDelete,
+    this.isVideo = false,
   });
 
   final FeedArticle article;
   final String feedTitle;
   final String position;
   final VoidCallback onDelete;
+  final bool isVideo;
 
   @override
   ConsumerState<_BriefPage> createState() => _BriefPageState();
@@ -126,6 +148,13 @@ class _BriefPageState extends ConsumerState<_BriefPage>
   void dispose() {
     _heart.dispose();
     super.dispose();
+  }
+
+  /// Opens the video in ReVanced / YouTube (see [ExternalApps.openYoutube]).
+  Future<void> _watch(String? link) async {
+    if (link == null) return;
+    ref.read(rssReadIdsProvider.notifier).markRead([widget.article.id]);
+    await ExternalApps.openYoutube(link);
   }
 
   void _doubleTapLike() {
@@ -153,6 +182,28 @@ class _BriefPageState extends ConsumerState<_BriefPage>
               fit: StackFit.expand,
               children: [
                 _Photo(url: a.imageUrl),
+                if (widget.isVideo)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Material(
+                        color: const Color(0xCCFF3B30),
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () => _watch(a.link),
+                          child: const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Icon(
+                              Icons.play_arrow,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 // Back button + position, over the photo.
                 SafeArea(
                   bottom: false,
@@ -260,12 +311,24 @@ class _BriefPageState extends ConsumerState<_BriefPage>
                             onTap: widget.onDelete,
                           ),
                           const Spacer(),
-                          FilledButton.icon(
-                            onPressed: () =>
-                                context.push(RssRoutes.article(a.id)),
-                            icon: const Icon(Icons.chrome_reader_mode_outlined),
-                            label: const Text('Read'),
-                          ),
+                          if (widget.isVideo)
+                            FilledButton.icon(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF3B30),
+                              ),
+                              onPressed: () => _watch(a.link),
+                              icon: const Icon(Icons.play_arrow),
+                              label: const Text('Watch'),
+                            )
+                          else
+                            FilledButton.icon(
+                              onPressed: () =>
+                                  context.push(RssRoutes.article(a.id)),
+                              icon: const Icon(
+                                Icons.chrome_reader_mode_outlined,
+                              ),
+                              label: const Text('Read'),
+                            ),
                         ],
                       ),
                     ),

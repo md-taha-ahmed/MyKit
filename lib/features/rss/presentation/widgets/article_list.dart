@@ -76,6 +76,7 @@ class ArticleList extends ConsumerWidget {
             child: ArticleTile(
               article: article,
               feedTitle: library.feedById(article.feedId)?.title ?? '',
+              isVideo: library.feedById(article.feedId)?.isYoutube ?? false,
               isRead: read.contains(article.id),
               isSaved: saved,
               isLiked: reactions.isLiked(article.id),

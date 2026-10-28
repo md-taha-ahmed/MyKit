@@ -5,16 +5,18 @@ import 'presentation/screens/feed_articles_screen.dart';
 import 'presentation/screens/manage_feeds_screen.dart';
 import 'presentation/screens/rss_home_screen.dart';
 import 'presentation/screens/rss_scroll_screen.dart';
+import 'presentation/screens/youtube_import_screen.dart';
 
 abstract final class RssRoutes {
   static const home = '/rss';
   static const manage = '/rss/manage';
+  static const youtubeImport = '/rss/youtube-import';
   static String feed(String feedId) => '/rss/feed/$feedId';
 
-  /// Full-screen brief view for a chip (null = all articles).
-  static String scroll(String? categoryId) => Uri(
+  /// Full-screen brief view of what's selected (a category, a feed or all).
+  static String scroll({String? categoryId, String? feedId}) => Uri(
     path: '/rss/scroll',
-    queryParameters: categoryId == null ? null : {'category': categoryId},
+    queryParameters: {'category': ?categoryId, 'feed': ?feedId},
   ).toString();
 
   /// Article ids contain URLs, so they travel as an encoded query parameter.
@@ -30,7 +32,12 @@ abstract final class RssRoutes {
           path: 'scroll',
           builder: (context, state) => RssScrollScreen(
             categoryId: state.uri.queryParameters['category'],
+            feedId: state.uri.queryParameters['feed'],
           ),
+        ),
+        GoRoute(
+          path: 'youtube-import',
+          builder: (context, state) => const YoutubeImportScreen(),
         ),
         GoRoute(
           path: 'manage',

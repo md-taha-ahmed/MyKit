@@ -44,6 +44,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- "Return to MyKit" after Google sign-in in the browser. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="mykit" android:host="oauth" />
+            </intent-filter>
         </activity>
         <!-- Music: background playback (audio_service / just_audio_background) -->
         <service
@@ -102,6 +109,10 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- RSS: open YouTube videos in these clients (ExternalAppsChannel). -->
+        <package android:name="app.revanced.android.youtube" />
+        <package android:name="app.rvx.android.youtube" />
+        <package android:name="com.google.android.youtube" />
         <!-- RSS: open articles in the browser (url_launcher). -->
         <intent>
             <action android:name="android.intent.action.VIEW" />

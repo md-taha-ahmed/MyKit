@@ -20,6 +20,9 @@ class RssFeed {
   /// Home page of the site, if the feed declares one.
   final String? siteUrl;
 
+  /// A YouTube channel or playlist feed (its items are videos).
+  bool get isYoutube => url.contains('youtube.com/feeds/');
+
   RssFeed copyWith({String? title, String? categoryId}) => RssFeed(
     id: id,
     url: url,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/rss_feed.dart';
 import '../../domain/repositories/rss_repository.dart';
+import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
 
 /// Bottom sheet to subscribe to a feed. Returns the new feed, if any.
@@ -170,6 +172,19 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
                       )
                     : const Icon(Icons.search),
                 label: Text(_loading ? 'Looking for feed…' : 'Find feed'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _loading
+                    ? null
+                    : () {
+                        // Grab the router before the sheet's context goes away.
+                        final router = GoRouter.of(context);
+                        Navigator.pop(context);
+                        router.push(RssRoutes.youtubeImport);
+                      },
+                icon: const Icon(Icons.subscriptions, color: Color(0xFFFF3B30)),
+                label: const Text('Import YouTube subscriptions'),
               ),
               const SizedBox(height: 20),
               const Text(

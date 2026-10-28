@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/platform/external_apps.dart';
 import '../providers/rss_providers.dart';
 import '../widgets/article_actions.dart';
 
@@ -26,6 +27,12 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
   }
 
   Future<void> _open(String link) async {
+    // YouTube links go to ReVanced/YouTube explicitly (Android won't).
+    final host = Uri.tryParse(link)?.host ?? '';
+    if (host.endsWith('youtube.com') || host == 'youtu.be') {
+      await ExternalApps.openYoutube(link);
+      return;
+    }
     final ok = await launchUrl(
       Uri.parse(link),
       mode: LaunchMode.externalApplication,
@@ -157,9 +164,20 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
           if (link != null) ...[
             const SizedBox(height: 28),
             FilledButton.icon(
+              style: feed?.isYoutube ?? false
+                  ? FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF3B30),
+                    )
+                  : null,
               onPressed: () => _open(link),
-              icon: const Icon(Icons.open_in_new),
-              label: const Text('Read full article'),
+              icon: Icon(
+                feed?.isYoutube ?? false ? Icons.play_arrow : Icons.open_in_new,
+              ),
+              label: Text(
+                feed?.isYoutube ?? false
+                    ? 'Watch on YouTube'
+                    : 'Read full article',
+              ),
             ),
           ],
         ],
