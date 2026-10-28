@@ -44,7 +44,7 @@ jobs:
         run: flutter test --coverage --reporter expanded
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage/lcov.info
@@ -84,7 +84,7 @@ jobs:
           --build-number=${{ github.run_number }}
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mykit-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
