@@ -1,16 +1,19 @@
 import '../../domain/entities/feed_article.dart';
 import '../../domain/entities/feed_category.dart';
 import '../../domain/entities/rss_feed.dart';
+import '../../domain/entities/youtube_channel.dart';
 import '../../domain/repositories/rss_repository.dart';
 import '../datasources/rss_local_data_source.dart';
 import '../datasources/rss_remote_data_source.dart';
+import '../datasources/youtube_subscriptions_data_source.dart';
 import '../models/rss_models.dart';
 
 class RssRepositoryImpl implements RssRepository {
-  RssRepositoryImpl(this._local, this._remote);
+  RssRepositoryImpl(this._local, this._remote, this._youtube);
 
   final RssLocalDataSource _local;
   final RssRemoteDataSource _remote;
+  final YoutubeSubscriptionsDataSource _youtube;
 
   @override
   List<FeedCategory> getCategories() =>
@@ -47,6 +50,23 @@ class RssRepositoryImpl implements RssRepository {
 
   @override
   Future<void> saveReadIds(Set<String> ids) => _local.writeReadIds(ids);
+
+  @override
+  bool get youtubeConfigured => _youtube.isConfigured;
+
+  @override
+  bool get youtubeSignedIn => _youtube.isSignedIn;
+
+  @override
+  Future<void> configureYoutube(String clientId, String clientSecret) =>
+      _youtube.configure(clientId, clientSecret);
+
+  @override
+  Future<List<YoutubeChannel>> youtubeSubscriptions() =>
+      _youtube.fetchSubscriptions();
+
+  @override
+  Future<void> disconnectYoutube() => _youtube.disconnect();
 
   @override
   List<FeedArticle> getSavedArticles() =>

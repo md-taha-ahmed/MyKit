@@ -75,7 +75,8 @@ abstract final class FeedParser {
   }
 
   static FeedArticle _atomEntry(XmlElement entry) {
-    final summary = _text(entry, 'summary') ?? '';
+    // YouTube puts the video description in <media:group><media:description>.
+    final summary = _text(entry, 'summary') ?? _mediaDescription(entry) ?? '';
     final content = _text(entry, 'content') ?? '';
     final html = content.isNotEmpty ? content : summary;
     final link = _atomLink(entry);
@@ -91,6 +92,16 @@ abstract final class FeedParser {
       author: author == null ? null : _text(author, 'name'),
       date: _parseDate(_text(entry, 'published') ?? _text(entry, 'updated')),
     );
+  }
+
+  static String? _mediaDescription(XmlElement el) {
+    for (final d in el.descendantElements) {
+      if (d.name.local == 'description') {
+        final text = d.innerText.trim();
+        if (text.isNotEmpty) return text;
+      }
+    }
+    return null;
   }
 
   static String? _atomLink(XmlElement el) {

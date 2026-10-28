@@ -2,9 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/google/google_oauth.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/datasources/rss_local_data_source.dart';
 import '../../data/datasources/rss_remote_data_source.dart';
+import '../../data/datasources/youtube_subscriptions_data_source.dart';
 import '../../data/repositories/rss_repository_impl.dart';
 import '../../domain/entities/feed_article.dart';
 import '../../domain/entities/feed_category.dart';
@@ -23,6 +25,7 @@ final rssRepositoryProvider = Provider<RssRepository>((ref) {
   return RssRepositoryImpl(
     RssLocalDataSource(ref.watch(sharedPreferencesProvider)),
     RssRemoteDataSource(client),
+    YoutubeSubscriptionsDataSource(ref.watch(googleOAuthProvider), client),
   );
 });
 
@@ -132,6 +135,32 @@ class RssLibraryNotifier extends Notifier<RssLibrary> {
     return feed;
   }
 
+  /// Subscribes to many feeds at once without fetching each one first (used
+  /// for imports); articles arrive with the refresh that follows.
+  Future<int> addFeedsBulk(
+    List<({String url, String title, String? siteUrl})> items,
+    String categoryId,
+  ) async {
+    final existing = state.feeds.map((f) => f.url).toSet();
+    final added = [
+      for (final i in items)
+        if (existing.add(i.url))
+          RssFeed(
+            id: _uuid.v4(),
+            url: i.url,
+            title: i.title,
+            categoryId: categoryId,
+            addedAt: DateTime.now(),
+            siteUrl: i.siteUrl,
+          ),
+    ];
+    if (added.isEmpty) return 0;
+    await _set(feeds: [...state.feeds, ...added]);
+    // Fetch the new feeds now (not via refresh(), which may already be busy).
+    ref.read(rssArticlesProvider.notifier).fetchFeeds(added);
+    return added.length;
+  }
+
   Future<void> updateFeed(RssFeed feed) =>
       _set(feeds: [for (final f in state.feeds) f.id == feed.id ? feed : f]);
 
@@ -187,23 +216,37 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
   RssArticlesState build() =>
       RssArticlesState(articles: _repo.getCachedArticles());
 
-  /// Downloads every feed in parallel. Feeds that fail keep their cache.
+  /// Feeds downloaded at the same time (imports can add hundreds).
+  static const _concurrency = 8;
+
+  /// A refresh was requested while one was running; run again afterwards.
+  bool _refreshAgain = false;
+
+  /// Downloads every feed. Feeds that fail keep their cache.
   Future<void> refresh() async {
-    if (state.refreshing) return;
+    if (state.refreshing) {
+      _refreshAgain = true;
+      return;
+    }
+    do {
+      _refreshAgain = false;
+      await _refreshOnce();
+    } while (_refreshAgain);
+  }
+
+  Future<void> _refreshOnce() async {
     final feeds = ref.read(rssLibraryProvider).feeds;
     state = state.copyWith(refreshing: true);
 
     final errors = <String, String>{};
     final fresh = <String, List<FeedArticle>>{};
-    await Future.wait(
-      feeds.map((feed) async {
-        try {
-          fresh[feed.id] = _bind(feed, await _repo.fetch(feed));
-        } catch (e) {
-          errors[feed.id] = e.toString();
-        }
-      }),
-    );
+    await _forEachLimited(feeds, (feed) async {
+      try {
+        fresh[feed.id] = _bind(feed, await _repo.fetch(feed));
+      } catch (e) {
+        errors[feed.id] = e.toString();
+      }
+    });
 
     // Re-read: feeds may have been added/removed while we were fetching.
     final feedIds = ref.read(rssLibraryProvider).feeds.map((f) => f.id).toSet();
@@ -220,6 +263,38 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
       lastRefreshed: DateTime.now(),
     );
     await _repo.saveCachedArticles(merged);
+  }
+
+  /// Fetches just these (newly added) feeds right away, independent of any
+  /// running refresh, so their articles show up immediately.
+  Future<void> fetchFeeds(List<RssFeed> feeds) async {
+    final errors = <String, String>{};
+    await _forEachLimited(feeds, (feed) async {
+      try {
+        await ingest(feed, await _repo.fetch(feed));
+      } catch (e) {
+        errors[feed.id] = e.toString();
+      }
+    });
+    if (errors.isNotEmpty) {
+      state = state.copyWith(errors: {...state.errors, ...errors});
+    }
+  }
+
+  static Future<void> _forEachLimited<T>(
+    List<T> items,
+    Future<void> Function(T item) action,
+  ) async {
+    var next = 0;
+    Future<void> worker() async {
+      while (next < items.length) {
+        await action(items[next++]);
+      }
+    }
+
+    await Future.wait([
+      for (var i = 0; i < _concurrency && i < items.length; i++) worker(),
+    ]);
   }
 
   /// Stores articles of a feed that was just fetched (e.g. when added).
@@ -281,9 +356,13 @@ class RssReadIdsNotifier extends Notifier<Set<String>> {
     await _repo.saveReadIds(next);
   }
 
-  Future<void> markUnread(String id) async {
-    state = {...state}..remove(id);
-    await _repo.saveReadIds(state);
+  Future<void> markUnread(String id) => markAllUnread([id]);
+
+  Future<void> markAllUnread(Iterable<String> ids) async {
+    final next = {...state}..removeAll(ids);
+    if (next.length == state.length) return;
+    state = next;
+    await _repo.saveReadIds(next);
   }
 }
 
@@ -296,20 +375,41 @@ typedef ArticleFilter = ({String? categoryId, String? feedId});
 
 const allArticles = (categoryId: null, feedId: null);
 
-/// Selected chip on the RSS home screen (`null` = All).
-final selectedRssCategoryProvider =
-    NotifierProvider<SelectedRssCategoryNotifier, String?>(
-      SelectedRssCategoryNotifier.new,
+/// What the RSS home screen shows: all, Saved/Liked, a category or a feed.
+final selectedRssFilterProvider =
+    NotifierProvider<SelectedRssFilterNotifier, ArticleFilter>(
+      SelectedRssFilterNotifier.new,
     );
 
-class SelectedRssCategoryNotifier extends Notifier<String?> {
+class SelectedRssFilterNotifier extends Notifier<ArticleFilter> {
   @override
-  String? build() => null;
+  ArticleFilter build() => allArticles;
 
-  void select(String? categoryId) => state = categoryId;
+  void select(ArticleFilter filter) => state = filter;
 }
 
-/// Special "categories" shown as chips next to the real ones.
+/// Categories folded closed in the feeds drawer (remembered across launches).
+final collapsedRssCategoriesProvider =
+    NotifierProvider<CollapsedRssCategoriesNotifier, Set<String>>(
+      CollapsedRssCategoriesNotifier.new,
+    );
+
+class CollapsedRssCategoriesNotifier extends Notifier<Set<String>> {
+  static const _key = 'rss.collapsed.v1';
+
+  @override
+  Set<String> build() =>
+      (ref.read(sharedPreferencesProvider).getStringList(_key) ?? []).toSet();
+
+  void toggle(String categoryId) {
+    state = state.contains(categoryId)
+        ? ({...state}..remove(categoryId))
+        : {...state, categoryId};
+    ref.read(sharedPreferencesProvider).setStringList(_key, state.toList());
+  }
+}
+
+/// Special "categories": bookmarked and liked articles.
 const savedArticlesFilter = '__saved__';
 const likedArticlesFilter = '__liked__';
 

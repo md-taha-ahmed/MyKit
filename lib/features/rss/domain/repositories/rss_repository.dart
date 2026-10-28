@@ -1,6 +1,7 @@
 import '../entities/feed_article.dart';
 import '../entities/feed_category.dart';
 import '../entities/rss_feed.dart';
+import '../entities/youtube_channel.dart';
 
 /// Thrown when a URL can't be turned into a feed.
 class FeedException implements Exception {
@@ -38,6 +39,13 @@ abstract interface class RssRepository {
   Future<void> saveCachedArticles(List<FeedArticle> articles);
   Set<String> getReadIds();
   Future<void> saveReadIds(Set<String> ids);
+
+  // YouTube (Google sign-in in the browser, read-only)
+  bool get youtubeConfigured;
+  bool get youtubeSignedIn;
+  Future<void> configureYoutube(String clientId, String clientSecret);
+  Future<List<YoutubeChannel>> youtubeSubscriptions();
+  Future<void> disconnectYoutube();
 
   // Reactions: bookmarks (full copies), likes and deleted (hidden) articles
   List<FeedArticle> getSavedArticles();

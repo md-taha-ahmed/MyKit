@@ -65,6 +65,31 @@ flutter test
 - Supports RSS 2.0, RSS 1.0/RDF and Atom (`lib/features/rss/data/parsers/feed_parser.dart`).
 - Articles are cached for offline reading (100 per feed); read state is tracked per article.
 
+## YouTube subscriptions import
+
+RSS Feeds → **+** → **Import YouTube subscriptions** signs in with Google **in the browser** (OAuth with PKCE and a
+loopback redirect, `lib/core/google/google_oauth.dart`), so it works **without Google Play services** (microG,
+de-Googled ROMs). It reads your subscriptions with the YouTube Data API (read-only, ~1 quota unit per 50 channels),
+lets you tick channels, and adds each channel's free RSS feed (`youtube.com/feeds/videos.xml?channel_id=…`).
+
+One-time Google Cloud setup (free):
+
+1. Open <https://console.cloud.google.com/> and create a project (e.g. "MyKit").
+2. **APIs & Services → Library →** search **YouTube Data API v3 → Enable**.
+3. **Google Auth Platform** (OAuth consent screen):
+   - *Branding*: app name `MyKit`, your email as support and developer contact.
+   - *Audience*: **External**, keep it in **Testing**, and add your Google account under **Test users**.
+   - *Data access*: add the scope `https://www.googleapis.com/auth/youtube.readonly`.
+4. **Clients → Create client → Application type: Desktop app** → Create. Copy the **Client ID** and **Client secret**.
+5. In MyKit: RSS Feeds → **+** → **Import YouTube subscriptions** → paste both → **Save** → **Continue with Google**.
+   In the browser pick your account; on *"Google hasn't verified this app"* tap **Continue** (it's your own app),
+   allow read-only YouTube access, then **Return to MyKit**.
+
+Notes: while the consent screen is in *Testing*, Google expires the sign-in after 7 days — just tap *Continue with
+Google* again (or move the app to *In production*; it stays unverified, which is fine for personal use). The ID and
+secret are stored only on the device (or pass `--dart-define=GOOGLE_OAUTH_CLIENT_ID=… --dart-define=GOOGLE_OAUTH_CLIENT_SECRET=…`
+at build time). For installed apps Google does not treat the "client secret" as confidential.
+
 ## Music
 
 - Songs come from Android's MediaStore (`android/.../media/MediaLibraryChannel.kt`), grouped by folder.
