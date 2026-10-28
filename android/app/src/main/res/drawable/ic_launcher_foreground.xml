@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MyKit icon: countdown ring around a grid of tools. Geometry mirrors tool/app_icon/generate.py. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Ring track -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,30 A24,24 0 1,1 54,78 A24,24 0 1,1 54,30"
+        android:strokeWidth="5.5"
+        android:strokeColor="#2EFFFFFF" />
+    <!-- Countdown progress: 270deg clockwise from 12 o'clock -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,30 A24,24 0 1,1 30,54"
+        android:strokeWidth="5.5"
+        android:strokeColor="#FF4FC3F7"
+        android:strokeLineCap="round" />
+    <!-- 2x2 tool tiles -->
+    <path
+        android:fillColor="#EBFFFFFF"
+        android:pathData="M43,45.5 a2.5,2.5 0 0,1 2.5,-2.5 h4.5 a2.5,2.5 0 0,1 2.5,2.5 v4.5 a2.5,2.5 0 0,1 -2.5,2.5 h-4.5 a2.5,2.5 0 0,1 -2.5,-2.5 z M43,58 a2.5,2.5 0 0,1 2.5,-2.5 h4.5 a2.5,2.5 0 0,1 2.5,2.5 v4.5 a2.5,2.5 0 0,1 -2.5,2.5 h-4.5 a2.5,2.5 0 0,1 -2.5,-2.5 z M55.5,58 a2.5,2.5 0 0,1 2.5,-2.5 h4.5 a2.5,2.5 0 0,1 2.5,2.5 v4.5 a2.5,2.5 0 0,1 -2.5,2.5 h-4.5 a2.5,2.5 0 0,1 -2.5,-2.5 z" />
+    <path
+        android:fillColor="#FF4FC3F7"
+        android:pathData="M55.5,45.5 a2.5,2.5 0 0,1 2.5,-2.5 h4.5 a2.5,2.5 0 0,1 2.5,2.5 v4.5 a2.5,2.5 0 0,1 -2.5,2.5 h-4.5 a2.5,2.5 0 0,1 -2.5,-2.5 z" />
+</vector>
