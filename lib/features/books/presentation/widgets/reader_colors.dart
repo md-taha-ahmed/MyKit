@@ -45,7 +45,17 @@ class ReaderColors {
     ),
   };
 
-  Widget apply(Widget child) => filter == null
-      ? child
-      : ColorFiltered(colorFilter: filter!, child: child);
+  /// No-op matrix used for Light mode.
+  static const _identity = ColorFilter.matrix(<double>[
+    1, 0, 0, 0, 0, //
+    0, 1, 0, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 0, 1, 0,
+  ]);
+
+  /// Always wraps in [ColorFiltered] (identity for Light) so switching modes
+  /// never changes the widget tree: removing the wrapper rebuilt the PDF
+  /// viewer and left the visible page blank.
+  Widget apply(Widget child) =>
+      ColorFiltered(colorFilter: filter ?? _identity, child: child);
 }
