@@ -137,19 +137,28 @@ abstract final class FeedParser {
 
   /// media:thumbnail, media:content (image) or an image enclosure.
   static String? _mediaImage(XmlElement item) {
+    // Prefer the largest image the feed offers: full media:content/enclosure
+    // images beat thumbnails, and a bigger declared width beats a smaller one.
+    String? best;
+    var bestScore = -1;
     for (final el in item.descendantElements) {
       final name = el.name.local;
       final url = el.getAttribute('url');
       if (url == null) continue;
-      if (name == 'thumbnail') return url;
       final type = el.getAttribute('type') ?? '';
       final medium = el.getAttribute('medium') ?? '';
-      if ((name == 'content' || name == 'enclosure') &&
-          (type.startsWith('image/') || medium == 'image')) {
-        return url;
+      final isFull =
+          (name == 'content' || name == 'enclosure') &&
+          (type.startsWith('image/') || medium == 'image');
+      if (!isFull && name != 'thumbnail') continue;
+      final width = int.tryParse(el.getAttribute('width') ?? '') ?? 0;
+      final score = width + (isFull ? 100000 : 0);
+      if (score > bestScore) {
+        best = url;
+        bestScore = score;
       }
     }
-    return null;
+    return best;
   }
 
   static XmlElement? _child(XmlElement el, String local) {

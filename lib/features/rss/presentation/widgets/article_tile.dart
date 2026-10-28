@@ -20,12 +20,16 @@ class ArticleTile extends StatelessWidget {
     required this.article,
     required this.feedTitle,
     required this.isRead,
+    this.isSaved = false,
+    this.isLiked = false,
     required this.onTap,
   });
 
   final FeedArticle article;
   final String feedTitle;
   final bool isRead;
+  final bool isSaved;
+  final bool isLiked;
   final VoidCallback onTap;
 
   @override
@@ -70,6 +74,24 @@ class ArticleTile extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (isLiked)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 6),
+                            child: Icon(
+                              Icons.favorite,
+                              size: 14,
+                              color: Color(0xFFFF5A6E),
+                            ),
+                          ),
+                        if (isSaved)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Icon(
+                              Icons.bookmark,
+                              size: 14,
+                              color: accent,
+                            ),
+                          ),
                         Text(
                           relativeTime(article.publishedAt),
                           style: const TextStyle(

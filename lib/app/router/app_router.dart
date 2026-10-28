@@ -11,6 +11,14 @@ abstract final class AppRoutes {
 final appRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.dashboard,
+    // Safety net: map app links (mykit://countdown/<id>) to in-app paths.
+    redirect: (context, state) {
+      final uri = state.uri;
+      if (uri.scheme != 'mykit') return null;
+      return Uri(path: '/${uri.host}${uri.path}').toString();
+    },
+    // Never strand the user on an error page; go back to the dashboard.
+    errorBuilder: (context, state) => const DashboardScreen(),
     routes: [
       GoRoute(
         path: AppRoutes.dashboard,

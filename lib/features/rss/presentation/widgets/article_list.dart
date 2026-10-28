@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
+import 'article_actions.dart';
 import 'article_tile.dart';
 
 /// Pull-to-refresh list of articles for [filter].
@@ -20,6 +21,8 @@ class ArticleList extends ConsumerWidget {
     final articles = ref.watch(filteredArticlesProvider(filter));
     final read = ref.watch(rssReadIdsProvider);
     final library = ref.watch(rssLibraryProvider);
+    final reactions = ref.watch(rssReactionsProvider);
+    final fromSaved = filter.categoryId == savedArticlesFilter;
 
     Future<void> refresh() => ref.read(rssArticlesProvider.notifier).refresh();
 
@@ -45,11 +48,39 @@ class ArticleList extends ConsumerWidget {
             const Divider(height: 1, indent: 16, endIndent: 16),
         itemBuilder: (context, i) {
           final article = articles[i];
-          return ArticleTile(
-            article: article,
-            feedTitle: library.feedById(article.feedId)?.title ?? '',
-            isRead: read.contains(article.id),
-            onTap: () => context.push(RssRoutes.article(article.id)),
+          final saved = reactions.isSaved(article.id);
+          // Swipe right → bookmark, swipe left → delete (Saved: un-bookmark).
+          return Dismissible(
+            key: ValueKey(article.id),
+            background: SwipeBackground(
+              icon: saved ? Icons.bookmark_remove : Icons.bookmark_add,
+              label: saved ? 'Unsave' : 'Save',
+              color: const Color(0xFF1F6F4A),
+              alignment: Alignment.centerLeft,
+            ),
+            secondaryBackground: SwipeBackground(
+              icon: fromSaved ? Icons.bookmark_remove : Icons.delete_outline,
+              label: fromSaved ? 'Remove' : 'Delete',
+              color: const Color(0xFF8E2B2B),
+              alignment: Alignment.centerRight,
+            ),
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.startToEnd) {
+                await toggleSaveArticle(context, ref, article);
+                return false; // stays in the list
+              }
+              return true;
+            },
+            onDismissed: (_) =>
+                deleteArticle(context, ref, article, fromSaved: fromSaved),
+            child: ArticleTile(
+              article: article,
+              feedTitle: library.feedById(article.feedId)?.title ?? '',
+              isRead: read.contains(article.id),
+              isSaved: saved,
+              isLiked: reactions.isLiked(article.id),
+              onTap: () => context.push(RssRoutes.article(article.id)),
+            ),
           );
         },
       ),

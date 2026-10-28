@@ -9,6 +9,9 @@ class RssLocalDataSource {
   static const _feedsKey = 'rss.feeds.v1';
   static const _articlesKey = 'rss.articles.v1';
   static const _readKey = 'rss.read.v1';
+  static const _savedKey = 'rss.saved.v1';
+  static const _likedKey = 'rss.liked.v1';
+  static const _hiddenKey = 'rss.hidden.v1';
 
   final SharedPreferences _prefs;
 
@@ -27,6 +30,19 @@ class RssLocalDataSource {
   Set<String> readReadIds() => (_prefs.getStringList(_readKey) ?? []).toSet();
   Future<void> writeReadIds(Set<String> ids) =>
       _prefs.setStringList(_readKey, ids.toList());
+
+  /// Bookmarked articles are stored in full so they survive feed refreshes.
+  List<Map<String, dynamic>> readSaved() => _readList(_savedKey);
+  Future<void> writeSaved(List<Map<String, dynamic>> v) =>
+      _prefs.setString(_savedKey, jsonEncode(v));
+
+  Set<String> readLiked() => (_prefs.getStringList(_likedKey) ?? []).toSet();
+  Future<void> writeLiked(Set<String> ids) =>
+      _prefs.setStringList(_likedKey, ids.toList());
+
+  Set<String> readHidden() => (_prefs.getStringList(_hiddenKey) ?? []).toSet();
+  Future<void> writeHidden(Set<String> ids) =>
+      _prefs.setStringList(_hiddenKey, ids.toList());
 
   List<Map<String, dynamic>> _readList(String key) {
     final raw = _prefs.getString(key);

@@ -38,4 +38,12 @@ abstract interface class RssRepository {
   Future<void> saveCachedArticles(List<FeedArticle> articles);
   Set<String> getReadIds();
   Future<void> saveReadIds(Set<String> ids);
+
+  // Reactions: bookmarks (full copies), likes and deleted (hidden) articles
+  List<FeedArticle> getSavedArticles();
+  Future<void> saveSavedArticles(List<FeedArticle> articles);
+  Set<String> getLikedIds();
+  Future<void> saveLikedIds(Set<String> ids);
+  Set<String> getHiddenIds();
+  Future<void> saveHiddenIds(Set<String> ids);
 }

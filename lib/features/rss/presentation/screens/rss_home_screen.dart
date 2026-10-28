@@ -42,7 +42,10 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
     final articlesState = ref.watch(rssArticlesProvider);
     final chosen = ref.watch(selectedRssCategoryProvider);
     // Fall back to "All" if the chosen category was deleted.
-    final selected = chosen != null && library.categoryById(chosen) != null
+    final isSpecial =
+        chosen == savedArticlesFilter || chosen == likedArticlesFilter;
+    final selected =
+        chosen != null && (isSpecial || library.categoryById(chosen) != null)
         ? chosen
         : null;
     final filter = (categoryId: selected, feedId: null);
@@ -66,6 +69,11 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               icon: const Icon(Icons.refresh),
               onPressed: () => ref.read(rssArticlesProvider.notifier).refresh(),
             ),
+          IconButton(
+            tooltip: 'Brief view (swipe through articles)',
+            icon: const Icon(Icons.view_day_outlined),
+            onPressed: () => context.push(RssRoutes.scroll(selected)),
+          ),
           IconButton(
             tooltip: 'Manage feeds & categories',
             icon: const Icon(Icons.folder_open),
@@ -126,9 +134,15 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
                       title: articlesState.refreshing
                           ? 'Loading…'
                           : 'Nothing here',
-                      message: selected == null
-                          ? 'Pull down to refresh.'
-                          : 'No articles in this category yet.',
+                      message: switch (selected) {
+                        null => 'Pull down to refresh.',
+                        savedArticlesFilter =>
+                          'No bookmarks yet. Swipe an article right to save it.',
+                        likedArticlesFilter =>
+                          'Nothing liked yet. Double-tap an article in the '
+                              'brief view to like it.',
+                        _ => 'No articles in this category yet.',
+                      },
                     ),
             ),
           ),
@@ -154,16 +168,18 @@ class _CategoryChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final library = ref.watch(rssLibraryProvider);
+    final reactions = ref.watch(rssReactionsProvider);
     final notifier = ref.read(selectedRssCategoryProvider.notifier);
 
-    Widget chip(String? id, String label) {
-      final unread = ref.watch(
-        unreadCountProvider((categoryId: id, feedId: null)),
-      );
+    // Real categories show unread counts; Saved/Liked show totals.
+    Widget chip(String? id, String label, {int? count}) {
+      final int n =
+          count ??
+          ref.watch(unreadCountProvider((categoryId: id, feedId: null)));
       return Padding(
         padding: const EdgeInsets.only(right: 8),
         child: ChoiceChip(
-          label: Text(unread > 0 ? '$label  $unread' : label),
+          label: Text(n > 0 ? '$label  $n' : label),
           selected: selected == id,
           showCheckmark: false,
           onSelected: (_) => notifier.select(id),
@@ -178,6 +194,10 @@ class _CategoryChips extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
         children: [
           chip(null, 'All'),
+          if (reactions.saved.isNotEmpty)
+            chip(savedArticlesFilter, '★ Saved', count: reactions.saved.length),
+          if (reactions.liked.isNotEmpty)
+            chip(likedArticlesFilter, '♥ Liked', count: reactions.liked.length),
           for (final c in library.categories)
             if (library.feedsIn(c.id).isNotEmpty) chip(c.id, c.name),
         ],

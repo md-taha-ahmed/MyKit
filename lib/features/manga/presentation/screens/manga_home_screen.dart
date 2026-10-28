@@ -7,6 +7,7 @@ import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
 import '../../manga_routes.dart';
 import '../providers/manga_providers.dart';
+import '../widgets/extension_info_sheet.dart';
 import '../widgets/manga_widgets.dart';
 
 /// Mihon-style home: Library · Browse · Extensions.
@@ -292,6 +293,22 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                           'v${e.versionName} · ${languageName(_lang(e))}'
                           '${e.nsfw ? ' · 18+' : ''}',
                       iconUrl: byPkg[e.pkgName]?.iconUrl,
+                      onTap: () => showExtensionInfoSheet(
+                        context,
+                        name: e.name,
+                        iconUrl: byPkg[e.pkgName]?.iconUrl,
+                        versionName: e.versionName,
+                        lang: _lang(e),
+                        nsfw: e.nsfw,
+                        sites: groupSites([
+                          for (final s in e.sources)
+                            (name: s.name, lang: s.lang, url: s.baseUrl ?? ''),
+                        ]),
+                        onInstall: updates.contains(e.pkgName)
+                            ? () => _install(byPkg[e.pkgName]!)
+                            : null,
+                        installLabel: 'Update',
+                      ),
                       trailing: busy.contains(e.pkgName)
                           ? const _Spinner()
                           : Row(
@@ -337,6 +354,25 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                           '${a.isNsfw ? ' · 18+' : ''}'
                           '${a.isSupported ? '' : ' · unsupported lib ${a.libVersion}'}',
                       iconUrl: a.iconUrl,
+                      onTap: () => showExtensionInfoSheet(
+                        context,
+                        name: a.name,
+                        iconUrl: a.iconUrl,
+                        versionName: a.versionName,
+                        lang: a.lang,
+                        nsfw: a.isNsfw,
+                        sites: groupSites([
+                          for (final s in a.sources)
+                            (name: s.name, lang: s.lang, url: s.homeUrl),
+                        ]),
+                        note: a.isSupported
+                            ? null
+                            : 'Needs extension lib ${a.libVersion}, which '
+                                  'MyKit doesn\'t support yet.',
+                        onInstall: a.isSupported && !busy.contains(a.pkgName)
+                            ? () => _install(a)
+                            : null,
+                      ),
                       trailing: busy.contains(a.pkgName)
                           ? const _Spinner()
                           : TextButton(
@@ -365,6 +401,7 @@ class _ExtensionTile extends StatelessWidget {
     required this.name,
     required this.subtitle,
     required this.trailing,
+    required this.onTap,
     this.iconUrl,
   });
 
@@ -372,10 +409,12 @@ class _ExtensionTile extends StatelessWidget {
   final String subtitle;
   final String? iconUrl;
   final Widget trailing;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: onTap,
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: SizedBox.square(

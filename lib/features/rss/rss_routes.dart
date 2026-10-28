@@ -4,11 +4,18 @@ import 'presentation/screens/article_screen.dart';
 import 'presentation/screens/feed_articles_screen.dart';
 import 'presentation/screens/manage_feeds_screen.dart';
 import 'presentation/screens/rss_home_screen.dart';
+import 'presentation/screens/rss_scroll_screen.dart';
 
 abstract final class RssRoutes {
   static const home = '/rss';
   static const manage = '/rss/manage';
   static String feed(String feedId) => '/rss/feed/$feedId';
+
+  /// Full-screen brief view for a chip (null = all articles).
+  static String scroll(String? categoryId) => Uri(
+    path: '/rss/scroll',
+    queryParameters: categoryId == null ? null : {'category': categoryId},
+  ).toString();
 
   /// Article ids contain URLs, so they travel as an encoded query parameter.
   static String article(String articleId) =>
@@ -19,6 +26,12 @@ abstract final class RssRoutes {
       path: home,
       builder: (context, state) => const RssHomeScreen(),
       routes: [
+        GoRoute(
+          path: 'scroll',
+          builder: (context, state) => RssScrollScreen(
+            categoryId: state.uri.queryParameters['category'],
+          ),
+        ),
         GoRoute(
           path: 'manage',
           builder: (context, state) => const ManageFeedsScreen(),
