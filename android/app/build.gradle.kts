@@ -90,10 +90,10 @@ android {
 // Versions follow keiyoushi/extensions-source; extensions get these from the host app.
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.4.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.12.0")
     implementation("com.squareup.okhttp3:okhttp:5.4.0")
     implementation("com.squareup.okhttp3:okhttp-brotli:5.4.0")
     implementation("com.squareup.okhttp3:okhttp-zstd:5.4.0")
