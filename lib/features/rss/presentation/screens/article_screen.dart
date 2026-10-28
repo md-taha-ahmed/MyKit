@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../domain/entities/feed_article.dart';
 import '../providers/rss_providers.dart';
+import '../widgets/article_actions.dart';
 
 /// In-app reading view with a link to the original article.
 class ArticleScreen extends ConsumerStatefulWidget {
@@ -25,13 +25,6 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
     );
   }
 
-  FeedArticle? _find(List<FeedArticle> articles) {
-    for (final a in articles) {
-      if (a.id == widget.articleId) return a;
-    }
-    return null;
-  }
-
   Future<void> _open(String link) async {
     final ok = await launchUrl(
       Uri.parse(link),
@@ -46,7 +39,7 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final article = _find(ref.watch(rssArticlesProvider).articles);
+    final article = ref.watch(articleByIdProvider(widget.articleId));
     if (article == null) {
       return Scaffold(
         appBar: AppBar(),
@@ -56,6 +49,9 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
 
     final feed = ref.watch(rssLibraryProvider).feedById(article.feedId);
     final isRead = ref.watch(rssReadIdsProvider).contains(article.id);
+    final reactions = ref.watch(rssReactionsProvider);
+    final liked = reactions.isLiked(article.id);
+    final saved = reactions.isSaved(article.id);
     final body = article.content.isNotEmpty ? article.content : article.summary;
     final link = article.link;
     final text = Theme.of(context).textTheme;
@@ -71,14 +67,18 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-            tooltip: isRead ? 'Mark as unread' : 'Mark as read',
-            icon: Icon(isRead ? Icons.mark_email_unread_outlined : Icons.done),
-            onPressed: () {
-              final notifier = ref.read(rssReadIdsProvider.notifier);
-              isRead
-                  ? notifier.markUnread(article.id)
-                  : notifier.markRead([article.id]);
-            },
+            tooltip: liked ? 'Unlike' : 'Like',
+            icon: Icon(
+              liked ? Icons.favorite : Icons.favorite_border,
+              color: liked ? const Color(0xFFFF5A6E) : null,
+            ),
+            onPressed: () =>
+                ref.read(rssReactionsProvider.notifier).toggleLike(article.id),
+          ),
+          IconButton(
+            tooltip: saved ? 'Remove bookmark' : 'Bookmark',
+            icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
+            onPressed: () => toggleSaveArticle(context, ref, article),
           ),
           if (link != null)
             IconButton(
@@ -86,6 +86,32 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
               icon: const Icon(Icons.open_in_new),
               onPressed: () => _open(link),
             ),
+          PopupMenuButton<String>(
+            onSelected: (v) async {
+              if (v == 'read') {
+                final notifier = ref.read(rssReadIdsProvider.notifier);
+                isRead
+                    ? notifier.markUnread(article.id)
+                    : notifier.markRead([article.id]);
+              } else if (v == 'delete') {
+                final delete = deleteArticle(
+                  context,
+                  ref,
+                  article,
+                  fromSaved: false,
+                );
+                Navigator.of(context).pop();
+                await delete;
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'read',
+                child: Text(isRead ? 'Mark as unread' : 'Mark as read'),
+              ),
+              const PopupMenuItem(value: 'delete', child: Text('Delete')),
+            ],
+          ),
         ],
       ),
       body: ListView(

@@ -309,11 +309,37 @@ class SelectedRssCategoryNotifier extends Notifier<String?> {
   void select(String? categoryId) => state = categoryId;
 }
 
-/// Newest-first articles matching [ArticleFilter].
+/// Special "categories" shown as chips next to the real ones.
+const savedArticlesFilter = '__saved__';
+const likedArticlesFilter = '__liked__';
+
+int _newestFirst(FeedArticle a, FeedArticle b) {
+  final da = a.publishedAt, db = b.publishedAt;
+  if (da == null && db == null) return 0;
+  if (da == null) return 1;
+  if (db == null) return -1;
+  return db.compareTo(da);
+}
+
+/// Newest-first articles matching [ArticleFilter]. Deleted articles are hidden.
 final filteredArticlesProvider =
     Provider.family<List<FeedArticle>, ArticleFilter>((ref, filter) {
       final library = ref.watch(rssLibraryProvider);
       final articles = ref.watch(rssArticlesProvider).articles;
+      final reactions = ref.watch(rssReactionsProvider);
+
+      if (filter.categoryId == savedArticlesFilter) {
+        return [...reactions.saved]..sort(_newestFirst);
+      }
+      if (filter.categoryId == likedArticlesFilter) {
+        final byId = {
+          for (final a in [...articles, ...reactions.saved]) a.id: a,
+        };
+        return [
+          for (final id in reactions.liked)
+            if (byId[id] != null) byId[id]!,
+        ]..sort(_newestFirst);
+      }
 
       final Set<String> feedIds;
       if (filter.feedId != null) {
@@ -324,16 +350,111 @@ final filteredArticlesProvider =
         feedIds = library.feeds.map((f) => f.id).toSet();
       }
 
-      final result = articles.where((a) => feedIds.contains(a.feedId)).toList()
-        ..sort((a, b) {
-          final da = a.publishedAt, db = b.publishedAt;
-          if (da == null && db == null) return 0;
-          if (da == null) return 1;
-          if (db == null) return -1;
-          return db.compareTo(da);
-        });
-      return result;
+      return articles
+          .where(
+            (a) =>
+                feedIds.contains(a.feedId) && !reactions.hidden.contains(a.id),
+          )
+          .toList()
+        ..sort(_newestFirst);
     });
+
+/// Finds an article in the cache or among bookmarks (which outlive the cache).
+final articleByIdProvider = Provider.family<FeedArticle?, String>((ref, id) {
+  for (final a in ref.watch(rssArticlesProvider).articles) {
+    if (a.id == id) return a;
+  }
+  for (final a in ref.watch(rssReactionsProvider).saved) {
+    if (a.id == id) return a;
+  }
+  return null;
+});
+
+// ---------------------------------------------------------------------------
+// Reactions: bookmark, like, delete
+// ---------------------------------------------------------------------------
+
+class RssReactions {
+  const RssReactions({
+    this.saved = const [],
+    this.liked = const {},
+    this.hidden = const {},
+  });
+
+  /// Bookmarked articles (full copies).
+  final List<FeedArticle> saved;
+  final Set<String> liked;
+
+  /// Deleted articles; kept hidden across refreshes.
+  final Set<String> hidden;
+
+  bool isSaved(String id) => saved.any((a) => a.id == id);
+  bool isLiked(String id) => liked.contains(id);
+}
+
+final rssReactionsProvider =
+    NotifierProvider<RssReactionsNotifier, RssReactions>(
+      RssReactionsNotifier.new,
+    );
+
+class RssReactionsNotifier extends Notifier<RssReactions> {
+  static const _maxHidden = 5000;
+
+  RssRepository get _repo => ref.read(rssRepositoryProvider);
+
+  @override
+  RssReactions build() => RssReactions(
+    saved: _repo.getSavedArticles(),
+    liked: _repo.getLikedIds(),
+    hidden: _repo.getHiddenIds(),
+  );
+
+  /// Bookmarks or un-bookmarks. Returns true if the article is now saved.
+  Future<bool> toggleSave(FeedArticle article) async {
+    final saved = state.isSaved(article.id)
+        ? state.saved.where((a) => a.id != article.id).toList()
+        : [article, ...state.saved];
+    state = RssReactions(
+      saved: saved,
+      liked: state.liked,
+      hidden: state.hidden,
+    );
+    await _repo.saveSavedArticles(saved);
+    return state.isSaved(article.id);
+  }
+
+  /// Returns true if the article is now liked.
+  Future<bool> toggleLike(String id) => _setLiked(id, !state.isLiked(id));
+
+  /// Double-tap: always likes (never un-likes), like Instagram.
+  Future<bool> like(String id) => _setLiked(id, true);
+
+  Future<bool> _setLiked(String id, bool liked) async {
+    final next = {...state.liked};
+    liked ? next.add(id) : next.remove(id);
+    state = RssReactions(saved: state.saved, liked: next, hidden: state.hidden);
+    await _repo.saveLikedIds(next);
+    return liked;
+  }
+
+  /// Deletes (hides) an article from the feeds; it won't come back on refresh.
+  Future<void> delete(String id) async {
+    var next = {...state.hidden, id};
+    if (next.length > _maxHidden) {
+      // Forget deletions of articles that have left every feed.
+      final live = ref.read(rssArticlesProvider).articles.map((a) => a.id);
+      next = next.intersection(live.toSet());
+    }
+    state = RssReactions(saved: state.saved, liked: state.liked, hidden: next);
+    await _repo.saveHiddenIds(next);
+  }
+
+  Future<void> undoDelete(String id) async {
+    final next = {...state.hidden}..remove(id);
+    state = RssReactions(saved: state.saved, liked: state.liked, hidden: next);
+    await _repo.saveHiddenIds(next);
+  }
+}
 
 /// Unread article count for a filter.
 final unreadCountProvider = Provider.family<int, ArticleFilter>((ref, filter) {

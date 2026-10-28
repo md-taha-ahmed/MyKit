@@ -47,4 +47,24 @@ class RssRepositoryImpl implements RssRepository {
 
   @override
   Future<void> saveReadIds(Set<String> ids) => _local.writeReadIds(ids);
+
+  @override
+  List<FeedArticle> getSavedArticles() =>
+      _local.readSaved().map(RssModels.articleFromJson).toList();
+
+  @override
+  Future<void> saveSavedArticles(List<FeedArticle> articles) =>
+      _local.writeSaved(articles.map(RssModels.articleToJson).toList());
+
+  @override
+  Set<String> getLikedIds() => _local.readLiked();
+
+  @override
+  Future<void> saveLikedIds(Set<String> ids) => _local.writeLiked(ids);
+
+  @override
+  Set<String> getHiddenIds() => _local.readHidden();
+
+  @override
+  Future<void> saveHiddenIds(Set<String> ids) => _local.writeHidden(ids);
 }

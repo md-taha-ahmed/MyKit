@@ -75,6 +75,26 @@ void main() {
     expect(feed.articles.map((a) => a.title), ['One', 'Two']);
   });
 
+  test('prefers the largest image', () {
+    const xml = '''<rss xmlns:media="http://search.yahoo.com/mrss/"><channel>
+  <title>T</title>
+  <item>
+    <title>A</title>
+    <media:thumbnail url="https://x/small.jpg" width="240"/>
+    <media:thumbnail url="https://x/medium.jpg" width="640"/>
+    <media:content url="https://x/full.jpg" medium="image" width="1200"/>
+  </item>
+  <item>
+    <title>B</title>
+    <media:thumbnail url="https://x/small.jpg" width="240"/>
+    <media:thumbnail url="https://x/medium.jpg" width="640"/>
+  </item>
+</channel></rss>''';
+    final feed = FeedParser.tryParse(xml)!;
+    expect(feed.articles[0].imageUrl, 'https://x/full.jpg');
+    expect(feed.articles[1].imageUrl, 'https://x/medium.jpg');
+  });
+
   test('HTML pages are not feeds', () {
     expect(FeedParser.tryParse('<html><body>hi</body></html>'), isNull);
     expect(FeedParser.tryParse('not xml at all'), isNull);
