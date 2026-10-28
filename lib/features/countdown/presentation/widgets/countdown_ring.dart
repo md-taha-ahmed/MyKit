@@ -37,56 +37,62 @@ class CountdownRing extends StatelessWidget {
     // Inner area available for text.
     final inner = size * (1 - 2 * _RingPainter.strokeRatio) * .78;
 
-    return SizedBox.square(
-      dimension: size,
-      child: CustomPaint(
-        painter: _RingPainter(
-          progress: snap.progress,
-          ringColor: Color(countdown.ringColor),
-          trackColor: Color(countdown.trackColor),
-          backgroundColor: Color(countdown.backgroundColor),
-          clockwise: countdown.clockwise,
-          shadow: countdown.dropShadow,
-        ),
-        child: Center(
-          child: SizedBox(
-            width: inner,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: size * .3,
-                  child: FittedBox(
-                    child: Text(
-                      snap.valueText,
-                      style: TextStyle(
-                        fontFamily: countdown.font.family,
-                        fontWeight: FontWeight.w700,
-                        color: textColor,
-                        height: 1,
-                        letterSpacing: -size * .006,
-                        shadows: shadows,
-                      ),
-                    ),
-                  ),
-                ),
-                if (countdown.showLabel)
+    // Own (transparent) Material: during the Hero flight between the list and
+    // the detail screen the ring has no Material ancestor, and Flutter would
+    // draw its text with yellow "missing style" underlines.
+    return Material(
+      type: MaterialType.transparency,
+      child: SizedBox.square(
+        dimension: size,
+        child: CustomPaint(
+          painter: _RingPainter(
+            progress: snap.progress,
+            ringColor: Color(countdown.ringColor),
+            trackColor: Color(countdown.trackColor),
+            backgroundColor: Color(countdown.backgroundColor),
+            clockwise: countdown.clockwise,
+            shadow: countdown.dropShadow,
+          ),
+          child: Center(
+            child: SizedBox(
+              width: inner,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   SizedBox(
-                    height: size * .12,
+                    height: size * .3,
                     child: FittedBox(
                       child: Text(
-                        snap.label,
+                        snap.valueText,
                         style: TextStyle(
                           fontFamily: countdown.font.family,
                           fontWeight: FontWeight.w700,
                           color: textColor,
-                          height: 1.1,
+                          height: 1,
+                          letterSpacing: -size * .006,
                           shadows: shadows,
                         ),
                       ),
                     ),
                   ),
-              ],
+                  if (countdown.showLabel)
+                    SizedBox(
+                      height: size * .12,
+                      child: FittedBox(
+                        child: Text(
+                          snap.label,
+                          style: TextStyle(
+                            fontFamily: countdown.font.family,
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                            height: 1.1,
+                            shadows: shadows,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
