@@ -8,6 +8,7 @@ import '../../domain/entities/fitness_entities.dart';
 import '../../domain/progress_math.dart';
 import '../../fitness_routes.dart';
 import '../providers/fitness_providers.dart';
+import '../widgets/body_diagram.dart';
 import '../widgets/fitness_sheets.dart';
 import '../widgets/line_chart.dart';
 import 'exercise_list_screen.dart';
@@ -537,6 +538,30 @@ class _PlanTab extends ConsumerWidget {
 // Progress
 // ---------------------------------------------------------------------------
 
+/// 0–1 per muscle: sets in the last 7 days relative to the most-trained one.
+Map<String, double> _weeklyMuscles(
+  List<WorkoutSession> sessions,
+  Map<String, Exercise> library,
+) {
+  final since = DateTime.now().subtract(const Duration(days: 7));
+  final sets = <String, double>{};
+  for (final s in sessions.where((s) => s.startedAt.isAfter(since))) {
+    for (final log in s.exercises) {
+      final e = library[log.exerciseId];
+      if (e == null) continue;
+      for (final m in e.primaryMuscles) {
+        sets[m] = (sets[m] ?? 0) + log.sets.length;
+      }
+      for (final m in e.secondaryMuscles) {
+        sets[m] = (sets[m] ?? 0) + log.sets.length / 2;
+      }
+    }
+  }
+  if (sets.isEmpty) return const {};
+  final most = sets.values.reduce((a, b) => a > b ? a : b);
+  return {for (final e in sets.entries) e.key: 0.2 + 0.8 * e.value / most};
+}
+
 class _ProgressTab extends ConsumerWidget {
   const _ProgressTab();
 
@@ -645,6 +670,18 @@ class _ProgressTab extends ConsumerWidget {
             ),
           ),
         ],
+        const SizedBox(height: 16),
+        const Text(
+          'Muscles trained this week',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const Text(
+          'Sets in the last 7 days (helping muscles count half). Grey = '
+          'not trained yet.',
+          style: TextStyle(fontSize: 12.5, color: Colors.white60),
+        ),
+        const SizedBox(height: 10),
+        BodyDiagram(intensity: _weeklyMuscles(sessions, library), height: 240),
         const SizedBox(height: 16),
         const Text(
           'Workouts per week',
