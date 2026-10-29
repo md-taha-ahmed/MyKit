@@ -102,7 +102,10 @@ class RssRemoteDataSource {
       );
     }
     if (res.statusCode >= 400) {
-      throw FeedException('Server responded with ${res.statusCode}.');
+      throw FeedException(
+        'Server responded with ${res.statusCode}.',
+        statusCode: res.statusCode,
+      );
     }
     return _decode(res);
   }

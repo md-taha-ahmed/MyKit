@@ -35,7 +35,25 @@ class RssRepositoryImpl implements RssRepository {
   Future<FeedPreview> preview(String url) => _remote.discover(url);
 
   @override
-  Future<ParsedFeed> fetch(RssFeed feed) => _remote.fetch(feed.url);
+  Future<ParsedFeed> fetch(RssFeed feed) async {
+    try {
+      return await _remote.fetch(feed.url);
+    } on FeedException catch (e) {
+      // YouTube's RSS endpoint goes down from time to time (404 for every
+      // channel); load the uploads through the YouTube Data API instead.
+      final channelId = Uri.tryParse(feed.url)?.queryParameters['channel_id'];
+      if (!feed.isYoutube || channelId == null || e.statusCode == null) {
+        rethrow;
+      }
+      if (!_youtube.isSignedIn) {
+        throw const FeedException(
+          'YouTube\'s RSS feeds are down. Sign in under "Import YouTube '
+          'subscriptions" to load videos through the YouTube API instead.',
+        );
+      }
+      return _youtube.uploads(channelId);
+    }
+  }
 
   @override
   List<FeedArticle> getCachedArticles() =>

@@ -5,9 +5,12 @@ import '../entities/youtube_channel.dart';
 
 /// Thrown when a URL can't be turned into a feed.
 class FeedException implements Exception {
-  const FeedException(this.message);
+  const FeedException(this.message, {this.statusCode});
 
   final String message;
+
+  /// HTTP status when the server answered with an error.
+  final int? statusCode;
 
   @override
   String toString() => message;
