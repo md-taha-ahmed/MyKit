@@ -201,3 +201,94 @@ String languageName(String code) =>
       'zh-Hant': 'Chinese (Traditional)',
     }[code] ??
     code;
+
+class ExtensionTile extends StatelessWidget {
+  const ExtensionTile({
+    super.key,
+    required this.name,
+    required this.subtitle,
+    required this.trailing,
+    required this.onTap,
+    this.iconUrl,
+  });
+
+  final String name;
+  final String subtitle;
+  final String? iconUrl;
+  final Widget trailing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox.square(
+          dimension: 40,
+          child: iconUrl == null
+              ? const Icon(Icons.extension)
+              : Image.network(
+                  iconUrl!,
+                  cacheWidth: 120,
+                  errorBuilder: (_, _, _) => const Icon(Icons.extension),
+                ),
+        ),
+      ),
+      title: Text(name),
+      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54)),
+      trailing: trailing,
+    );
+  }
+}
+
+class SectionLabel extends StatelessWidget {
+  const SectionLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Text(
+      text,
+      style: const TextStyle(color: mangaAccent, fontWeight: FontWeight.w600),
+    ),
+  );
+}
+
+class SmallSpinner extends StatelessWidget {
+  const SmallSpinner({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.square(
+    dimension: 20,
+    child: CircularProgressIndicator(strokeWidth: 2),
+  );
+}
+
+class EmptyHint extends StatelessWidget {
+  const EmptyHint({super.key, required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 64, color: Colors.white24),
+          const SizedBox(height: 16),
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white60),
+          ),
+        ],
+      ),
+    ),
+  );
+}

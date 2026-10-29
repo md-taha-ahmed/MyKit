@@ -39,7 +39,7 @@ class MangaChannel(private val context: Context, messenger: BinaryMessenger) :
         setMethodCallHandler(this@MangaChannel)
     }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val host by lazy { ExtensionHost.get(context) }
+    private val host by lazy { ExtensionHost.manga(context) }
     private val imageDir by lazy { File(context.cacheDir, "manga_images").apply { mkdirs() } }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -155,7 +155,7 @@ class MangaChannel(private val context: Context, messenger: BinaryMessenger) :
 
     private fun page(call: MethodCall): Int = call.argument<Int>("page") ?: 1
 
-    private fun ExtensionHost.LoadedExtension.toMap() = mapOf(
+    private fun ExtensionHost.LoadedExtension<Source>.toMap() = mapOf(
         "pkgName" to pkgName,
         "name" to name,
         "versionName" to versionName,

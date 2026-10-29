@@ -122,6 +122,7 @@ abstract final class ExtensionIndexParser {
   static AvailableExtension _extension(Uint8List bytes, ExtensionRepo repo) {
     var name = '', pkg = '', apk = '', icon = '', lib = '', versionName = '';
     var versionCode = 0, warning = 0;
+    var torrent = false;
     final sources = <AvailableSource>[];
     for (final (f, v) in _ProtoReader(bytes).fields()) {
       switch (f) {
@@ -142,7 +143,12 @@ abstract final class ExtensionIndexParser {
           versionName = _str(v);
         case 7:
           warning = v as int;
+        // Mihon: 8 = sources. Aniyomi (anime): 8 = isTorrent, 9 = sources.
+        case 8 when v is Uint8List:
+          sources.add(_source(v));
         case 8:
+          torrent = v == 1;
+        case 9:
           sources.add(_source(v as Uint8List));
       }
     }
@@ -155,6 +161,7 @@ abstract final class ExtensionIndexParser {
       versionCode: versionCode,
       versionName: versionName,
       contentWarning: ContentWarning.values[warning.clamp(0, 3)],
+      isTorrent: torrent,
       sources: sources,
       repo: repo,
     );
@@ -186,7 +193,10 @@ abstract final class ExtensionIndexParser {
   ) => [
     for (final e in json.cast<Map<String, dynamic>>())
       AvailableExtension(
-        name: (e['name'] as String).replaceFirst('Tachiyomi: ', ''),
+        name: (e['name'] as String).replaceFirst(
+          RegExp(r'^(Tachiyomi|Aniyomi): '),
+          '',
+        ),
         pkgName: e['pkg'] as String,
         apkUrl: '$baseUrl/apk/${e['apk']}',
         iconUrl: '$baseUrl/icon/${e['pkg']}.png',
@@ -199,6 +209,7 @@ abstract final class ExtensionIndexParser {
         contentWarning: (e['nsfw'] as num?) == 1
             ? ContentWarning.nsfw
             : ContentWarning.safe,
+        isTorrent: (e['torrent'] as num?) == 1,
         sources: [
           for (final s
               in (e['sources'] as List? ?? const [])

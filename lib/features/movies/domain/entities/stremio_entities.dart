@@ -411,7 +411,9 @@ class SubtitleInfo {
   final String lang;
   final String addonName;
 
-  String get languageName => languageNames[lang] ?? lang.toUpperCase();
+  /// Codes ("eng") map to names; sources that already send names keep them.
+  String get languageName =>
+      languageNames[lang] ?? (lang.length > 3 ? lang : lang.toUpperCase());
 
   factory SubtitleInfo.fromJson(String addonName, Map<String, dynamic> j) =>
       SubtitleInfo(
@@ -420,6 +422,17 @@ class SubtitleInfo {
         lang: (j['lang'] ?? 'und').toString(),
         addonName: addonName,
       );
+}
+
+/// Normalises a subtitle language to a code: add-ons send codes ("eng"),
+/// anime sources send names ("English", "Portuguese (Brazil)").
+String languageCode(String raw) {
+  if (languageNames.containsKey(raw)) return raw;
+  final lower = raw.toLowerCase();
+  for (final e in languageNames.entries) {
+    if (lower.startsWith(e.value.toLowerCase())) return e.key;
+  }
+  return raw;
 }
 
 /// Names for the language codes OpenSubtitles returns most.

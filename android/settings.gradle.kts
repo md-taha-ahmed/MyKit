@@ -20,8 +20,10 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.11.1" apply false
-    // Manga extensions are built with Kotlin 2.4.10; the host must match.
+    // Extensions are built with Kotlin 2.4.x; the host stays on the same minor.
     id("org.jetbrains.kotlin.android") version "2.4.21" apply false
+    // Must match the Kotlin version (anime extension models are @Serializable).
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.21" apply false
 }
 
 include(":app")

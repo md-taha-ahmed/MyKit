@@ -3,6 +3,8 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    // Anime extension API models (Video, Track…) are @Serializable.
+    id("org.jetbrains.kotlin.plugin.serialization")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -111,4 +113,9 @@ dependencies {
     implementation("org.libtorrent4j:libtorrent4j:2.1.0-39")
     implementation("org.libtorrent4j:libtorrent4j-android-arm64:2.1.0-39")
     implementation("org.libtorrent4j:libtorrent4j-android-arm:2.1.0-39")
+}
+
+// Anime & Manga: extra runtime for Aniyomi anime extensions (local HTTP server base class).
+dependencies {
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
 }

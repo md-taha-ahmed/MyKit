@@ -45,6 +45,7 @@ class AvailableExtension {
     required this.contentWarning,
     required this.sources,
     required this.repo,
+    this.isTorrent = false,
   });
 
   final String name;
@@ -58,7 +59,16 @@ class AvailableExtension {
   final List<AvailableSource> sources;
   final ExtensionRepo repo;
 
-  bool get isNsfw => contentWarning == ContentWarning.nsfw;
+  /// Anime extension whose videos are torrents (needs Aniyomi's torrent server).
+  final bool isTorrent;
+
+  /// Aniyomi anime extension (vs a Mihon manga extension).
+  bool get isAnime => pkgName.contains('.animeextension.');
+
+  /// Aniyomi counts "mixed" content as NSFW too.
+  bool get isNsfw => isAnime
+      ? contentWarning.index >= ContentWarning.mixed.index
+      : contentWarning == ContentWarning.nsfw;
 
   /// "en", "all", … like Mihon.
   String get lang {
@@ -67,7 +77,11 @@ class AvailableExtension {
   }
 
   static const supportedLibs = {'1.4', '1.6'};
-  bool get isSupported => supportedLibs.contains(libVersion);
+  static const supportedAnimeLibs = {'14', '16', '17'};
+
+  bool get isSupported => isAnime
+      ? supportedAnimeLibs.contains(libVersion) && !isTorrent
+      : supportedLibs.contains(libVersion);
 }
 
 /// A source exposed by an installed extension.
