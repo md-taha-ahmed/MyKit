@@ -180,6 +180,25 @@ Browse, pick a source and play, using the [Stremio add-on protocol](https://gith
 - Torrents share what you download with other peers, and your IP is visible to them. Only stream what you have
   the right to watch.
 
+## Fitness — home workouts and progress
+
+Built for losing weight with home training (dumbbells + calisthenics).
+
+- **Plan**: a ready 4-day upper/lower plan (Sat/Sun/Tue/Wed by default, beginner-friendly: incline push-ups,
+  floor press, goblet squats, RDLs, lunges, core and a short finisher) — every workout, exercise, target and day
+  is editable. Double progression: when every set reaches the top of the rep range the workout screen says to
+  add weight (`lib/features/fitness/domain/`).
+- **Workout**: one exercise at a time with photos, sets × reps × kg pre-filled from last time, hold timer for
+  timed moves, rest countdown (vibration/sound, plus a notification if the phone is locked), summary with new
+  personal bests. The workout in progress survives leaving the screen or the app.
+- **Exercises**: 876 exercises from [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (public
+  domain) — downloaded once; photos download on first view and stay cached; start/end photos alternate like a
+  GIF. Filters: home equipment, muscle. Add your own photo to any exercise, or create your own exercises.
+  A body diagram (front/back, drawn in code) highlights primary and secondary muscles.
+- **Progress**: weight chart with goal line, BMI, measurements (waist, chest, arm, hips, thigh), workouts per
+  week, week streak, personal bests and full history.
+- **Reminders** on training days (flutter_local_notifications; inexact alarms, no special permission).
+
 ## App icon
 
 - Android 8+ uses the adaptive vector icon: `android/app/src/main/res/drawable/ic_launcher_{background,foreground,monochrome}.xml`

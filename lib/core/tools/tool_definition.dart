@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Describes a single tool that lives on the dashboard.
@@ -15,6 +16,7 @@ class ToolDefinition {
     required this.color,
     required this.rootPath,
     required this.routes,
+    this.status,
   });
 
   final String id;
@@ -28,4 +30,8 @@ class ToolDefinition {
 
   /// Top-level routes owned by this tool.
   final List<RouteBase> routes;
+
+  /// Optional one-line live status for the dashboard card ("12 unread",
+  /// "Upper A today"…). Null or empty hides it.
+  final String? Function(WidgetRef ref)? status;
 }
