@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/platform/external_apps.dart';
 import '../providers/rss_providers.dart';
 import '../widgets/article_actions.dart';
+import '../widgets/article_ai.dart';
 
 /// In-app reading view with a link to the original article.
 class ArticleScreen extends ConsumerStatefulWidget {
@@ -95,7 +96,9 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
             ),
           PopupMenuButton<String>(
             onSelected: (v) async {
-              if (v == 'read') {
+              if (v == 'aiKey') {
+                await showGeminiKeyDialog(context, ref);
+              } else if (v == 'read') {
                 final notifier = ref.read(rssReadIdsProvider.notifier);
                 isRead
                     ? notifier.markUnread(article.id)
@@ -117,6 +120,10 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
                 child: Text(isRead ? 'Mark as unread' : 'Mark as read'),
               ),
               const PopupMenuItem(value: 'delete', child: Text('Delete')),
+              const PopupMenuItem(
+                value: 'aiKey',
+                child: Text('Gemini API key…'),
+              ),
             ],
           ),
         ],
@@ -139,6 +146,8 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
               fontSize: 13.5,
             ),
           ),
+          const SizedBox(height: 14),
+          ArticleAiPanel(articleId: article.id),
           if (article.imageUrl != null) ...[
             const SizedBox(height: 18),
             ClipRRect(

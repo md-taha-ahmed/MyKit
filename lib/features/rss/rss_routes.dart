@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import 'presentation/screens/article_chat_screen.dart';
 import 'presentation/screens/article_screen.dart';
 import 'presentation/screens/feed_articles_screen.dart';
 import 'presentation/screens/manage_feeds_screen.dart';
@@ -22,6 +23,12 @@ abstract final class RssRoutes {
   /// Article ids contain URLs, so they travel as an encoded query parameter.
   static String article(String articleId) =>
       Uri(path: '/rss/article', queryParameters: {'id': articleId}).toString();
+
+  /// Chat with Gemini about an article.
+  static String articleChat(String articleId) => Uri(
+    path: '/rss/article/chat',
+    queryParameters: {'id': articleId},
+  ).toString();
 
   static final routes = <RouteBase>[
     GoRoute(
@@ -52,6 +59,14 @@ abstract final class RssRoutes {
           path: 'article',
           builder: (context, state) =>
               ArticleScreen(articleId: state.uri.queryParameters['id'] ?? ''),
+          routes: [
+            GoRoute(
+              path: 'chat',
+              builder: (context, state) => ArticleChatScreen(
+                articleId: state.uri.queryParameters['id'] ?? '',
+              ),
+            ),
+          ],
         ),
       ],
     ),

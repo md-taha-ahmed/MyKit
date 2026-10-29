@@ -65,6 +65,17 @@ flutter test
 - Supports RSS 2.0, RSS 1.0/RDF and Atom (`lib/features/rss/data/parsers/feed_parser.dart`).
 - Articles are cached for offline reading (100 per feed); read state is tracked per article.
 
+### AI summaries and article chat (Gemini)
+
+Every article has **Summarize** (gist + key facts, in the article's language) and **Ask** (a chat about the
+article). When a feed only ships a teaser, the app fetches the page and extracts the article text first.
+
+- Client: `lib/core/ai/gemini_client.dart` (Gemini `generateContent` REST, `gemini-3.5-flash-lite` with
+  `gemini-3.5-flash` as fallback when busy — the regular models with the most free-tier quota).
+- Key: put it in the git-ignored `config/ai.local.json` (`{"GEMINI_API_KEY": "…"}`) and build with
+  `--dart-define-from-file=config/ai.local.json`, or paste it in the app (article ⋮ → Gemini API key…;
+  stored on the device only). CI builds contain no key.
+
 ## YouTube subscriptions import
 
 RSS Feeds → **+** → **Import YouTube subscriptions** signs in with Google **in the browser** (OAuth with PKCE and a
@@ -106,7 +117,7 @@ at build time). For installed apps Google does not treat the "client secret" as 
 - Layouts: vertical continuous scroll or horizontal page-by-page (pinch / double-tap zoom).
 - Page colours: light, dark (softened inversion) and sepia — `presentation/widgets/reader_colors.dart`.
 
-## Manga (beta) — Mihon-compatible extensions
+## Anime & Manga (beta) — Mihon & Aniyomi extensions
 
 MyKit hosts real Mihon/Tachiyomi extension APKs (extension lib 1.4 / 1.6).
 
@@ -124,6 +135,23 @@ MyKit hosts real Mihon/Tachiyomi extension APKs (extension lib 1.4 / 1.6).
 - **App**: Library · Browse · Extensions tabs, manga details + chapters, reader (right-to-left, left-to-right,
   vertical/webtoon), progress and read chapters.
 - Not yet: source filters, source preference screens, downloads, library update checks, tracking.
+
+**Anime** (switch **Manga | Anime** at the top of the tool) hosts real Aniyomi anime extension APKs
+(ext lib 14 / 16 / 17), with the same Library · Browse · Extensions tabs.
+
+- **Repositories** are shared with manga; an anime repo (e.g. yuzono's `index.min.json`) shows its extensions
+  in Anime mode. The index parser handles Aniyomi's protobuf store (field 8 = torrent flag, 9 = sources).
+- **Host**: `ExtensionHost<S>` serves both kinds (`ExtensionHost.MANGA` / `ANIME`: feature, metadata keys,
+  lib versions, storage); same signature check and class loading. The anime source API
+  (`eu.kanade.tachiyomi.animesource.*`) and Aniyomi's extra helpers are ported from Aniyomi (see
+  `THIRD_PARTY_NOTICES.md`); NanoHTTPD and the kotlinx-serialization plugin are added for it.
+- **Playback** (`AnimeChannel.kt`) follows Aniyomi's EpisodeLoader: sources overriding the hoster API give
+  hosters → videos (lazy hosters load on demand), older ones give videos directly; `getVideoUrl` /
+  `resolveVideo` and the source's own sorting are applied. Videos play in the Movies & Series player with the
+  source's headers; subtitles that need those headers are downloaded by the app and passed to mpv as text.
+- **App**: browse/latest/search per source, details with episodes or seasons, watched marks (long-press),
+  Continue/Start, resume position, library.
+- Not yet: torrent extensions (need Aniyomi's TorrServer), source filters and preference screens, downloads.
 
 ## Movies & Series (beta) — Stremio add-ons
 
