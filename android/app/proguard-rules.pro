@@ -65,3 +65,6 @@
 
 # libtorrent4j: SWIG/JNI bindings are looked up by name from native code.
 -keep class org.libtorrent4j.** { *; }
+
+# Aniyomi anime extensions link against these by name too.
+-keep class fi.iki.elonen.** { *; }

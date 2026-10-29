@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -25,6 +27,9 @@ class PlayerArgs {
     this.poster,
     this.background,
     this.episodeLabel,
+    this.httpHeaders = const {},
+    this.subtitles,
+    this.audioTracks = const [],
   });
 
   final StreamSource source;
@@ -35,6 +40,15 @@ class PlayerArgs {
   final String? poster;
   final String? background;
   final String? episodeLabel;
+
+  /// Request headers the video host needs (e.g. Referer for anime sources).
+  final Map<String, String> httpHeaders;
+
+  /// Subtitles supplied by the caller; null = ask the subtitle add-ons.
+  final List<SubtitleInfo>? subtitles;
+
+  /// Separate audio files offered alongside the video.
+  final List<({String url, String lang})> audioTracks;
 }
 
 /// Full-screen player (libmpv via media_kit). Torrents are streamed through
@@ -87,7 +101,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _configureMpv();
     _errors = _player.stream.error.listen((e) {
-      if (_opened && mounted) setState(() => _error = e);
+      if (!_opened || !mounted) return;
+      // A subtitle/audio file failing, or a hiccup once the video is
+      // playing, isn't fatal: tell the user and keep going.
+      final loaded = _player.state.duration > Duration.zero;
+      if (e.contains('external file') || loaded) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(e)));
+        return;
+      }
+      setState(() => _error = e);
     });
     final source = _args.source;
     if (source.url != null) {
@@ -156,7 +180,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             resume.position > const Duration(seconds: 30)
         ? resume.position - const Duration(seconds: 3)
         : null;
-    await _player.open(Media(url, start: start));
+    await _player.open(
+      Media(url, start: start, httpHeaders: _args.httpHeaders),
+    );
     _saveTimer = Timer.periodic(
       const Duration(seconds: 10),
       (_) => _saveProgress(),
@@ -165,6 +191,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   }
 
   Future<void> _loadSubtitles() async {
+    if (_args.subtitles != null) {
+      _subtitles = _args.subtitles!;
+      _applyPreferredSubtitle();
+      return;
+    }
     try {
       final subs = await ref.read(
         subtitlesProvider((type: _args.type, videoId: _args.videoId)).future,
@@ -183,16 +214,47 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_autoSubtitleDone || !_opened || _subtitles.isEmpty) return;
     _autoSubtitleDone = true;
     final lang = ref.read(subtitleLanguageProvider);
-    final match = _subtitles.where((s) => s.lang == lang).firstOrNull;
+    final match = _subtitles
+        .where((s) => languageCode(s.lang) == lang)
+        .firstOrNull;
     if (match != null) _selectExternal(match, 1);
   }
 
-  void _selectExternal(SubtitleInfo s, int n) {
-    final title = '${s.languageName} $n';
+  /// "English 2" for add-on codes; sources that send names keep their own
+  /// label (they already number duplicates).
+  String _subLabel(SubtitleInfo s, int n) =>
+      languageNames.containsKey(s.lang) ? '${s.languageName} $n' : s.lang;
+
+  Future<void> _selectExternal(SubtitleInfo s, int n) async {
+    final title = _subLabel(s, n);
     _loadedSubtitleTitles.add(title);
-    _player.setSubtitleTrack(
-      SubtitleTrack.uri(s.url, title: title, language: s.lang),
-    );
+    if (_args.httpHeaders.isEmpty) {
+      await _player.setSubtitleTrack(
+        SubtitleTrack.uri(s.url, title: title, language: s.lang),
+      );
+      return;
+    }
+    // Hosts that need headers (Referer…) also need them for subtitles, and
+    // mpv may fetch the file before the video's headers apply: download it
+    // ourselves and hand mpv the text.
+    try {
+      final res = await http
+          .get(Uri.parse(s.url), headers: _args.httpHeaders)
+          .timeout(const Duration(seconds: 20));
+      if (res.statusCode != 200) throw 'HTTP ${res.statusCode}';
+      await _player.setSubtitleTrack(
+        SubtitleTrack.data(
+          utf8.decode(res.bodyBytes, allowMalformed: true),
+          title: title,
+          language: s.lang,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not load subtitles ($e)')));
+    }
   }
 
   void _saveProgress() {
@@ -463,13 +525,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                     !_loadedSubtitleTitles.contains(t.title),
               )
               .toList();
-          final langs = {for (final s in _subtitles) s.lang}.toList()
-            ..sort((a, b) {
-              if (a == lang) return -1;
-              if (b == lang) return 1;
-              return (languageNames[a] ?? a).compareTo(languageNames[b] ?? b);
-            });
-          final external = _subtitles.where((s) => s.lang == lang).toList();
+          final langs =
+              {
+                for (final s in _subtitles) languageCode(s.lang),
+              }.toList()..sort((a, b) {
+                if (a == lang) return -1;
+                if (b == lang) return 1;
+                return (languageNames[a] ?? a).compareTo(languageNames[b] ?? b);
+              });
+          final external = _subtitles
+              .where((s) => languageCode(s.lang) == lang)
+              .toList();
 
           Widget tile(String title, bool selected, VoidCallback onTap) =>
               ListTile(
@@ -537,7 +603,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       ),
                   ],
                   if (langs.isNotEmpty) ...[
-                    const _SheetLabel('Online (OpenSubtitles)'),
+                    _SheetLabel('Online (${_subtitles.first.addonName})'),
                     SizedBox(
                       height: 48,
                       child: ListView(
@@ -566,8 +632,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                     ),
                     for (final (i, s) in external.indexed)
                       tile(
-                        '${s.languageName} ${i + 1}',
-                        current.id == s.url,
+                        _subLabel(s, i + 1),
+                        current.id == s.url ||
+                            current.title == _subLabel(s, i + 1),
                         () => _selectExternal(s, i + 1),
                       ),
                   ] else
@@ -614,8 +681,20 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
-            if (tracks.isEmpty)
+            if (tracks.isEmpty && _args.audioTracks.isEmpty)
               const ListTile(dense: true, title: Text('No audio tracks yet')),
+            for (final a in _args.audioTracks)
+              if (!tracks.any((t) => t.id == a.url))
+                ListTile(
+                  dense: true,
+                  title: Text(a.lang.isEmpty ? 'Extra audio' : a.lang),
+                  onTap: () {
+                    _player.setAudioTrack(
+                      AudioTrack.uri(a.url, title: a.lang, language: a.lang),
+                    );
+                    Navigator.pop(context);
+                  },
+                ),
             for (final t in tracks)
               ListTile(
                 dense: true,

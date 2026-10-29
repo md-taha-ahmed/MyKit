@@ -18,7 +18,7 @@ class MangaNativeDataSource {
 
   Future<List<InstalledExtension>> installed() async {
     final raw = await _call<List<Object?>>('installed') ?? const [];
-    return raw.cast<Map<Object?, Object?>>().map(_extension).toList();
+    return raw.cast<Map<Object?, Object?>>().map(extensionFromMap).toList();
   }
 
   Future<InstalledExtension> install(AvailableExtension ext) async {
@@ -27,7 +27,7 @@ class MangaNativeDataSource {
       'pkgName': ext.pkgName,
       'signingKey': ext.repo.signingKey,
     });
-    return _extension(raw!);
+    return extensionFromMap(raw!);
   }
 
   Future<void> uninstall(String pkgName) =>
@@ -109,7 +109,7 @@ class MangaNativeDataSource {
     ], raw['hasNextPage'] as bool? ?? false);
   }
 
-  static InstalledExtension _extension(Map<Object?, Object?> m) {
+  static InstalledExtension extensionFromMap(Map<Object?, Object?> m) {
     final name = m['name'] as String;
     final pkg = m['pkgName'] as String;
     final nsfw = m['nsfw'] as bool? ?? false;

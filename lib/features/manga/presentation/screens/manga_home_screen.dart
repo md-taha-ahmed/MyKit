@@ -6,7 +6,9 @@ import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
 import '../../manga_routes.dart';
+import '../providers/anime_providers.dart';
 import '../providers/manga_providers.dart';
+import 'anime_tabs.dart';
 import '../widgets/extension_info_sheet.dart';
 import '../widgets/manga_widgets.dart';
 
@@ -30,10 +32,31 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final titles = ['Library', 'Browse', 'Extensions'];
+    final mode = ref.watch(mediaModeProvider);
+    final anime = mode == MediaMode.anime;
     return Scaffold(
       appBar: AppBar(
-        title: Text(titles[_tab]),
+        titleSpacing: 12,
+        // Scales down rather than wrapping when the tab adds action icons.
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: SegmentedButton<MediaMode>(
+            showSelectedIcon: false,
+            style: SegmentedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              selectedBackgroundColor: mangaAccent.withValues(alpha: .3),
+            ),
+            segments: const [
+              ButtonSegment(value: MediaMode.manga, label: Text('Manga')),
+              ButtonSegment(value: MediaMode.anime, label: Text('Anime')),
+            ],
+            selected: {mode},
+            onSelectionChanged: (v) =>
+                ref.read(mediaModeProvider.notifier).set(v.first),
+          ),
+        ),
         actions: [
           if (_tab != 0)
             IconButton(
@@ -49,10 +72,13 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
             ),
         ],
       ),
-      body: switch (_tab) {
-        0 => const _LibraryTab(),
-        1 => const _BrowseTab(),
-        _ => const _ExtensionsTab(),
+      body: switch ((_tab, anime)) {
+        (0, false) => const _LibraryTab(),
+        (1, false) => const _BrowseTab(),
+        (_, false) => const _ExtensionsTab(),
+        (0, true) => const AnimeLibraryTab(),
+        (1, true) => const AnimeBrowseTab(),
+        (_, true) => const AnimeExtensionsTab(),
       },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
@@ -94,7 +120,7 @@ class _LibraryTab extends ConsumerWidget {
         return db.compareTo(da);
       });
     if (library.isEmpty) {
-      return const _Empty(
+      return const EmptyHint(
         icon: Icons.collections_bookmark_outlined,
         text:
             'Your library is empty.\nFind something in Browse and tap '
@@ -135,7 +161,7 @@ class _BrowseTab extends ConsumerWidget {
           ),
           data: (sources) {
             if (sources.isEmpty) {
-              return const _Empty(
+              return const EmptyHint(
                 icon: Icons.explore_outlined,
                 text:
                     'No sources yet.\nInstall an extension from the Extensions '
@@ -147,7 +173,7 @@ class _BrowseTab extends ConsumerWidget {
               children: [
                 for (final s in sources) ...[
                   if (s.lang != lastLang)
-                    _Header(languageName(lastLang = s.lang)),
+                    SectionLabel(languageName(lastLang = s.lang)),
                   ListTile(
                     leading: CircleAvatar(
                       backgroundColor: mangaAccent.withValues(alpha: .15),
@@ -233,7 +259,7 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => MangaErrorView(
             error: e,
-            onRetry: () => ref.invalidate(availableExtensionsProvider),
+            onRetry: () => ref.invalidate(allAvailableExtensionsProvider),
           ),
           data: (available) {
             final updates = available
@@ -254,7 +280,8 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
             final byPkg = {for (final a in available) a.pkgName: a};
 
             return RefreshIndicator(
-              onRefresh: () => ref.refresh(availableExtensionsProvider.future),
+              onRefresh: () =>
+                  ref.refresh(allAvailableExtensionsProvider.future),
               child: ListView(
                 children: [
                   Padding(
@@ -269,9 +296,9 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                     ),
                   ),
                   if (installed.isNotEmpty)
-                    _Header('Installed · ${installed.length}'),
+                    SectionLabel('Installed · ${installed.length}'),
                   for (final e in installed)
-                    _ExtensionTile(
+                    ExtensionTile(
                       name: e.name,
                       subtitle:
                           'v${e.versionName} · ${languageName(_lang(e))}'
@@ -294,7 +321,7 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                         installLabel: 'Update',
                       ),
                       trailing: busy.contains(e.pkgName)
-                          ? const _Spinner()
+                          ? const SmallSpinner()
                           : Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -329,9 +356,9 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                               ],
                             ),
                     ),
-                  _Header('Available · ${shown.length}'),
+                  SectionLabel('Available · ${shown.length}'),
                   for (final a in shown)
-                    _ExtensionTile(
+                    ExtensionTile(
                       name: a.name,
                       subtitle:
                           'v${a.versionName} · ${languageName(a.lang)}'
@@ -358,7 +385,7 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                             : null,
                       ),
                       trailing: busy.contains(a.pkgName)
-                          ? const _Spinner()
+                          ? const SmallSpinner()
                           : TextButton(
                               onPressed: a.isSupported
                                   ? () => _install(a)
@@ -377,45 +404,6 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
   static String _lang(InstalledExtension e) {
     final langs = e.sources.map((s) => s.lang).toSet();
     return langs.length == 1 ? langs.first : 'all';
-  }
-}
-
-class _ExtensionTile extends StatelessWidget {
-  const _ExtensionTile({
-    required this.name,
-    required this.subtitle,
-    required this.trailing,
-    required this.onTap,
-    this.iconUrl,
-  });
-
-  final String name;
-  final String subtitle;
-  final String? iconUrl;
-  final Widget trailing;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox.square(
-          dimension: 40,
-          child: iconUrl == null
-              ? const Icon(Icons.extension)
-              : Image.network(
-                  iconUrl!,
-                  cacheWidth: 120,
-                  errorBuilder: (_, _, _) => const Icon(Icons.extension),
-                ),
-        ),
-      ),
-      title: Text(name),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54)),
-      trailing: trailing,
-    );
   }
 }
 
@@ -483,7 +471,7 @@ class _AddRepoPromptState extends ConsumerState<_AddRepoPrompt> {
         const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: _loading ? null : _add,
-          icon: _loading ? const _Spinner() : const Icon(Icons.add),
+          icon: _loading ? const SmallSpinner() : const Icon(Icons.add),
           label: const Text('Add repository'),
         ),
       ],
@@ -612,54 +600,3 @@ Future<void> _showFilters(BuildContext context) {
 // ---------------------------------------------------------------------------
 // Bits
 // ---------------------------------------------------------------------------
-
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-    child: Text(
-      text,
-      style: const TextStyle(color: mangaAccent, fontWeight: FontWeight.w600),
-    ),
-  );
-}
-
-class _Spinner extends StatelessWidget {
-  const _Spinner();
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.square(
-    dimension: 20,
-    child: CircularProgressIndicator(strokeWidth: 2),
-  );
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 64, color: Colors.white24),
-          const SizedBox(height: 16),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white60),
-          ),
-        ],
-      ),
-    ),
-  );
-}

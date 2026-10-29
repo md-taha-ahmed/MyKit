@@ -3,6 +3,7 @@ package com.mdtaha.mykit
 import android.content.pm.PackageManager
 import com.mdtaha.mykit.apps.ExternalAppsChannel
 import com.mdtaha.mykit.calendar.CalendarChannel
+import com.mdtaha.mykit.manga.AnimeChannel
 import com.mdtaha.mykit.manga.MangaChannel
 import com.mdtaha.mykit.media.MediaLibraryChannel
 import com.mdtaha.mykit.torrent.TorrentChannel
@@ -14,6 +15,7 @@ class MainActivity : AudioServiceActivity() {
     private var calendarChannel: CalendarChannel? = null
     private var mediaLibraryChannel: MediaLibraryChannel? = null
     private var mangaChannel: MangaChannel? = null
+    private var animeChannel: AnimeChannel? = null
     private var externalAppsChannel: ExternalAppsChannel? = null
     private var torrentChannel: TorrentChannel? = null
 
@@ -23,6 +25,7 @@ class MainActivity : AudioServiceActivity() {
         calendarChannel = CalendarChannel(this, messenger)
         mediaLibraryChannel = MediaLibraryChannel(this, messenger)
         mangaChannel = MangaChannel(applicationContext, messenger)
+        animeChannel = AnimeChannel(applicationContext, messenger)
         externalAppsChannel = ExternalAppsChannel(this, messenger)
         torrentChannel = TorrentChannel(applicationContext, messenger)
     }
@@ -34,6 +37,8 @@ class MainActivity : AudioServiceActivity() {
         mediaLibraryChannel = null
         mangaChannel?.dispose()
         mangaChannel = null
+        animeChannel?.dispose()
+        animeChannel = null
         externalAppsChannel?.dispose()
         externalAppsChannel = null
         torrentChannel?.dispose()

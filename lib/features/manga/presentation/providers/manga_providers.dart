@@ -90,29 +90,37 @@ class ExtensionReposNotifier extends Notifier<List<ExtensionRepo>> {
     ];
     state = repos;
     await _repo.saveRepos(repos);
-    ref.invalidate(availableExtensionsProvider);
+    ref.invalidate(allAvailableExtensionsProvider);
     return fetched.repo;
   }
 
   Future<void> remove(String url) async {
     state = state.where((r) => r.url != url).toList();
     await _repo.saveRepos(state);
-    ref.invalidate(availableExtensionsProvider);
+    ref.invalidate(allAvailableExtensionsProvider);
   }
 }
 
-/// Every extension listed by the user's repositories.
+/// Every extension (manga and anime) listed by the user's repositories.
+final allAvailableExtensionsProvider = FutureProvider<List<AvailableExtension>>(
+  (ref) async {
+    final repos = ref.watch(extensionReposProvider);
+    final repo = ref.read(mangaRepositoryProvider);
+    final lists = await Future.wait(
+      repos.map((r) async => (await repo.fetchRepo(r.url)).extensions),
+    );
+    final all = [for (final l in lists) ...l];
+    all.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return all;
+  },
+);
+
+/// Manga extensions listed by the user's repositories.
 final availableExtensionsProvider = FutureProvider<List<AvailableExtension>>((
   ref,
 ) async {
-  final repos = ref.watch(extensionReposProvider);
-  final repo = ref.read(mangaRepositoryProvider);
-  final lists = await Future.wait(
-    repos.map((r) async => (await repo.fetchRepo(r.url)).extensions),
-  );
-  final all = [for (final l in lists) ...l];
-  all.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-  return all;
+  final all = await ref.watch(allAvailableExtensionsProvider.future);
+  return all.where((e) => !e.isAnime).toList();
 });
 
 final installedExtensionsProvider =
