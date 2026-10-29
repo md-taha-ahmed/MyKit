@@ -9,41 +9,32 @@ import '../widgets/tool_card.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  static String _greeting(DateTime now) => switch (now.hour) {
-    < 5 => 'Good night',
-    < 12 => 'Good morning',
-    < 17 => 'Good afternoon',
-    _ => 'Good evening',
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tools = ref.watch(toolsProvider);
-    final now = DateTime.now();
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 18),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _greeting(now),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.white60,
+                    const Text(
+                      'MyKit',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      DateFormat('EEEE, d MMMM').format(now),
+                      DateFormat('EEEE, d MMMM').format(DateTime.now()),
                       style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.6,
+                        fontSize: 14,
+                        color: Colors.white54,
                       ),
                     ),
                   ],
@@ -51,13 +42,13 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: 240,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.92,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 1.15,
                 ),
                 delegate: SliverChildListDelegate([
                   for (final tool in tools)

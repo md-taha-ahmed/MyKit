@@ -9,7 +9,7 @@ final countdownTool = ToolDefinition(
   name: 'Countdown',
   description: 'Countdown rings for your home screen',
   icon: Icons.timelapse,
-  color: const Color(0xFF7B1FA2),
+  color: const Color(0xFF4C8DFF),
   rootPath: CountdownRoutes.list,
   routes: CountdownRoutes.routes,
   status: (ref) {
