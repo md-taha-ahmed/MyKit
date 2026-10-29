@@ -37,3 +37,9 @@ Compose `@Stable` annotation removed. `AnimeChannel.kt` follows Aniyomi's `Episo
   libmpv and FFmpeg builds licensed under the LGPL.
 - NanoHTTPD (https://github.com/NanoHttpd/nanohttpd), BSD 3-Clause License — host runtime for
   Aniyomi extensions.
+
+## Exercise data (Fitness)
+
+Exercise descriptions and photos come from free-exercise-db
+(https://github.com/yuhonas/free-exercise-db), released into the public domain
+under the Unlicense. They are downloaded at runtime, not bundled.
