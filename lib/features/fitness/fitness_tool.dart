@@ -12,4 +12,14 @@ final fitnessTool = ToolDefinition(
   color: fitnessAccent,
   rootPath: FitnessRoutes.home,
   routes: FitnessRoutes.routes,
+  status: (ref) {
+    if (ref.watch(activeWorkoutProvider) != null) return 'Workout in progress';
+    final next = ref.watch(nextRoutineProvider);
+    if (next == null) return null;
+    return switch (next.inDays) {
+      0 => '${next.routine.name} today',
+      1 => '${next.routine.name} tomorrow',
+      _ => 'Next: ${next.routine.name}',
+    };
+  },
 );

@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../theme/app_theme.dart';
 import '../tools_registry.dart';
+import 'package:flutter/material.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 
 abstract final class AppRoutes {
@@ -24,9 +26,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.dashboard,
         builder: (context, state) => const DashboardScreen(),
       ),
-      for (final tool in toolsRegistry) ...tool.routes,
+      for (final tool in toolsRegistry)
+        ...themedRoutes(tool.routes, tool.color),
     ],
   );
   ref.onDispose(router.dispose);
   return router;
 });
+
+/// Wraps every screen of a tool in the app theme built around [accent], so
+/// buttons, chips, switches and progress bars use the tool's colour.
+List<RouteBase> themedRoutes(List<RouteBase> routes, Color accent) => [
+  for (final r in routes)
+    if (r is GoRoute && r.builder != null)
+      GoRoute(
+        path: r.path,
+        name: r.name,
+        redirect: r.redirect,
+        parentNavigatorKey: r.parentNavigatorKey,
+        builder: (context, state) => Theme(
+          data: AppTheme.forAccent(accent),
+          child: r.builder!(context, state),
+        ),
+        routes: themedRoutes(r.routes, accent),
+      )
+    else
+      r,
+];

@@ -12,4 +12,8 @@ final moviesTool = ToolDefinition(
   color: moviesAccent,
   rootPath: MoviesRoutes.home,
   routes: MoviesRoutes.routes,
+  status: (ref) {
+    final n = ref.watch(continueWatchingProvider).length;
+    return n == 0 ? null : '$n in progress';
+  },
 );
