@@ -1,6 +1,8 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
+
+import '../../../../core/utils/charsets.dart';
 
 import '../../domain/entities/feed_article.dart';
 import '../../domain/repositories/rss_repository.dart';
@@ -92,36 +94,66 @@ class RssRemoteDataSource {
     return uri;
   }
 
+  /// Up to 3 tries for rate limits, server errors and timeouts, waiting as
+  /// the server asks (Retry-After, capped) or a little longer each time.
   Future<String> _get(Uri uri) async {
+    for (var attempt = 1; ; attempt++) {
+      try {
+        return await _getOnce(uri);
+      } on FeedException catch (e) {
+        if (!e.transient || attempt >= 3) rethrow;
+        await Future<void>.delayed(
+          e.retryAfter ?? Duration(seconds: 2 * attempt),
+        );
+      }
+    }
+  }
+
+  Future<String> _getOnce(Uri uri) async {
     final http.Response res;
     try {
       res = await _client.get(uri, headers: _headers).timeout(_timeout);
+    } on SocketException {
+      throw const FeedException(
+        'No internet connection.',
+        transient: true,
+        offline: true,
+      );
     } catch (_) {
       throw const FeedException(
-        'Could not connect. Check the URL and your internet.',
+        'Could not connect (timed out).',
+        transient: true,
       );
     }
     if (res.statusCode >= 400) {
+      final transient = FeedException.isTransientStatus(res.statusCode);
       throw FeedException(
-        'Server responded with ${res.statusCode}.',
+        switch (res.statusCode) {
+          429 => 'Too many requests (429); will retry later.',
+          404 || 410 => 'Feed not found (${res.statusCode}).',
+          401 || 403 => 'Access denied (${res.statusCode}).',
+          final s when s >= 500 => 'Server error ($s); will retry later.',
+          final s => 'Server responded with $s.',
+        },
         statusCode: res.statusCode,
+        transient: transient,
+        retryAfter: _retryAfter(res.headers['retry-after']),
       );
     }
     return _decode(res);
   }
 
-  /// Decodes using the declared charset; defaults to UTF-8.
-  static String _decode(http.Response res) {
-    final bytes = res.bodyBytes;
-    final head = latin1.decode(bytes.take(200).toList()).toLowerCase();
-    final contentType = (res.headers['content-type'] ?? '').toLowerCase();
-    final isLatin = RegExp(
-      r'iso-8859-1|windows-1252|latin1',
-    ).hasMatch('$contentType $head');
-    return isLatin
-        ? latin1.decode(bytes)
-        : utf8.decode(bytes, allowMalformed: true);
+  /// Retry-After in seconds (dates are rare for feeds), at most 8 s.
+  static Duration? _retryAfter(String? header) {
+    final seconds = int.tryParse(header?.trim() ?? '');
+    if (seconds == null || seconds < 0) return null;
+    return Duration(seconds: seconds.clamp(1, 8));
   }
+
+  /// Decodes using the declared charset (UTF-8, Latin-1 or Arabic
+  /// Windows-1256 / ISO-8859-6).
+  static String _decode(http.Response res) =>
+      decodeTextBody(res.bodyBytes, contentType: res.headers['content-type']);
 
   static String _decodeAmp(String s) => s.replaceAll('&amp;', '&');
 }

@@ -1,6 +1,6 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
+
+import '../../../../core/utils/charsets.dart';
 
 /// Best-effort readable text of a web article (paragraphs, headings and list
 /// items), for feeds that only ship a teaser.
@@ -24,7 +24,9 @@ class ArticleTextSource {
           )
           .timeout(const Duration(seconds: 20));
       if (res.statusCode != 200) return null;
-      return extract(utf8.decode(res.bodyBytes, allowMalformed: true));
+      return extract(
+        decodeTextBody(res.bodyBytes, contentType: res.headers['content-type']),
+      );
     } catch (_) {
       return null;
     }

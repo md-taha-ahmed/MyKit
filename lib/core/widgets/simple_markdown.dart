@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/text_direction.dart';
+
 /// Renders the small Markdown subset chat models use: headings, bullet and
 /// numbered lists, **bold**, *italic* and `code`. Selectable.
 class SimpleMarkdown extends StatelessWidget {
@@ -61,10 +63,14 @@ class SimpleMarkdown extends StatelessWidget {
         );
       }
     }
+    // Arabic answers lay out right-to-left (alignment, bullets).
     return SelectionArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
+      child: AutoDirection(
+        text: text,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
       ),
     );
   }

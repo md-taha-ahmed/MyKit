@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/text_direction.dart';
 import '../../domain/entities/feed_article.dart';
+import '../../domain/services/reading_time.dart';
+import 'feed_image.dart';
+import 'reading_time_badge.dart';
 
 /// "5m", "3h", "2d", or a short date for older items.
 String relativeTime(DateTime? date, {DateTime? now}) {
@@ -43,140 +47,150 @@ class ArticleTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-        child: Opacity(
-          opacity: faded,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (!isRead)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.only(right: 6),
-                            decoration: BoxDecoration(
-                              color: accent,
-                              shape: BoxShape.circle,
+      // Arabic (RTL) articles lay out right-to-left: text, dot and photo.
+      child: AutoDirection(
+        text: article.title,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Opacity(
+            opacity: faded,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (!isRead)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(right: 6),
+                              decoration: BoxDecoration(
+                                color: accent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          if (isVideo)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 4),
+                              child: Icon(
+                                Icons.play_circle_fill,
+                                size: 14,
+                                color: Color(0xFFFF3B30),
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              feedTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: accent,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        if (isVideo)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 4),
-                            child: Icon(
-                              Icons.play_circle_fill,
-                              size: 14,
-                              color: Color(0xFFFF3B30),
+                          if (isLiked)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 6),
+                              child: Icon(
+                                Icons.favorite,
+                                size: 14,
+                                color: Color(0xFFFF5A6E),
+                              ),
                             ),
-                          ),
-                        Expanded(
-                          child: Text(
-                            feedTitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                          if (isSaved)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: Icon(
+                                Icons.bookmark,
+                                size: 14,
+                                color: accent,
+                              ),
+                            ),
+                          if (!isVideo) ...[
+                            ReadingTimeBadge(ReadingTime.of(article)),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            relativeTime(article.publishedAt),
+                            style: const TextStyle(
                               fontSize: 12.5,
-                              color: accent,
-                              fontWeight: FontWeight.w600,
+                              color: Colors.white54,
                             ),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        article.title,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          height: 1.25,
+                          fontWeight: isRead
+                              ? FontWeight.w400
+                              : FontWeight.w600,
                         ),
-                        if (isLiked)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 6),
-                            child: Icon(
-                              Icons.favorite,
-                              size: 14,
-                              color: Color(0xFFFF5A6E),
-                            ),
-                          ),
-                        if (isSaved)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: Icon(
-                              Icons.bookmark,
-                              size: 14,
-                              color: accent,
-                            ),
-                          ),
+                      ),
+                      if (article.summary.isNotEmpty) ...[
+                        const SizedBox(height: 4),
                         Text(
-                          relativeTime(article.publishedAt),
+                          article.summary,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 12.5,
-                            color: Colors.white54,
+                            fontSize: 13.5,
+                            color: Colors.white60,
+                            height: 1.3,
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      article.title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        height: 1.25,
-                        fontWeight: isRead ? FontWeight.w400 : FontWeight.w600,
-                      ),
-                    ),
-                    if (article.summary.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        article.summary,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          color: Colors.white60,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (article.imageUrl != null) ...[
-                const SizedBox(width: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Image.network(
-                        article.imageUrl!,
-                        // Videos get a 16:9 thumbnail, articles a square.
-                        width: isVideo ? 112 : 84,
-                        height: isVideo ? 63 : 84,
-                        fit: BoxFit.cover,
-                        cacheWidth: 336,
-                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                      ),
-                      if (isVideo)
-                        const DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: Color(0x99000000),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(
-                              Icons.play_arrow,
-                              size: 20,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ),
+                if (article.imageUrl != null) ...[
+                  const SizedBox(width: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        FeedImage(
+                          article.imageUrl!,
+                          // Videos get a 16:9 thumbnail, articles a square.
+                          width: isVideo ? 112 : 84,
+                          height: isVideo ? 63 : 84,
+                          fit: BoxFit.cover,
+                          cacheWidth: 336,
+                          errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                        ),
+                        if (isVideo)
+                          const DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Color(0x99000000),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.play_arrow,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

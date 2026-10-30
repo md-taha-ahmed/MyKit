@@ -1,5 +1,6 @@
 import '../../domain/entities/feed_article.dart';
 import '../../domain/entities/feed_category.dart';
+import '../../domain/entities/feed_health.dart';
 import '../../domain/entities/rss_feed.dart';
 import '../../domain/entities/youtube_channel.dart';
 import '../../domain/repositories/rss_repository.dart';
@@ -49,6 +50,7 @@ class RssRepositoryImpl implements RssRepository {
         throw const FeedException(
           'YouTube\'s RSS feeds are down. Sign in under "Import YouTube '
           'subscriptions" to load videos through the YouTube API instead.',
+          transient: true,
         );
       }
       return _youtube.uploads(channelId);
@@ -68,6 +70,19 @@ class RssRepositoryImpl implements RssRepository {
 
   @override
   Future<void> saveReadIds(Set<String> ids) => _local.writeReadIds(ids);
+
+  @override
+  Map<String, FeedHealth> getFeedHealth() => {
+    for (final MapEntry(:key, :value) in _local.readHealth().entries)
+      if (value is Map<String, dynamic>) key: FeedHealth.fromJson(value),
+  };
+
+  @override
+  Future<void> saveFeedHealth(Map<String, FeedHealth> health) =>
+      _local.writeHealth({
+        for (final MapEntry(:key, :value) in health.entries)
+          key: value.toJson(),
+      });
 
   @override
   bool get youtubeConfigured => _youtube.isConfigured;

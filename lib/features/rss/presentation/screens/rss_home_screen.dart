@@ -7,6 +7,8 @@ import '../providers/rss_providers.dart';
 import '../widgets/add_feed_sheet.dart';
 import '../widgets/article_list.dart';
 import '../widgets/feeds_drawer.dart';
+import '../widgets/offline_sheet.dart';
+import '../providers/offline_providers.dart';
 
 /// Articles from the selection in the feeds drawer (all, a category, a feed,
 /// Saved or Liked).
@@ -64,7 +66,10 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
     final articlesState = ref.watch(rssArticlesProvider);
     final filter = _validFilter();
     final unread = ref.watch(unreadCountProvider(filter));
-    final failed = articlesState.errors.length;
+    // Only feeds that have failed every refresh for days; 429s, server
+    // hiccups and being offline stay quiet.
+    final broken = articlesState.brokenFeedIds().length;
+    final offlineSave = ref.watch(offlineDownloadProvider);
 
     return Scaffold(
       key: _scaffold,
@@ -95,7 +100,14 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
                         ),
                       ),
                       Text(
-                        unread == 0 ? 'All caught up' : '$unread unread',
+                        [
+                          if (articlesState.offline) 'Offline',
+                          if (offlineSave.running)
+                            offlineSave.total == 0
+                                ? 'Saving for offline…'
+                                : 'Saving ${offlineSave.done}/${offlineSave.total}',
+                          unread == 0 ? 'All caught up' : '$unread unread',
+                        ].join(' · '),
                         style: const TextStyle(
                           fontSize: 12.5,
                           color: Colors.white54,
@@ -144,8 +156,13 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               if (v == 'read') _markAllRead(filter);
               if (v == 'unread') _markAllUnread(filter);
               if (v == 'manage') context.push(RssRoutes.manage);
+              if (v == 'offline') showOfflineSheet(context, filter);
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'offline',
+                child: Text('Download for offline…'),
+              ),
               PopupMenuItem(value: 'read', child: Text('Mark all as read')),
               PopupMenuItem(value: 'unread', child: Text('Mark all as unread')),
               PopupMenuItem(
@@ -158,14 +175,14 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
       ),
       body: Column(
         children: [
-          if (failed > 0 && !articlesState.refreshing)
+          if (broken > 0 && !articlesState.refreshing)
             MaterialBanner(
               backgroundColor: const Color(0xFF3A2A1A),
               leading: const Icon(Icons.warning_amber, color: Colors.orange),
               content: Text(
-                failed == 1
-                    ? '1 feed could not be updated.'
-                    : '$failed feeds could not be updated.',
+                broken == 1
+                    ? '1 feed hasn\'t worked for days.'
+                    : '$broken feeds haven\'t worked for days.',
               ),
               actions: [
                 TextButton(

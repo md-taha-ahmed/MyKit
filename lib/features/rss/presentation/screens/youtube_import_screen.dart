@@ -56,17 +56,17 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
 
   Future<void> _pickCategory() async {
     const newCategory = '__new__';
-    final categories = ref.read(rssLibraryProvider).categories;
+    final library = ref.read(rssLibraryProvider);
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => SimpleDialog(
         title: const Text('Add to category'),
         children: [
-          for (final c in categories)
+          for (final (:category, :depth) in library.tree())
             SimpleDialogOption(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              onPressed: () => Navigator.pop(context, c.id),
-              child: Text(c.name, style: const TextStyle(fontSize: 16)),
+              padding: EdgeInsets.fromLTRB(24.0 + depth * 20, 12, 24, 12),
+              onPressed: () => Navigator.pop(context, category.id),
+              child: Text(category.name, style: const TextStyle(fontSize: 16)),
             ),
           SimpleDialogOption(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -206,7 +206,7 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
                         onPressed: _adding ? null : _pickCategory,
                         icon: const Icon(Icons.folder_outlined),
                         label: Text(
-                          category.name,
+                          library.pathOf(category.id),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

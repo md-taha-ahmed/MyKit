@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -10,8 +12,10 @@ import '../../data/datasources/youtube_subscriptions_data_source.dart';
 import '../../data/repositories/rss_repository_impl.dart';
 import '../../domain/entities/feed_article.dart';
 import '../../domain/entities/feed_category.dart';
+import '../../domain/entities/feed_health.dart';
 import '../../domain/entities/rss_feed.dart';
 import '../../domain/repositories/rss_repository.dart';
+import 'offline_providers.dart';
 
 const _uuid = Uuid();
 
@@ -39,8 +43,68 @@ class RssLibrary {
   final List<FeedCategory> categories;
   final List<RssFeed> feeds;
 
+  /// Feeds directly in [categoryId] (not in its sub-folders).
   List<RssFeed> feedsIn(String categoryId) =>
       feeds.where((f) => f.categoryId == categoryId).toList();
+
+  /// Folders directly inside [parentId] (null = top level). A folder whose
+  /// parent no longer exists counts as top level.
+  List<FeedCategory> childrenOf(String? parentId) => [
+    for (final c in categories)
+      if (_parentOf(c) == parentId) c,
+  ];
+
+  String? _parentOf(FeedCategory c) {
+    final p = c.parentId;
+    return p != null && categoryById(p) != null ? p : null;
+  }
+
+  /// [categoryId] and every folder below it.
+  Set<String> subtreeIds(String categoryId) {
+    final ids = <String>{categoryId};
+    var frontier = [categoryId];
+    while (frontier.isNotEmpty) {
+      frontier = [
+        for (final c in categories)
+          if (frontier.contains(c.parentId) && ids.add(c.id)) c.id,
+      ];
+    }
+    return ids;
+  }
+
+  /// Feeds in [categoryId] and all its sub-folders.
+  List<RssFeed> feedsUnder(String categoryId) {
+    final ids = subtreeIds(categoryId);
+    return feeds.where((f) => ids.contains(f.categoryId)).toList();
+  }
+
+  /// Every folder in tree order (parents before children) with its depth.
+  List<({FeedCategory category, int depth})> tree() {
+    final out = <({FeedCategory category, int depth})>[];
+    void walk(String? parentId, int depth) {
+      for (final c in childrenOf(parentId)) {
+        out.add((category: c, depth: depth));
+        walk(c.id, depth + 1);
+      }
+    }
+
+    walk(null, 0);
+    return out;
+  }
+
+  /// "Tech › AI" — the folder's name with its parents.
+  String pathOf(String categoryId) {
+    final names = <String>[];
+    final seen = <String>{};
+    for (
+      var c = categoryById(categoryId);
+      c != null && seen.add(c.id);
+      c = categoryById(c.parentId ?? '')
+    ) {
+      names.insert(0, c.name);
+    }
+    return names.join(' › ');
+  }
 
   RssFeed? feedById(String id) {
     for (final f in feeds) {
@@ -88,10 +152,26 @@ class RssLibraryNotifier extends Notifier<RssLibrary> {
 
   // Categories ---------------------------------------------------------------
 
-  Future<FeedCategory> addCategory(String name) async {
-    final category = FeedCategory(id: _uuid.v4(), name: name.trim());
+  Future<FeedCategory> addCategory(String name, {String? parentId}) async {
+    final category = FeedCategory(
+      id: _uuid.v4(),
+      name: name.trim(),
+      parentId: parentId,
+    );
     await _set(categories: [...state.categories, category]);
     return category;
+  }
+
+  /// Moves a folder into [parentId] (null = top level). Ignored if that
+  /// would put it inside itself.
+  Future<void> moveCategory(String id, String? parentId) async {
+    if (parentId != null && state.subtreeIds(id).contains(parentId)) return;
+    await _set(
+      categories: [
+        for (final c in state.categories)
+          c.id == id ? c.copyWith(parentId: () => parentId) : c,
+      ],
+    );
   }
 
   Future<void> renameCategory(String id, String name) => _set(
@@ -101,11 +181,17 @@ class RssLibraryNotifier extends Notifier<RssLibrary> {
     ],
   );
 
-  /// Deletes the category together with its feeds and their articles.
+  /// Deletes the category together with its own feeds and their articles.
+  /// Its sub-folders move up into its parent.
   Future<void> deleteCategory(String id) async {
     final removed = state.feedsIn(id).map((f) => f.id).toSet();
+    final parentId = state.categoryById(id)?.parentId;
     await _set(
-      categories: state.categories.where((c) => c.id != id).toList(),
+      categories: [
+        for (final c in state.categories)
+          if (c.id != id)
+            c.parentId == id ? c.copyWith(parentId: () => parentId) : c,
+      ],
       feeds: state.feeds.where((f) => f.categoryId != id).toList(),
     );
     if (state.categories.isEmpty) await addCategory('General');
@@ -179,25 +265,43 @@ class RssArticlesState {
     this.articles = const [],
     this.refreshing = false,
     this.errors = const {},
+    this.health = const {},
+    this.offline = false,
     this.lastRefreshed,
   });
 
   final List<FeedArticle> articles;
   final bool refreshing;
 
-  /// Last refresh error per feed id.
+  /// Errors of the last refresh, per feed id (shown in Manage feeds).
   final Map<String, String> errors;
+
+  /// Failure history per feed id; only feeds that keep failing are reported.
+  final Map<String, FeedHealth> health;
+
+  /// The last refresh found no connection at all.
+  final bool offline;
   final DateTime? lastRefreshed;
+
+  /// Feeds that have been failing for days (worth a warning).
+  List<String> brokenFeedIds([DateTime? now]) => [
+    for (final MapEntry(:key, :value) in health.entries)
+      if (value.isBroken(now ?? DateTime.now())) key,
+  ];
 
   RssArticlesState copyWith({
     List<FeedArticle>? articles,
     bool? refreshing,
     Map<String, String>? errors,
+    Map<String, FeedHealth>? health,
+    bool? offline,
     DateTime? lastRefreshed,
   }) => RssArticlesState(
     articles: articles ?? this.articles,
     refreshing: refreshing ?? this.refreshing,
     errors: errors ?? this.errors,
+    health: health ?? this.health,
+    offline: offline ?? this.offline,
     lastRefreshed: lastRefreshed ?? this.lastRefreshed,
   );
 }
@@ -213,11 +317,17 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
   RssRepository get _repo => ref.read(rssRepositoryProvider);
 
   @override
-  RssArticlesState build() =>
-      RssArticlesState(articles: _repo.getCachedArticles());
+  RssArticlesState build() => RssArticlesState(
+    articles: _repo.getCachedArticles(),
+    health: _repo.getFeedHealth(),
+  );
 
-  /// Feeds downloaded at the same time (imports can add hundreds).
+  /// Feeds downloaded at the same time (imports can add hundreds)…
   static const _concurrency = 8;
+
+  /// …but at most this many from one website, so it doesn't rate-limit us
+  /// (YouTube answers 429 when every channel is asked at once).
+  static const _perHost = 3;
 
   /// A refresh was requested while one was running; run again afterwards.
   bool _refreshAgain = false;
@@ -232,19 +342,24 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
       _refreshAgain = false;
       await _refreshOnce();
     } while (_refreshAgain);
+    if (!state.offline) {
+      // Tidy offline copies; save new articles if that's switched on.
+      final offline = ref.read(offlineDownloadProvider.notifier);
+      unawaited(offline.prune().then((_) => offline.afterRefresh()));
+    }
   }
 
   Future<void> _refreshOnce() async {
     final feeds = ref.read(rssLibraryProvider).feeds;
     state = state.copyWith(refreshing: true);
 
-    final errors = <String, String>{};
+    final failures = <String, Object>{};
     final fresh = <String, List<FeedArticle>>{};
     await _forEachLimited(feeds, (feed) async {
       try {
         fresh[feed.id] = _bind(feed, await _repo.fetch(feed));
       } catch (e) {
-        errors[feed.id] = e.toString();
+        failures[feed.id] = e;
       }
     });
 
@@ -257,12 +372,46 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
         if (feedIds.contains(e.key)) ...e.value,
     ];
 
+    // Every feed failed for lack of a connection: the phone is offline, so
+    // don't hold it against the feeds.
+    final offline =
+        fresh.isEmpty &&
+        failures.isNotEmpty &&
+        failures.values.every((e) => e is FeedException && e.offline);
+
     state = RssArticlesState(
       articles: merged,
-      errors: errors,
+      errors: {for (final e in failures.entries) e.key: '${e.value}'},
+      health: offline
+          ? state.health
+          : await _recordHealth(fresh.keys, failures, feedIds),
+      offline: offline,
       lastRefreshed: DateTime.now(),
     );
     await _repo.saveCachedArticles(merged);
+  }
+
+  /// Clears the history of feeds that worked and extends it for those that
+  /// failed. Returns the new map (also saved).
+  Future<Map<String, FeedHealth>> _recordHealth(
+    Iterable<String> succeeded,
+    Map<String, Object> failures,
+    Set<String> liveFeedIds,
+  ) async {
+    final health = {...state.health}
+      ..removeWhere((id, _) => !liveFeedIds.contains(id));
+    for (final id in succeeded) {
+      health.remove(id);
+    }
+    for (final MapEntry(key: id, value: error) in failures.entries) {
+      if (error is FeedException && error.offline) continue;
+      health[id] = (health[id] ?? FeedHealth.healthy).failed(
+        '$error',
+        transient: error is! FeedException || error.transient,
+      );
+    }
+    await _repo.saveFeedHealth(health);
+    return health;
   }
 
   /// Fetches just these (newly added) feeds right away, independent of any
@@ -281,21 +430,16 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
     }
   }
 
-  static Future<void> _forEachLimited<T>(
-    List<T> items,
-    Future<void> Function(T item) action,
-  ) async {
-    var next = 0;
-    Future<void> worker() async {
-      while (next < items.length) {
-        await action(items[next++]);
-      }
-    }
-
-    await Future.wait([
-      for (var i = 0; i < _concurrency && i < items.length; i++) worker(),
-    ]);
-  }
+  static Future<void> _forEachLimited(
+    List<RssFeed> feeds,
+    Future<void> Function(RssFeed feed) action,
+  ) => forEachLimited(
+    feeds,
+    action,
+    concurrency: _concurrency,
+    perKey: _perHost,
+    keyOf: (f) => Uri.tryParse(f.url)?.host ?? '',
+  );
 
   /// Stores articles of a feed that was just fetched (e.g. when added).
   Future<void> ingest(RssFeed feed, ParsedFeed parsed) async {
@@ -312,11 +456,15 @@ class RssArticlesNotifier extends Notifier<RssArticlesState> {
     final articles = state.articles
         .where((a) => !feedIds.contains(a.feedId))
         .toList();
+    final health = {...state.health}
+      ..removeWhere((k, _) => feedIds.contains(k));
     state = state.copyWith(
       articles: articles,
       errors: {...state.errors}..removeWhere((k, _) => feedIds.contains(k)),
+      health: health,
     );
     await _repo.saveCachedArticles(articles);
+    await _repo.saveFeedHealth(health);
   }
 
   static List<FeedArticle> _bind(RssFeed feed, ParsedFeed parsed) {
@@ -445,7 +593,10 @@ final filteredArticlesProvider =
       if (filter.feedId != null) {
         feedIds = {filter.feedId!};
       } else if (filter.categoryId != null) {
-        feedIds = library.feedsIn(filter.categoryId!).map((f) => f.id).toSet();
+        feedIds = library
+            .feedsUnder(filter.categoryId!)
+            .map((f) => f.id)
+            .toSet();
       } else {
         feedIds = library.feeds.map((f) => f.id).toSet();
       }
@@ -564,3 +715,43 @@ final unreadCountProvider = Provider.family<int, ArticleFilter>((ref, filter) {
       .where((a) => !read.contains(a.id))
       .length;
 });
+
+/// Runs [action] on every item, [concurrency] at a time and at most [perKey]
+/// at a time for items sharing a [keyOf] (e.g. the same website).
+Future<void> forEachLimited<T>(
+  List<T> items,
+  Future<void> Function(T item) action, {
+  required int concurrency,
+  required int perKey,
+  required String Function(T item) keyOf,
+}) async {
+  final pending = [...items];
+  final active = <String, int>{};
+  var wake = Completer<void>();
+
+  Future<void> worker() async {
+    while (pending.isNotEmpty) {
+      final i = pending.indexWhere((x) => (active[keyOf(x)] ?? 0) < perKey);
+      if (i < 0) {
+        // Everything left is waiting on a busy website; wait for a slot.
+        await wake.future;
+        continue;
+      }
+      final item = pending.removeAt(i);
+      final key = keyOf(item);
+      active[key] = (active[key] ?? 0) + 1;
+      try {
+        await action(item);
+      } finally {
+        active[key] = active[key]! - 1;
+        final done = wake;
+        wake = Completer<void>();
+        done.complete();
+      }
+    }
+  }
+
+  await Future.wait([
+    for (var i = 0; i < concurrency && i < items.length; i++) worker(),
+  ]);
+}
