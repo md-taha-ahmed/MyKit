@@ -33,8 +33,43 @@ final shortsProvider = Provider.family<List<FeedArticle>, ArticleFilter>((
   ];
 });
 
-/// Full-screen, swipe-up Shorts player (plays in MyKit; falls back to the
-/// YouTube app when a Short can't be loaded here).
+/// One of the two reusable players: plays the current Short or preloads
+/// the next. Reusing them (instead of a player per Short) keeps memory and
+/// hardware video decoders in check, and makes swiping instant.
+class _Slot {
+  _Slot() {
+    final native = player.platform;
+    if (native is NativePlayer) {
+      // Read well ahead in memory (Shorts are short), so a slow moment on
+      // the network doesn't stall playback.
+      native.setProperty('demuxer-readahead-secs', '20');
+      native.setProperty('demuxer-max-bytes', '${48 * 1024 * 1024}');
+    }
+    player.setPlaylistMode(PlaylistMode.single); // loop
+  }
+
+  final player = Player(
+    configuration: const PlayerConfiguration(bufferSize: 32 * 1024 * 1024),
+  );
+
+  /// Fixed-size surface created up front, so the decoder has somewhere to
+  /// draw from the first frame (otherwise mpv starts with no surface and
+  /// has to restart the decoder when the page appears — a ~2 s stall).
+  late final controller = VideoController(
+    player,
+    configuration: const VideoControllerConfiguration(width: 720, height: 1280),
+  );
+
+  /// The page (index) loaded into this player, if any.
+  int? page;
+  bool ready = false;
+
+  /// Bumped on every load, so a slow, outdated load can't take over.
+  int token = 0;
+}
+
+/// Full-screen, swipe-up Shorts player. Falls back to a single-file stream,
+/// then to the YouTube app, when a Short won't play here.
 class ShortsScreen extends ConsumerStatefulWidget {
   const ShortsScreen({super.key, this.startId, this.categoryId, this.feedId});
 
@@ -49,9 +84,18 @@ class ShortsScreen extends ConsumerStatefulWidget {
 
 class _ShortsScreenState extends ConsumerState<ShortsScreen> {
   late final List<FeedArticle> _shorts;
-  late final PageController _pager;
+  final _pager = PageController();
+  final _slots = [_Slot(), _Slot()];
+  final _subs = <StreamSubscription<Object?>>[];
+
   int _current = 0;
   bool _muted = false;
+  bool _pausedByUser = false;
+  Timer? _watchdog;
+
+  /// Pages already switched to their single-file stream / given up on.
+  final _onFallback = <int>{};
+  final _failed = <int>{};
 
   @override
   void initState() {
@@ -64,26 +108,198 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
     _shorts = start <= 0
         ? all
         : [all[start], ...all.sublist(0, start), ...all.sublist(start + 1)];
-    _pager = PageController();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _onPage(0));
+    for (final slot in _slots) {
+      _subs.add(
+        slot.player.stream.error.listen((e) {
+          debugPrint('Shorts: player error on page ${slot.page}: $e');
+          final page = slot.page;
+          if (page != null) _fallBack(page, slot, 'player error: $e');
+        }),
+      );
+    }
+    if (_shorts.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _activate(0));
+    }
   }
+
+  bool _disposed = false;
 
   @override
   void dispose() {
+    _disposed = true;
+    _watchdog?.cancel();
+    for (final s in _subs) {
+      s.cancel();
+    }
+    for (final slot in _slots) {
+      slot.player.dispose();
+    }
     _pager.dispose();
     super.dispose();
   }
 
-  void _onPage(int i) {
-    if (i >= _shorts.length) return;
-    setState(() => _current = i);
-    ref.read(rssReadIdsProvider.notifier).markRead([_shorts[i].id]);
-    // Fetch the next two ahead so swiping is instant.
-    final native = ref.read(shortsNativeProvider);
-    for (final next in _shorts.skip(i + 1).take(2)) {
-      final id = next.youtubeId;
-      if (id != null) native.prefetch(id);
+  _Slot? _slotFor(int page) {
+    for (final s in _slots) {
+      if (s.page == page) return s;
     }
+    return null;
+  }
+
+  /// Page [i] is now on screen: play it, preload the next one.
+  void _activate(int i) {
+    if (!mounted || i >= _shorts.length) return;
+    _watchdog?.cancel();
+    setState(() {
+      _current = i;
+      _pausedByUser = false;
+    });
+    ref.read(rssReadIdsProvider.notifier).markRead([_shorts[i].id]);
+
+    var slot = _slotFor(i);
+    for (final s in _slots) {
+      if (s != slot) s.player.pause();
+    }
+    if (slot == null) {
+      // Not preloaded (first one, or swiping back): use the player that
+      // doesn't hold the next page.
+      slot = _slots.firstWhere((s) => s.page != i + 1);
+      _load(i, slot);
+    } else if (slot.ready) {
+      _start(slot, fromStart: true);
+    }
+
+    // The next one is preloaded once this one is actually playing (see
+    // [_start]), so they don't compete for the connection at the start.
+    if (slot.ready) _preloadAfter(i);
+    // Resolve one more ahead (just the URLs; cheap).
+    final later = i + 2;
+    if (later < _shorts.length) {
+      final id = _shorts[later].youtubeId;
+      if (id != null) ref.read(shortsNativeProvider).prefetch(id);
+    }
+  }
+
+  void _preloadAfter(int i) {
+    final next = i + 1;
+    if (next >= _shorts.length || _slotFor(next) != null) return;
+    final current = _slotFor(i);
+    _load(next, _slots.firstWhere((s) => s != current));
+  }
+
+  Future<void> _load(int page, _Slot slot, {bool fallback = false}) async {
+    if (_disposed) return;
+    final token = ++slot.token;
+    slot
+      ..page = page
+      ..ready = false;
+    await slot.player.stop();
+    if (mounted) setState(() {});
+    final id = _shorts[page].youtubeId;
+    try {
+      if (id == null) throw StateError('No video id');
+      final stream = await ref.read(shortsNativeProvider).resolve(id);
+      if (token != slot.token) return;
+      final single = fallback ? stream.fallback : null;
+      if (fallback && single == null) throw StateError('No fallback stream');
+      await slot.player.setVolume(_muted ? 0 : 100);
+      await slot.player.open(Media(single ?? stream.video), play: false);
+      // Wait until the video is open; only then add the separate audio
+      // (adding it earlier fails and leaves the Short stuck).
+      if (slot.player.state.duration == Duration.zero) {
+        await slot.player.stream.duration
+            .firstWhere((d) => d > Duration.zero)
+            .timeout(const Duration(seconds: 8));
+      }
+      if (token != slot.token || _disposed) return;
+      if (single == null && stream.audio != null) {
+        await slot.player.setAudioTrack(AudioTrack.uri(stream.audio!));
+      }
+      if (token != slot.token) return;
+      slot.ready = true;
+      if (mounted) setState(() {});
+      if (page == _current && !_pausedByUser) _start(slot);
+    } catch (e) {
+      if (token != slot.token || _disposed) return;
+      debugPrint('Shorts: load failed on page $page (fallback=$fallback): $e');
+      await _fallBack(page, slot, '$e');
+    }
+  }
+
+  /// HD pair failed → try the single-file stream once; then give up (the
+  /// page offers "Watch in YouTube").
+  Future<void> _fallBack(int page, _Slot slot, String why) async {
+    if (slot.page != page) return;
+    if (!_onFallback.contains(page)) {
+      _onFallback.add(page);
+      debugPrint('Shorts: page $page → single-file stream ($why)');
+      await _load(page, slot, fallback: true);
+      return;
+    }
+    _failed.add(page);
+    slot.ready = false;
+    if (mounted) setState(() {});
+  }
+
+  /// Plays (from the beginning for a Short that was preloaded); if the
+  /// position hasn't moved after a moment, nudges it, and as a last resort
+  /// switches to the single-file stream.
+  Future<void> _start(_Slot slot, {bool fromStart = false}) async {
+    final page = slot.page;
+    if (page == null) return;
+    _watchdog?.cancel();
+    if (fromStart) await slot.player.seek(Duration.zero);
+    await slot.player.play();
+    final from = slot.player.state.position;
+    var checks = 0;
+    _watchdog = Timer.periodic(const Duration(milliseconds: 1200), (t) async {
+      if (!mounted || slot.page != page || page != _current || _pausedByUser) {
+        return t.cancel();
+      }
+      final state = slot.player.state;
+      if (state.position != from && state.playing) {
+        t.cancel();
+        _preloadAfter(page);
+        return;
+      }
+      checks++;
+      if (state.buffering && checks < 6) return; // still loading
+      if (checks <= 3) {
+        await slot.player.pause();
+        await slot.player.seek(state.position);
+        await slot.player.play();
+        return;
+      }
+      t.cancel();
+      _fallBack(page, slot, 'stuck at ${state.position}');
+    });
+  }
+
+  void _togglePause() {
+    final slot = _slotFor(_current);
+    if (slot == null || !slot.ready) return;
+    setState(() => _pausedByUser = !_pausedByUser);
+    if (_pausedByUser) {
+      _watchdog?.cancel();
+      slot.player.pause();
+    } else {
+      _start(slot);
+    }
+  }
+
+  void _toggleMute() {
+    setState(() => _muted = !_muted);
+    for (final s in _slots) {
+      s.player.setVolume(_muted ? 0 : 100);
+    }
+  }
+
+  Future<void> _openInYoutube(FeedArticle short) async {
+    final link = short.link;
+    if (link == null) return;
+    for (final s in _slots) {
+      await s.player.pause();
+    }
+    await ExternalApps.openYoutube(link);
   }
 
   @override
@@ -96,19 +312,27 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
             ? const _NoShorts()
             : PageView.builder(
                 controller: _pager,
-                // Build (and load, paused) the next Short in advance so a
-                // swipe starts it instantly.
-                allowImplicitScrolling: true,
                 scrollDirection: Axis.vertical,
+                // Keep the next page laid out, so its video surface is
+                // ready before you swipe to it.
+                allowImplicitScrolling: true,
                 itemCount: _shorts.length,
-                onPageChanged: _onPage,
-                itemBuilder: (context, i) => _ShortPage(
-                  key: ValueKey(_shorts[i].id),
-                  short: _shorts[i],
-                  active: i == _current,
-                  muted: _muted,
-                  onToggleMute: () => setState(() => _muted = !_muted),
-                ),
+                onPageChanged: _activate,
+                itemBuilder: (context, i) {
+                  final slot = _slotFor(i);
+                  return _ShortPage(
+                    key: ValueKey(_shorts[i].id),
+                    short: _shorts[i],
+                    slot: slot,
+                    ready: slot != null && slot.ready,
+                    failed: _failed.contains(i),
+                    paused: i == _current && _pausedByUser,
+                    muted: _muted,
+                    onTap: _togglePause,
+                    onToggleMute: _toggleMute,
+                    onOpenInYoutube: () => _openInYoutube(_shorts[i]),
+                  );
+                },
               ),
       ),
     );
@@ -151,15 +375,29 @@ class _ShortPage extends ConsumerStatefulWidget {
   const _ShortPage({
     super.key,
     required this.short,
-    required this.active,
+    required this.slot,
+    required this.ready,
+    required this.failed,
+    required this.paused,
     required this.muted,
+    required this.onTap,
     required this.onToggleMute,
+    required this.onOpenInYoutube,
   });
 
   final FeedArticle short;
-  final bool active;
+
+  /// The player assigned to this Short (loading or ready).
+  final _Slot? slot;
+
+  /// Its video is loaded; until then the thumbnail covers the player.
+  final bool ready;
+  final bool failed;
+  final bool paused;
   final bool muted;
+  final VoidCallback onTap;
   final VoidCallback onToggleMute;
+  final VoidCallback onOpenInYoutube;
 
   @override
   ConsumerState<_ShortPage> createState() => _ShortPageState();
@@ -167,120 +405,15 @@ class _ShortPage extends ConsumerStatefulWidget {
 
 class _ShortPageState extends ConsumerState<_ShortPage>
     with SingleTickerProviderStateMixin {
-  late final Player _player = Player(
-    configuration: const PlayerConfiguration(bufferSize: 32 * 1024 * 1024),
-  );
-  late final VideoController _video = VideoController(_player);
   late final _heart = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 700),
   );
-  bool _loading = true;
-  bool _failed = false;
-  bool _pausedByUser = false;
-  Timer? _watchdog;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final id = widget.short.youtubeId;
-    if (id == null) return setState(() => _failed = true);
-    try {
-      final stream = await ref.read(shortsNativeProvider).resolve(id);
-      if (!mounted) return;
-      // Read well ahead (a Short is usually under a minute), so playback
-      // doesn't stall on a slow moment of the connection.
-      final native = _player.platform;
-      if (native is NativePlayer) {
-        await native.setProperty('cache', 'yes');
-        await native.setProperty('demuxer-readahead-secs', '20');
-        await native.setProperty('cache-pause-initial', 'yes');
-      }
-      await _player.setPlaylistMode(PlaylistMode.single); // loop
-      await _player.setVolume(widget.muted ? 0 : 100);
-      await _player.open(Media(stream.video), play: false);
-      if (stream.audio != null) {
-        await _player.setAudioTrack(AudioTrack.uri(stream.audio!));
-      }
-      // Wait until video and audio are actually loaded before starting.
-      await _ready();
-      if (!mounted) return;
-      setState(() => _loading = false);
-      if (widget.active) _start();
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _failed = true;
-        });
-      }
-    }
-  }
-
-  /// Resolves once the file is open with a duration (or after 6 s).
-  Future<void> _ready() async {
-    if (_player.state.duration > Duration.zero) return;
-    await _player.stream.duration
-        .firstWhere((d) => d > Duration.zero)
-        .timeout(const Duration(seconds: 6), onTimeout: () => Duration.zero);
-  }
-
-  /// Plays, and if the position hasn't moved shortly after (mpv sometimes
-  /// waits on the separate audio stream), nudges it with pause/play — what
-  /// tapping twice used to do by hand.
-  void _start() {
-    _player.play();
-    _watchdog?.cancel();
-    final from = _player.state.position;
-    var nudges = 0;
-    _watchdog = Timer.periodic(const Duration(milliseconds: 1500), (t) async {
-      if (!mounted || !widget.active || _pausedByUser) return t.cancel();
-      final moved = _player.state.position != from;
-      if (moved && _player.state.playing) return t.cancel();
-      if (_player.state.buffering) return; // still loading: give it time
-      if (nudges++ >= 3) return t.cancel();
-      await _player.pause();
-      await _player.play();
-    });
-  }
-
-  @override
-  void didUpdateWidget(_ShortPage old) {
-    super.didUpdateWidget(old);
-    if (old.active != widget.active && !_loading && !_failed) {
-      if (widget.active) {
-        _pausedByUser = false;
-        _start();
-      } else {
-        _watchdog?.cancel();
-        _player.pause();
-        _player.seek(Duration.zero);
-      }
-    }
-    if (old.muted != widget.muted) _player.setVolume(widget.muted ? 0 : 100);
-  }
 
   @override
   void dispose() {
-    _watchdog?.cancel();
     _heart.dispose();
-    _player.dispose();
     super.dispose();
-  }
-
-  void _togglePause() {
-    if (_loading || _failed) return;
-    setState(() => _pausedByUser = !_pausedByUser);
-    if (_pausedByUser) {
-      _watchdog?.cancel();
-      _player.pause();
-    } else {
-      _start();
-    }
   }
 
   void _like() {
@@ -289,16 +422,10 @@ class _ShortPageState extends ConsumerState<_ShortPage>
     _heart.forward(from: 0);
   }
 
-  Future<void> _openInYoutube() async {
-    final link = widget.short.link;
-    if (link == null) return;
-    await _player.pause();
-    await ExternalApps.openYoutube(link);
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = widget.short;
+    final slot = widget.slot;
     final reactions = ref.watch(rssReactionsProvider);
     final liked = reactions.isLiked(s.id);
     final saved = reactions.isSaved(s.id);
@@ -306,27 +433,28 @@ class _ShortPageState extends ConsumerState<_ShortPage>
         ref.watch(rssLibraryProvider).feedById(s.feedId)?.title ?? '';
 
     return GestureDetector(
-      onTap: _togglePause,
+      onTap: widget.onTap,
       onDoubleTap: _like,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Thumbnail until the video starts.
-          if (s.imageUrl != null)
+          // The player's surface is in place from the start; the thumbnail
+          // covers it until the video is loaded.
+          if (slot != null)
+            Video(
+              controller: slot.controller,
+              fit: BoxFit.cover,
+              controls: NoVideoControls,
+            ),
+          if (!widget.ready && s.imageUrl != null)
             Image.network(
               s.imageUrl!,
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
-          if (!_loading && !_failed)
-            Video(
-              controller: _video,
-              fit: BoxFit.cover,
-              controls: NoVideoControls,
-            ),
-          if (_loading)
+          if (!widget.ready && !widget.failed)
             const Center(child: CircularProgressIndicator(color: Colors.white)),
-          if (_failed)
+          if (widget.failed)
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -340,14 +468,14 @@ class _ShortPageState extends ConsumerState<_ShortPage>
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFFFF3B30),
                     ),
-                    onPressed: _openInYoutube,
+                    onPressed: widget.onOpenInYoutube,
                     icon: const Icon(Icons.play_arrow),
                     label: const Text('Watch in YouTube'),
                   ),
                 ],
               ),
             ),
-          if (_pausedByUser)
+          if (widget.paused)
             const Center(
               child: Icon(
                 Icons.play_arrow_rounded,
@@ -453,7 +581,7 @@ class _ShortPageState extends ConsumerState<_ShortPage>
                   _SideButton(
                     icon: Icons.open_in_new,
                     label: 'YouTube',
-                    onTap: _openInYoutube,
+                    onTap: widget.onOpenInYoutube,
                   ),
                 ],
               ),
@@ -470,15 +598,15 @@ class _ShortPageState extends ConsumerState<_ShortPage>
             ),
           ),
           // Progress along the bottom edge.
-          if (!_loading && !_failed)
+          if (slot != null && widget.ready)
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: StreamBuilder<Duration>(
-                stream: _player.stream.position,
+                stream: slot.player.stream.position,
                 builder: (context, snap) {
-                  final total = _player.state.duration.inMilliseconds;
+                  final total = slot.player.state.duration.inMilliseconds;
                   final pos = snap.data?.inMilliseconds ?? 0;
                   return LinearProgressIndicator(
                     value: total == 0 ? 0 : (pos / total).clamp(0, 1),

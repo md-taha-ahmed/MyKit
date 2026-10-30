@@ -7,9 +7,13 @@ class ShortStream {
     this.audio,
     this.width = 0,
     this.height = 0,
+    this.fallback,
   });
 
   final String video;
+
+  /// One file with video and audio (lower quality), if the pair fails.
+  final String? fallback;
 
   /// Separate audio (YouTube serves HD video and audio apart).
   final String? audio;
@@ -37,6 +41,7 @@ class ShortsNativeDataSource {
       audio: raw?['audio'] as String?,
       width: (raw?['width'] as num?)?.toInt() ?? 0,
       height: (raw?['height'] as num?)?.toInt() ?? 0,
+      fallback: raw?['fallback'] as String?,
     );
   }
 

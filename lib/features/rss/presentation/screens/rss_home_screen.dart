@@ -27,6 +27,16 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Warm up Shorts: the first lookup also loads YouTube's player code
+    // (a few seconds), so do it now for the first two Shorts.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final native = ref.read(shortsNativeProvider);
+      for (final short in ref.read(shortsProvider(allArticles)).take(2)) {
+        final id = short.youtubeId;
+        if (id != null) native.prefetch(id);
+      }
+    });
     // Refresh when opened, unless we just did.
     Future.microtask(() {
       final state = ref.read(rssArticlesProvider);

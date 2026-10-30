@@ -114,6 +114,9 @@ class YouTubeChannel(messenger: BinaryMessenger) : MethodChannel.MethodCallHandl
             !info.hlsUrl.isNullOrEmpty() -> mapOf("video" to info.hlsUrl)
             else -> throw IllegalStateException("No playable stream")
         } + mapOf(
+            // Single-file stream (usually 360p): the fallback when the HD
+            // video + audio pair won't play.
+            "fallback" to muxed?.content,
             "title" to info.name,
             "channel" to info.uploaderName,
             "duration" to info.duration,
