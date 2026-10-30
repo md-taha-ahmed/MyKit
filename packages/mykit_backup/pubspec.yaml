@@ -1,0 +1,21 @@
+name: mykit_backup
+description: MyKit's native backup bridge — extension files, Android preferences and app restart.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+# A plugin (not code in MainActivity) so it is also registered on the
+# background engine WorkManager starts for scheduled backups.
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.mdtaha.mykit.backup
+        pluginClass: BackupPlugin

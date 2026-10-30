@@ -66,10 +66,10 @@ void main() {
 
     final files = native.imported!['files'] as Map;
     expect(files['manga_extensions/eu.kanade.x.ext'], [1, 2, 3, 250]);
-    expect(
-      ((native.imported!['prefs'] as Map)['source_42'] as Map)['count'],
-      ['i', 3],
-    );
+    expect(((native.imported!['prefs'] as Map)['source_42'] as Map)['count'], [
+      'i',
+      3,
+    ]);
   });
 
   test('same data gives the same fingerprint', () async {

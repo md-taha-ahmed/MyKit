@@ -70,7 +70,7 @@ class BackupScreen extends ConsumerWidget {
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
               title: const Text('Back up automatically'),
               subtitle: const Text(
-                'When you leave MyKit and something has changed',
+                'A couple of minutes after you leave MyKit, if something changed',
               ),
               value: status.auto,
               onChanged: notifier.setAuto,
@@ -122,13 +122,14 @@ class BackupScreen extends ConsumerWidget {
                   ),
                 ),
             const SizedBox(height: 20),
-            Text(
+            const Text(
               'Included: all settings, extensions and their settings, '
               'libraries, watch/reading progress, feeds, countdowns and '
               'workouts. Not included: imported book PDFs and downloaded '
-              'or cached files. The last ${BackupNotifier.keep} backups are '
-              'kept.',
-              style: const TextStyle(
+              'or cached files.\n\n'
+              'Kept in Drive: the 5 latest backups, one per day for a week '
+              'and one per week for a month.',
+              style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
                 color: Colors.white54,

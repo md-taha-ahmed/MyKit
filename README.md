@@ -82,13 +82,15 @@ Dashboard → cloud icon. Everything MyKit stores on the phone is packed into on
 the **app data folder** of your Google Drive (hidden; scope `drive.appdata`, so MyKit sees no other Drive files):
 
 - all Flutter preferences: settings, libraries, progress, feeds, countdowns, workouts, add-ons, API keys;
-- the Android side (`android/.../backup/BackupChannel.kt`): installed Mihon/Aniyomi extension APKs, their trust keys
-  and each source's own settings.
+- the Android side (`packages/mykit_backup`, a local plugin so it also runs on WorkManager's background engine):
+  installed Mihon/Aniyomi extension APKs, their trust keys and each source's own settings.
 
 Not included: imported book PDFs and caches/downloads. This install's Google sign-in token is never backed up.
 
-- **Automatic**: when you leave the app (at most every 15 min) and only if something changed; the last 10 backups
-  are kept. Can be switched off.
+- **Automatic** (WorkManager): leaving the app schedules a backup 2 minutes later; coming back cancels it, so
+  opening and closing the app often still uploads once. It only uploads if something changed, runs even if Android
+  has killed MyKit, waits for a network connection and retries failures. Can be switched off.
+- **Kept in Drive**: the 5 latest backups, the newest of each of the last 7 days and of each of the last 4 weeks.
 - **Restore** (e.g. after reinstalling): Backup → Sign in with Google → pick a backup → Restore. MyKit replaces its
   data and restarts.
 

@@ -1,11 +1,12 @@
 import 'package:flutter/services.dart';
+import 'package:mykit_backup/mykit_backup.dart';
 
 import '../../domain/entities/drive_backup.dart';
 
 /// Android-side state Flutter can't read itself — extension APKs, their trust
 /// keys and per-source settings (`android/.../backup/BackupChannel.kt`).
 class BackupNativeDataSource {
-  static const _channel = MethodChannel('com.mdtaha.mykit/backup');
+  static const _channel = MethodChannel(backupChannelName);
 
   /// `{prefs: {file: {key: [tag, value]}}, files: {path: bytes}}`.
   Future<Map<String, Object?>> export() async {

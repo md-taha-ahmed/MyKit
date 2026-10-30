@@ -18,18 +18,18 @@ class MyKitApp extends ConsumerStatefulWidget {
 class _MyKitAppState extends ConsumerState<MyKitApp> {
   StreamSubscription<Uri?>? _widgetLaunchSub;
   late final AppLifecycleListener _lifecycle;
-  Timer? _startupBackup;
 
   @override
   void initState() {
     super.initState();
     _listenToHomeWidgetLaunches();
-    // Google Drive backup: when the app is left, and once after start-up.
-    _lifecycle = AppLifecycleListener(onPause: _autoBackUp);
-    _startupBackup = Timer(const Duration(seconds: 30), _autoBackUp);
+    // Google Drive backup: scheduled when the app is left, cancelled on return.
+    final backup = ref.read(backupProvider.notifier);
+    _lifecycle = AppLifecycleListener(
+      onPause: backup.onLeave,
+      onResume: backup.onReturn,
+    );
   }
-
-  void _autoBackUp() => ref.read(backupProvider.notifier).autoBackUp();
 
   /// Opens the right screen when the app is launched from a home-screen widget.
   void _listenToHomeWidgetLaunches() {
@@ -49,7 +49,6 @@ class _MyKitAppState extends ConsumerState<MyKitApp> {
   void dispose() {
     _widgetLaunchSub?.cancel();
     _lifecycle.dispose();
-    _startupBackup?.cancel();
     super.dispose();
   }
 
