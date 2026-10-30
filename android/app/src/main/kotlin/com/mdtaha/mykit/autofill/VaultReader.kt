@@ -20,6 +20,15 @@ class VaultLogin(
     /** "github.com" from the URL. */
     val host: String = hostOf(url)
 
+    /** Saved for an Android app: `android://<hash>@com.example.app/`. */
+    val appPackage: String? = url.trim().lowercase()
+        .takeIf { it.startsWith("android://") }
+        ?.substringAfter('@', "")
+        ?.trimEnd('/')
+        ?.takeIf { it.isNotEmpty() }
+
+    val isAppUrl get() = appPackage != null
+
     companion object {
         fun hostOf(url: String): String {
             val raw = url.trim().lowercase()
@@ -68,8 +77,12 @@ object VaultReader {
     }
 
     /**
-     * Logins for this screen, best first: same site (web), or apps linked
-     * before / whose package name contains the site's name.
+     * Logins for this screen, best first:
+     * - web pages: same site, or a login named after the site;
+     * - apps: logins picked for this app before, logins saved for the app
+     *   itself (`android://…@package`, as Google exports them), then logins
+     *   whose site or name matches the app ("com.instagram.lite" ↔
+     *   instagram.com / "Instagram").
      */
     fun matches(
         logins: List<VaultLogin>,
@@ -79,15 +92,43 @@ object VaultReader {
         val domain = fields.webDomain?.let { VaultLogin.hostOf(it) }
         if (!domain.isNullOrEmpty()) {
             val site = siteOf(domain)
-            return logins.filter { it.host.isNotEmpty() && siteOf(it.host) == site }
+            val name = siteName(domain)
+            return logins.filter {
+                if (it.host.isNotEmpty() && !it.isAppUrl) siteOf(it.host) == site
+                else name.length >= 3 && name in nameWords(it.title)
+            }
         }
         val pkg = fields.packageName.lowercase()
+        val brands = brandWords(pkg)
         val linked = logins.filter { it.id in linkedIds }
+        val forApp = logins.filter { it.id !in linkedIds && it.appPackage == pkg }
         val guessed = logins.filter { login ->
-            login.id !in linkedIds && siteName(login.host).let { it.length >= 3 && pkg.contains(it) }
+            login.id !in linkedIds && login.appPackage != pkg && brands.isNotEmpty() &&
+                (namesOf(login) intersect brands).isNotEmpty()
         }
-        return linked + guessed
+        return linked + forApp + guessed
     }
+
+    /** Words a login is known by: its site's name and its title's words. */
+    private fun namesOf(login: VaultLogin): Set<String> = buildSet {
+        login.appPackage?.let { addAll(brandWords(it)) }
+        if (login.host.isNotEmpty() && !login.isAppUrl) add(siteName(login.host))
+        addAll(nameWords(login.title))
+    }
+
+    private fun nameWords(text: String) =
+        text.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length >= 3 }.toSet()
+
+    /** The distinctive parts of a package name: com.instagram.lite → instagram. */
+    private fun brandWords(pkg: String) = pkg.split('.')
+        .filter { it.length >= 3 && it !in genericPackageWords }
+        .toSet()
+
+    private val genericPackageWords = setOf(
+        "com", "org", "net", "android", "app", "apps", "lite", "mobile", "client",
+        "main", "free", "pro", "beta", "release", "prod", "official", "mbanking",
+        "www", "co", "io", "the",
+    )
 
     /** "accounts.google.com" → "google.com"; "bbc.co.uk" stays. */
     fun siteOf(host: String): String {

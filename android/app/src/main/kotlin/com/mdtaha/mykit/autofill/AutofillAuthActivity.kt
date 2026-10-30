@@ -27,6 +27,7 @@ import com.mdtaha.mykit.vault.VaultKeyStore
 private sealed interface Row
 private class Header(val text: String) : Row
 private class Item(val login: VaultLogin) : Row
+private object ShowAll : Row
 
 /**
  * Opened from the "Unlock MyKit to fill" suggestion: asks for a fingerprint,
@@ -101,7 +102,7 @@ class AutofillAuthActivity : FragmentActivity() {
 
         val where = domain?.let { VaultLogin.hostOf(it) }?.takeIf { it.isNotEmpty() }
             ?: appLabel(packageName)
-        val adapter = LoginAdapter(matches, others)
+        val adapter = LoginAdapter(matches, others, where)
         val dp = resources.displayMetrics.density
         val search = EditText(this).apply {
             hint = "Search all ${all.size} logins"
@@ -133,6 +134,10 @@ class AutofillAuthActivity : FragmentActivity() {
             .setOnCancelListener { finish() }
             .create()
         list.setOnItemClickListener { _, _, position, _ ->
+            if (adapter.isShowAll(position)) {
+                adapter.showAll()
+                return@setOnItemClickListener
+            }
             val login = adapter.loginAt(position) ?: return@setOnItemClickListener
             dialog.setOnDismissListener(null)
             dialog.dismiss()
@@ -190,42 +195,63 @@ class AutofillAuthActivity : FragmentActivity() {
         super.onDestroy()
     }
 
-    /** Suggested logins, then the rest; a search narrows both. */
+    /**
+     * The logins for this site / app only; "Show other logins" (or a search)
+     * opens up the rest. With no match, everything is listed under a note.
+     */
     private inner class LoginAdapter(
         private val suggested: List<VaultLogin>,
         private val others: List<VaultLogin>,
+        private val where: String,
     ) : BaseAdapter() {
-        private var rows: List<Row> = build("")
+        private var query = ""
+        private var expanded = suggested.isEmpty()
+        private var rows: List<Row> = build()
 
-        private fun build(query: String): List<Row> {
+        private fun build(): List<Row> {
             val q = query.trim().lowercase()
             fun ok(l: VaultLogin) = q.isEmpty() || l.title.lowercase().contains(q) ||
                 l.username.lowercase().contains(q) || l.host.contains(q)
             val s = suggested.filter(::ok)
-            val o = others.filter(::ok)
+            val o = if (expanded || q.isNotEmpty()) others.filter(::ok) else emptyList()
             return buildList {
                 if (s.isNotEmpty()) {
-                    add(Header("Suggested"))
+                    add(Header("For $where"))
                     s.forEach { add(Item(it)) }
                 }
+                if (!expanded && q.isEmpty() && others.isNotEmpty()) add(ShowAll)
                 if (o.isNotEmpty()) {
-                    add(Header(if (s.isEmpty()) "All logins" else "Other logins"))
+                    add(
+                        Header(
+                            if (suggested.isEmpty()) "No saved login for $where yet. Pick one:"
+                            else "Other logins",
+                        ),
+                    )
                     o.forEach { add(Item(it)) }
                 }
             }
         }
 
-        fun filter(query: String) {
-            rows = build(query)
+        fun filter(text: String) {
+            query = text
+            rows = build()
             notifyDataSetChanged()
         }
+
+        fun showAll() {
+            expanded = true
+            rows = build()
+            notifyDataSetChanged()
+        }
+
+        fun isShowAll(position: Int) = rows.getOrNull(position) === ShowAll
 
         fun loginAt(position: Int) = (rows.getOrNull(position) as? Item)?.login
 
         override fun getCount() = rows.size
         override fun getItem(position: Int) = rows[position]
         override fun getItemId(position: Int) = position.toLong()
-        override fun isEnabled(position: Int) = rows[position] is Item
+        override fun isEnabled(position: Int) = rows[position] !is Header
         override fun areAllItemsEnabled() = false
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -240,6 +266,11 @@ class AutofillAuthActivity : FragmentActivity() {
                     textSize = 12f
                     setTypeface(typeface, Typeface.BOLD)
                     alpha = 0.6f
+                }
+                ShowAll -> view.apply {
+                    text = "Show other logins (${others.size})"
+                    textSize = 15f
+                    alpha = 0.8f
                 }
                 is Item -> view.apply {
                     val sub = row.login.username.ifEmpty { row.login.host }
