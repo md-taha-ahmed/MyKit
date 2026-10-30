@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/tools/tools_provider.dart';
+import '../../../backup/backup_routes.dart';
 import '../widgets/tool_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -18,24 +19,35 @@ class DashboardScreen extends ConsumerWidget {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.fromLTRB(20, 20, 8, 16),
+                child: Row(
                   children: [
-                    const Text(
-                      'MyKit',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'MyKit',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('EEEE, d MMMM').format(DateTime.now()),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white54,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      DateFormat('EEEE, d MMMM').format(DateTime.now()),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white54,
-                      ),
+                    IconButton(
+                      tooltip: 'Backup',
+                      icon: const Icon(Icons.cloud_outlined),
+                      onPressed: () => context.push(BackupRoutes.home),
                     ),
                   ],
                 ),

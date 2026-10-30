@@ -11,6 +11,7 @@ import 'app/tools_registry.dart';
 import 'core/storage/app_directories.dart';
 import 'core/storage/shared_preferences_provider.dart';
 import 'core/tools/tools_provider.dart';
+import 'features/backup/data/services/backup_scheduler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,8 @@ Future<void> main() async {
   MediaKit.ensureInitialized();
   // Books: PDF engine (also used outside widgets to render covers).
   await pdfrxFlutterInitialize();
+  // Google Drive backup: WorkManager runs the automatic backups.
+  await BackupScheduler.init();
   final prefs = await SharedPreferences.getInstance();
   final documents = await getApplicationDocumentsDirectory();
 

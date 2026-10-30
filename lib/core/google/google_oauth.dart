@@ -37,6 +37,7 @@ class GoogleOAuth {
   static const _idKey = 'google.oauth.clientId';
   static const _secretKey = 'google.oauth.clientSecret';
   static const _refreshKey = 'google.oauth.refreshToken';
+  static const _scopesKey = 'google.oauth.scopes';
   static const _defaultId = String.fromEnvironment('GOOGLE_OAUTH_CLIENT_ID');
   static const _defaultSecret = String.fromEnvironment(
     'GOOGLE_OAUTH_CLIENT_SECRET',
@@ -54,6 +55,21 @@ class GoogleOAuth {
   bool get isConfigured => _clientId.isNotEmpty && _clientSecret.isNotEmpty;
   bool get isSignedIn => _prefs.getString(_refreshKey) != null;
 
+  /// Scopes the stored sign-in covers (as Google last reported them).
+  Set<String> get _granted => (_prefs.getString(_scopesKey) ?? '')
+      .split(' ')
+      .where((s) => s.isNotEmpty)
+      .toSet();
+
+  /// Whether the stored sign-in already covers [scopes].
+  bool hasGranted(List<String> scopes) =>
+      isSignedIn && _granted.containsAll(scopes);
+
+  /// True when [scopes] are granted — or, for a sign-in from before scopes
+  /// were recorded, when Google hasn't told us yet (it was made for them).
+  bool _covers(List<String> scopes) =>
+      _prefs.getString(_scopesKey) == null || _granted.containsAll(scopes);
+
   Future<void> saveClient(String clientId, String clientSecret) async {
     await _prefs.setString(_idKey, clientId.trim());
     await _prefs.setString(_secretKey, clientSecret.trim());
@@ -62,6 +78,9 @@ class GoogleOAuth {
 
   /// A valid access token for [scopes]: cached, refreshed silently, or — if
   /// [interactive] — obtained by signing in through the browser.
+  ///
+  /// One sign-in serves every tool: asking for new scopes signs in again for
+  /// those plus the ones already granted (YouTube + Drive…).
   Future<String> accessToken(
     List<String> scopes, {
     bool interactive = true,
@@ -70,15 +89,20 @@ class GoogleOAuth {
       throw const GoogleOAuthException('Google API client is not set up.');
     }
     final cached = _accessToken;
-    if (cached != null && DateTime.now().isBefore(_expiresAt!)) return cached;
+    if (cached != null &&
+        DateTime.now().isBefore(_expiresAt!) &&
+        _covers(scopes)) {
+      return cached;
+    }
 
     final refresh = _prefs.getString(_refreshKey);
     if (refresh != null) {
       try {
-        return await _token({
+        final token = await _token({
           'grant_type': 'refresh_token',
           'refresh_token': refresh,
         });
+        if (_covers(scopes)) return token;
       } on GoogleOAuthException {
         await _forget(); // revoked or expired: sign in again
       }
@@ -86,7 +110,7 @@ class GoogleOAuth {
     if (!interactive) {
       throw const GoogleOAuthException('Sign in with Google first.');
     }
-    return _signIn(scopes);
+    return _signIn({..._granted, ...scopes}.toList());
   }
 
   /// Drops the cached access token (e.g. after the API answered 401).
@@ -126,6 +150,7 @@ class GoogleOAuth {
         'code_challenge_method': 'S256',
         'state': state,
         'access_type': 'offline',
+        'include_granted_scopes': 'true',
         'prompt': 'consent',
       });
       if (!await launchUrl(authUrl, mode: LaunchMode.externalApplication)) {
@@ -177,6 +202,8 @@ class GoogleOAuth {
     }
     final refresh = body['refresh_token'] as String?;
     if (refresh != null) await _prefs.setString(_refreshKey, refresh);
+    final scope = body['scope'] as String?;
+    if (scope != null) await _prefs.setString(_scopesKey, scope);
     _accessToken = body['access_token'] as String;
     // Renew a minute early.
     _expiresAt = DateTime.now().add(
@@ -189,6 +216,7 @@ class GoogleOAuth {
     _accessToken = null;
     _expiresAt = null;
     await _prefs.remove(_refreshKey);
+    await _prefs.remove(_scopesKey);
   }
 
   static String _random(int length) {

@@ -20,7 +20,11 @@ void main() {
       requests.add(req.url);
       if (req.url.host == 'oauth2.googleapis.com') {
         return http.Response(
-          jsonEncode({'access_token': 'token', 'expires_in': 3600}),
+          jsonEncode({
+            'access_token': 'token',
+            'expires_in': 3600,
+            'scope': 'https://www.googleapis.com/auth/youtube.readonly',
+          }),
           200,
         );
       }

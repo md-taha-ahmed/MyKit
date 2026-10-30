@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../theme/app_theme.dart';
 import '../tools_registry.dart';
 import 'package:flutter/material.dart';
+import '../../features/backup/backup_routes.dart';
+import '../../features/backup/presentation/providers/backup_providers.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 
 abstract final class AppRoutes {
@@ -28,6 +30,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       for (final tool in toolsRegistry)
         ...themedRoutes(tool.routes, tool.color),
+      ...themedRoutes(BackupRoutes.routes, backupAccent),
     ],
   );
   ref.onDispose(router.dispose);
