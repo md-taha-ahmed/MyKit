@@ -7,10 +7,14 @@ abstract final class RssModels {
   static Map<String, dynamic> categoryToJson(FeedCategory c) => {
     'id': c.id,
     'name': c.name,
+    if (c.parentId != null) 'parentId': c.parentId,
   };
 
-  static FeedCategory categoryFromJson(Map<String, dynamic> j) =>
-      FeedCategory(id: j['id'] as String, name: j['name'] as String);
+  static FeedCategory categoryFromJson(Map<String, dynamic> j) => FeedCategory(
+    id: j['id'] as String,
+    name: j['name'] as String,
+    parentId: j['parentId'] as String?,
+  );
 
   static Map<String, dynamic> feedToJson(RssFeed f) => {
     'id': f.id,

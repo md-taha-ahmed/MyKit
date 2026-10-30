@@ -110,6 +110,122 @@ void main() {
     );
   });
 
+  test(
+    'streams the answer with its sources; drops search if refused',
+    () async {
+      final bodies = <Map<String, dynamic>>[];
+      String sse(Map<String, Object> chunk) => 'data: ${jsonEncode(chunk)}\n\n';
+      final client = MockClient.streaming((req, body) async {
+        final json =
+            jsonDecode(await body.bytesToString()) as Map<String, dynamic>;
+        bodies.add(json);
+        if (json.containsKey('tools')) {
+          return http.StreamedResponse(
+            Stream.value(
+              utf8.encode(
+                jsonEncode({
+                  'error': {'message': 'Search grounding is not supported.'},
+                }),
+              ),
+            ),
+            400,
+          );
+        }
+        expect(req.url.query, 'alt=sse');
+        return http.StreamedResponse(
+          Stream.fromIterable([
+            utf8.encode(
+              sse({
+                'candidates': [
+                  {
+                    'content': {
+                      'parts': [
+                        {'text': 'Hel'},
+                      ],
+                    },
+                  },
+                ],
+              }),
+            ),
+            utf8.encode(
+              sse({
+                'candidates': [
+                  {
+                    'content': {
+                      'parts': [
+                        {'text': 'lo'},
+                      ],
+                    },
+                    'groundingMetadata': {
+                      'groundingChunks': [
+                        {
+                          'web': {
+                            'uri': 'https://bbc.com/x',
+                            'title': 'bbc.com',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              }),
+            ),
+          ]),
+          200,
+        );
+      });
+      final replies = await GeminiClient(client, 'k')
+          .streamReply(messages: [(fromUser: true, text: 'q')], webSearch: true)
+          .toList();
+      expect(replies.map((r) => r.text), containsAllInOrder(['Hel', 'Hello']));
+      expect(replies.last.sources.single.url, 'https://bbc.com/x');
+      expect(bodies.length, 2); // retried without the search tool
+      expect(bodies.last.containsKey('tools'), isFalse);
+    },
+  );
+
+  // Last: it leaves search switched off for the rest of the run.
+  test(
+    'no search quota (429): answers without search, then skips it',
+    () async {
+      final withTools = <bool>[];
+      final client = MockClient((req) async {
+        final json = jsonDecode(req.body) as Map<String, dynamic>;
+        withTools.add(json.containsKey('tools'));
+        if (json.containsKey('tools')) {
+          return _json(429, {
+            'error': {'message': 'quota'},
+          });
+        }
+        return _json(200, {
+          'candidates': [
+            {
+              'content': {
+                'parts': [
+                  {'text': 'ok'},
+                ],
+              },
+            },
+          ],
+        });
+      });
+      final gemini = GeminiClient(client, 'k');
+      final first = await gemini.reply(
+        messages: [(fromUser: true, text: 'q')],
+        webSearch: true,
+      );
+      expect(first.text, 'ok');
+      expect(withTools, [true, false]); // same model, retried without search
+      await gemini.reply(
+        messages: [(fromUser: true, text: 'q')],
+        webSearch: true,
+      );
+      expect(withTools.last, isFalse);
+      expect(withTools.length, 3); // didn't try search again
+      expect(GeminiClient.searchAvailable, isFalse);
+    },
+  );
+
   test('extracts readable article text', () {
     final para = 'This is a long enough paragraph of article text. ' * 3;
     final html =

@@ -4,9 +4,14 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/platform/external_apps.dart';
+import '../../../../core/utils/text_direction.dart';
+import '../../domain/services/reading_time.dart';
+import '../providers/offline_providers.dart';
 import '../providers/rss_providers.dart';
 import '../widgets/article_actions.dart';
 import '../widgets/article_ai.dart';
+import '../widgets/feed_image.dart';
+import '../widgets/reading_time_badge.dart';
 
 /// In-app reading view with a link to the original article.
 class ArticleScreen extends ConsumerStatefulWidget {
@@ -60,7 +65,14 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
     final reactions = ref.watch(rssReactionsProvider);
     final liked = reactions.isLiked(article.id);
     final saved = reactions.isSaved(article.id);
-    final body = article.content.isNotEmpty ? article.content : article.summary;
+    final feedText = article.content.isNotEmpty
+        ? article.content
+        : article.summary;
+    // The full text saved for offline reading, when it has more.
+    final offlineText = ref.watch(offlineTextProvider(article.id)).value;
+    final body = offlineText != null && offlineText.length > feedText.length
+        ? offlineText
+        : feedText;
     final link = article.link;
     final text = Theme.of(context).textTheme;
 
@@ -128,68 +140,84 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
-        children: [
-          Text(
-            article.title,
-            style: text.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              height: 1.25,
+      body: AutoDirection(
+        text: '${article.title} $body',
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
+          children: [
+            Text(
+              article.title,
+              style: text.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            meta,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontSize: 13.5,
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  meta,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 13.5,
+                  ),
+                ),
+                if (!(feed?.isYoutube ?? false))
+                  ReadingTimeBadge(
+                    ReadingTime.of(article, fullText: offlineText),
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(height: 14),
-          ArticleAiPanel(articleId: article.id),
-          if (article.imageUrl != null) ...[
+            const SizedBox(height: 14),
+            ArticleAiPanel(articleId: article.id),
+            if (article.imageUrl != null) ...[
+              const SizedBox(height: 18),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: FeedImage(
+                  article.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ),
+            ],
             const SizedBox(height: 18),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                article.imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+            if (body.isEmpty)
+              const Text(
+                'This feed only provides a headline. Open the article to read it.',
+                style: TextStyle(color: Colors.white60),
+              )
+            else
+              SelectableText(
+                body,
+                style: const TextStyle(fontSize: 16.5, height: 1.55),
               ),
-            ),
+            if (link != null) ...[
+              const SizedBox(height: 28),
+              FilledButton.icon(
+                style: feed?.isYoutube ?? false
+                    ? FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF3B30),
+                      )
+                    : null,
+                onPressed: () => _open(link),
+                icon: Icon(
+                  feed?.isYoutube ?? false
+                      ? Icons.play_arrow
+                      : Icons.open_in_new,
+                ),
+                label: Text(
+                  feed?.isYoutube ?? false
+                      ? 'Watch on YouTube'
+                      : 'Read full article',
+                ),
+              ),
+            ],
           ],
-          const SizedBox(height: 18),
-          if (body.isEmpty)
-            const Text(
-              'This feed only provides a headline. Open the article to read it.',
-              style: TextStyle(color: Colors.white60),
-            )
-          else
-            SelectableText(
-              body,
-              style: const TextStyle(fontSize: 16.5, height: 1.55),
-            ),
-          if (link != null) ...[
-            const SizedBox(height: 28),
-            FilledButton.icon(
-              style: feed?.isYoutube ?? false
-                  ? FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF3B30),
-                    )
-                  : null,
-              onPressed: () => _open(link),
-              icon: Icon(
-                feed?.isYoutube ?? false ? Icons.play_arrow : Icons.open_in_new,
-              ),
-              label: Text(
-                feed?.isYoutube ?? false
-                    ? 'Watch on YouTube'
-                    : 'Read full article',
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

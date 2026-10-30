@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/text_direction.dart';
+
 import '../../domain/entities/rss_feed.dart';
 import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
@@ -40,6 +42,42 @@ class FeedsDrawer extends ConsumerWidget {
     }
 
     int unread(ArticleFilter f) => ref.watch(unreadCountProvider(f));
+
+    // Folders inside [parentId], each followed (when open) by its sub-folders
+    // and then its own feeds.
+    List<Widget> branch(String? parentId, int depth) => [
+      for (final c in library.childrenOf(parentId)) ...[
+        _CategoryRow(
+          name: c.name,
+          depth: depth,
+          feedCount: library.feedsUnder(c.id).length,
+          hasContent:
+              library.childrenOf(c.id).isNotEmpty ||
+              library.feedsIn(c.id).isNotEmpty,
+          unread: unread((categoryId: c.id, feedId: null)),
+          expanded: !collapsed.contains(c.id),
+          selected: selected.categoryId == c.id && selected.feedId == null,
+          onToggle: () =>
+              ref.read(collapsedRssCategoriesProvider.notifier).toggle(c.id),
+          onTap: () => select((categoryId: c.id, feedId: null)),
+        ),
+        if (!collapsed.contains(c.id)) ...[
+          ...branch(c.id, depth + 1),
+          for (final f
+              in library.feedsIn(c.id)..sort(
+                (a, b) =>
+                    a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+              ))
+            _FeedRow(
+              feed: f,
+              depth: depth + 1,
+              unread: unread((categoryId: null, feedId: f.id)),
+              selected: selected.feedId == f.id,
+              onTap: () => select((categoryId: null, feedId: f.id)),
+            ),
+        ],
+      ],
+    ];
 
     return Drawer(
       backgroundColor: const Color(0xFF1B1B1D),
@@ -100,34 +138,7 @@ class FeedsDrawer extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  for (final c in library.categories) ...[
-                    _CategoryRow(
-                      name: c.name,
-                      feedCount: library.feedsIn(c.id).length,
-                      unread: unread((categoryId: c.id, feedId: null)),
-                      expanded: !collapsed.contains(c.id),
-                      selected:
-                          selected.categoryId == c.id &&
-                          selected.feedId == null,
-                      onToggle: () => ref
-                          .read(collapsedRssCategoriesProvider.notifier)
-                          .toggle(c.id),
-                      onTap: () => select((categoryId: c.id, feedId: null)),
-                    ),
-                    if (!collapsed.contains(c.id))
-                      for (final f
-                          in library.feedsIn(c.id)..sort(
-                            (a, b) => a.title.toLowerCase().compareTo(
-                              b.title.toLowerCase(),
-                            ),
-                          ))
-                        _FeedRow(
-                          feed: f,
-                          unread: unread((categoryId: null, feedId: f.id)),
-                          selected: selected.feedId == f.id,
-                          onTap: () => select((categoryId: null, feedId: f.id)),
-                        ),
-                  ],
+                  ...branch(null, 0),
                 ],
               ),
             ),
@@ -214,6 +225,8 @@ class _Row extends StatelessWidget {
 class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.name,
+    required this.depth,
+    required this.hasContent,
     required this.feedCount,
     required this.unread,
     required this.expanded,
@@ -223,6 +236,14 @@ class _CategoryRow extends StatelessWidget {
   });
 
   final String name;
+
+  /// 0 for top-level folders; sub-folders are indented.
+  final int depth;
+
+  /// Has sub-folders or feeds of its own (so it can fold).
+  final bool hasContent;
+
+  /// Feeds in this folder and all its sub-folders.
   final int feedCount;
   final int unread;
   final bool expanded;
@@ -235,13 +256,13 @@ class _CategoryRow extends StatelessWidget {
     return _Selectable(
       selected: selected,
       onTap: onTap,
-      leftPadding: 8,
+      leftPadding: 8.0 + depth * 18,
       child: Row(
         children: [
           // The chevron folds; the rest of the row opens the category.
           IconButton(
             visualDensity: VisualDensity.compact,
-            onPressed: feedCount == 0 ? null : onToggle,
+            onPressed: hasContent ? onToggle : null,
             icon: AnimatedRotation(
               turns: expanded ? .25 : 0,
               duration: const Duration(milliseconds: 150),
@@ -277,12 +298,16 @@ class _CategoryRow extends StatelessWidget {
 class _FeedRow extends StatelessWidget {
   const _FeedRow({
     required this.feed,
+    required this.depth,
     required this.unread,
     required this.selected,
     required this.onTap,
   });
 
   final RssFeed feed;
+
+  /// Depth of the folder it's in, plus one.
+  final int depth;
   final int unread;
   final bool selected;
   final VoidCallback onTap;
@@ -292,7 +317,7 @@ class _FeedRow extends StatelessWidget {
     return _Selectable(
       selected: selected,
       onTap: onTap,
-      leftPadding: 56,
+      leftPadding: 56.0 + (depth - 1) * 18,
       child: Row(
         children: [
           feed.isYoutube
@@ -309,6 +334,8 @@ class _FeedRow extends StatelessWidget {
           Expanded(
             child: Text(
               feed.title,
+              textDirection: textDirectionOf(feed.title),
+              textAlign: TextAlign.left,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(

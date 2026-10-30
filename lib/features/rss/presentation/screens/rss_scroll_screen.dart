@@ -7,11 +7,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/platform/external_apps.dart';
+import '../../../../core/utils/text_direction.dart';
 import '../../domain/entities/feed_article.dart';
+import '../../domain/services/reading_time.dart';
 import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
 import '../widgets/article_actions.dart';
 import '../widgets/article_tile.dart';
+import '../widgets/feed_image.dart';
+import '../widgets/reading_time_badge.dart';
 
 const _likeColor = Color(0xFFFF5A6E);
 const _cardColor = Color(0xFF17171A);
@@ -173,6 +177,10 @@ class _BriefPageState extends ConsumerState<_BriefPage>
     final brief = a.summary.isNotEmpty ? a.summary : a.content;
 
     return GestureDetector(
+      // Tap anywhere opens it; double-tap likes.
+      onTap: () => widget.isVideo
+          ? _watch(a.link)
+          : context.push(RssRoutes.article(a.id)),
       onDoubleTap: _doubleTapLike,
       child: Column(
         children: [
@@ -245,94 +253,100 @@ class _BriefPageState extends ConsumerState<_BriefPage>
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
               child: SafeArea(
                 top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _SourceRow(
-                      name: widget.feedTitle,
-                      time: relativeTime(a.publishedAt),
-                      accent: accent,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      a.title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        height: 1.25,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                child: AutoDirection(
+                  text: a.title,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SourceRow(
+                        name: widget.feedTitle,
+                        time: relativeTime(a.publishedAt),
+                        accent: accent,
+                        badge: widget.isVideo
+                            ? null
+                            : ReadingTimeBadge(ReadingTime.of(a)),
                       ),
-                    ),
-                    if (brief.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      // Capped so a long summary never squeezes the photo.
+                      const SizedBox(height: 12),
                       Text(
-                        brief,
-                        maxLines: 5,
+                        a.title,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 15,
-                          height: 1.5,
-                          color: Color(0xFFB8B8C0),
+                          fontSize: 20,
+                          height: 1.25,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (brief.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        // Capped so a long summary never squeezes the photo.
+                        Text(
+                          brief,
+                          maxLines: 5,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            height: 1.5,
+                            color: Color(0xFFB8B8C0),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 14),
+                      const Divider(height: 1, color: Colors.white12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            _ActionButton(
+                              icon: liked
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: liked ? _likeColor : Colors.white70,
+                              tooltip: liked ? 'Unlike' : 'Like',
+                              onTap: () => ref
+                                  .read(rssReactionsProvider.notifier)
+                                  .toggleLike(a.id),
+                            ),
+                            _ActionButton(
+                              icon: saved
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              color: saved ? accent : Colors.white70,
+                              tooltip: saved ? 'Remove bookmark' : 'Save',
+                              onTap: () => toggleSaveArticle(context, ref, a),
+                            ),
+                            _ActionButton(
+                              icon: Icons.delete_outline,
+                              color: Colors.white70,
+                              tooltip: 'Delete',
+                              onTap: widget.onDelete,
+                            ),
+                            const Spacer(),
+                            if (widget.isVideo)
+                              FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF3B30),
+                                ),
+                                onPressed: () => _watch(a.link),
+                                icon: const Icon(Icons.play_arrow),
+                                label: const Text('Watch'),
+                              )
+                            else
+                              FilledButton.icon(
+                                onPressed: () =>
+                                    context.push(RssRoutes.article(a.id)),
+                                icon: const Icon(
+                                  Icons.chrome_reader_mode_outlined,
+                                ),
+                                label: const Text('Read'),
+                              ),
+                          ],
                         ),
                       ),
                     ],
-                    const SizedBox(height: 14),
-                    const Divider(height: 1, color: Colors.white12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(
-                        children: [
-                          _ActionButton(
-                            icon: liked
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: liked ? _likeColor : Colors.white70,
-                            tooltip: liked ? 'Unlike' : 'Like',
-                            onTap: () => ref
-                                .read(rssReactionsProvider.notifier)
-                                .toggleLike(a.id),
-                          ),
-                          _ActionButton(
-                            icon: saved
-                                ? Icons.bookmark
-                                : Icons.bookmark_border,
-                            color: saved ? accent : Colors.white70,
-                            tooltip: saved ? 'Remove bookmark' : 'Save',
-                            onTap: () => toggleSaveArticle(context, ref, a),
-                          ),
-                          _ActionButton(
-                            icon: Icons.delete_outline,
-                            color: Colors.white70,
-                            tooltip: 'Delete',
-                            onTap: widget.onDelete,
-                          ),
-                          const Spacer(),
-                          if (widget.isVideo)
-                            FilledButton.icon(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF3B30),
-                              ),
-                              onPressed: () => _watch(a.link),
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('Watch'),
-                            )
-                          else
-                            FilledButton.icon(
-                              onPressed: () =>
-                                  context.push(RssRoutes.article(a.id)),
-                              icon: const Icon(
-                                Icons.chrome_reader_mode_outlined,
-                              ),
-                              label: const Text('Read'),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -357,7 +371,7 @@ class _Photo extends StatelessWidget {
       children: [
         ImageFiltered(
           imageFilter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-          child: Image.network(
+          child: FeedImage(
             url!,
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => const _Gradient(),
@@ -384,7 +398,7 @@ class _Photo extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(18),
-                  child: Image.network(
+                  child: FeedImage(
                     url!,
                     width: double.infinity,
                     fit: BoxFit.contain,
@@ -405,11 +419,15 @@ class _SourceRow extends StatelessWidget {
     required this.name,
     required this.time,
     required this.accent,
+    this.badge,
   });
 
   final String name;
   final String time;
   final Color accent;
+
+  /// Reading time, shown before the age.
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -436,6 +454,7 @@ class _SourceRow extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
+        if (badge != null) ...[badge!, const SizedBox(width: 8)],
         if (time.isNotEmpty)
           Text(
             time,

@@ -124,7 +124,7 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = ref.watch(rssLibraryProvider).categories;
+    final library = ref.watch(rssLibraryProvider);
     final preview = _preview;
 
     return Padding(
@@ -217,8 +217,14 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
                 initialValue: _categoryId,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: [
-                  for (final c in categories)
-                    DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  for (final (:category, depth: _) in library.tree())
+                    DropdownMenuItem(
+                      value: category.id,
+                      child: Text(
+                        library.pathOf(category.id),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   const DropdownMenuItem(
                     value: _newCategory,
                     child: Row(

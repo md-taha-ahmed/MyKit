@@ -12,6 +12,7 @@ class RssLocalDataSource {
   static const _savedKey = 'rss.saved.v1';
   static const _likedKey = 'rss.liked.v1';
   static const _hiddenKey = 'rss.hidden.v1';
+  static const _healthKey = 'rss.health.v1';
 
   final SharedPreferences _prefs;
 
@@ -43,6 +44,19 @@ class RssLocalDataSource {
   Set<String> readHidden() => (_prefs.getStringList(_hiddenKey) ?? []).toSet();
   Future<void> writeHidden(Set<String> ids) =>
       _prefs.setStringList(_hiddenKey, ids.toList());
+
+  Map<String, dynamic> readHealth() {
+    final raw = _prefs.getString(_healthKey);
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> writeHealth(Map<String, dynamic> v) =>
+      _prefs.setString(_healthKey, jsonEncode(v));
 
   List<Map<String, dynamic>> _readList(String key) {
     final raw = _prefs.getString(key);
