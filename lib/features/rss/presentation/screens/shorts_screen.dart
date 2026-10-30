@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,6 +96,9 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
             ? const _NoShorts()
             : PageView.builder(
                 controller: _pager,
+                // Build (and load, paused) the next Short in advance so a
+                // swipe starts it instantly.
+                allowImplicitScrolling: true,
                 scrollDirection: Axis.vertical,
                 itemCount: _shorts.length,
                 onPageChanged: _onPage,
@@ -163,7 +168,7 @@ class _ShortPage extends ConsumerStatefulWidget {
 class _ShortPageState extends ConsumerState<_ShortPage>
     with SingleTickerProviderStateMixin {
   late final Player _player = Player(
-    configuration: const PlayerConfiguration(bufferSize: 16 * 1024 * 1024),
+    configuration: const PlayerConfiguration(bufferSize: 32 * 1024 * 1024),
   );
   late final VideoController _video = VideoController(_player);
   late final _heart = AnimationController(
@@ -173,6 +178,7 @@ class _ShortPageState extends ConsumerState<_ShortPage>
   bool _loading = true;
   bool _failed = false;
   bool _pausedByUser = false;
+  Timer? _watchdog;
 
   @override
   void initState() {
@@ -186,15 +192,25 @@ class _ShortPageState extends ConsumerState<_ShortPage>
     try {
       final stream = await ref.read(shortsNativeProvider).resolve(id);
       if (!mounted) return;
+      // Read well ahead (a Short is usually under a minute), so playback
+      // doesn't stall on a slow moment of the connection.
+      final native = _player.platform;
+      if (native is NativePlayer) {
+        await native.setProperty('cache', 'yes');
+        await native.setProperty('demuxer-readahead-secs', '20');
+        await native.setProperty('cache-pause-initial', 'yes');
+      }
       await _player.setPlaylistMode(PlaylistMode.single); // loop
       await _player.setVolume(widget.muted ? 0 : 100);
       await _player.open(Media(stream.video), play: false);
       if (stream.audio != null) {
         await _player.setAudioTrack(AudioTrack.uri(stream.audio!));
       }
+      // Wait until video and audio are actually loaded before starting.
+      await _ready();
       if (!mounted) return;
       setState(() => _loading = false);
-      if (widget.active) await _player.play();
+      if (widget.active) _start();
     } catch (_) {
       if (mounted) {
         setState(() {
@@ -205,14 +221,42 @@ class _ShortPageState extends ConsumerState<_ShortPage>
     }
   }
 
+  /// Resolves once the file is open with a duration (or after 6 s).
+  Future<void> _ready() async {
+    if (_player.state.duration > Duration.zero) return;
+    await _player.stream.duration
+        .firstWhere((d) => d > Duration.zero)
+        .timeout(const Duration(seconds: 6), onTimeout: () => Duration.zero);
+  }
+
+  /// Plays, and if the position hasn't moved shortly after (mpv sometimes
+  /// waits on the separate audio stream), nudges it with pause/play — what
+  /// tapping twice used to do by hand.
+  void _start() {
+    _player.play();
+    _watchdog?.cancel();
+    final from = _player.state.position;
+    var nudges = 0;
+    _watchdog = Timer.periodic(const Duration(milliseconds: 1500), (t) async {
+      if (!mounted || !widget.active || _pausedByUser) return t.cancel();
+      final moved = _player.state.position != from;
+      if (moved && _player.state.playing) return t.cancel();
+      if (_player.state.buffering) return; // still loading: give it time
+      if (nudges++ >= 3) return t.cancel();
+      await _player.pause();
+      await _player.play();
+    });
+  }
+
   @override
   void didUpdateWidget(_ShortPage old) {
     super.didUpdateWidget(old);
     if (old.active != widget.active && !_loading && !_failed) {
       if (widget.active) {
         _pausedByUser = false;
-        _player.play();
+        _start();
       } else {
+        _watchdog?.cancel();
         _player.pause();
         _player.seek(Duration.zero);
       }
@@ -222,6 +266,7 @@ class _ShortPageState extends ConsumerState<_ShortPage>
 
   @override
   void dispose() {
+    _watchdog?.cancel();
     _heart.dispose();
     _player.dispose();
     super.dispose();
@@ -230,7 +275,12 @@ class _ShortPageState extends ConsumerState<_ShortPage>
   void _togglePause() {
     if (_loading || _failed) return;
     setState(() => _pausedByUser = !_pausedByUser);
-    _pausedByUser ? _player.pause() : _player.play();
+    if (_pausedByUser) {
+      _watchdog?.cancel();
+      _player.pause();
+    } else {
+      _start();
+    }
   }
 
   void _like() {

@@ -74,11 +74,12 @@ class YouTubeChannel(messenger: BinaryMessenger) : MethodChannel.MethodCallHandl
 
         fun shortSide(w: Int, h: Int) = if (w > 0 && h > 0) minOf(w, h) else maxOf(w, h)
 
-        // Best video-only stream up to 1080p (MP4/H.264 first: hardware
-        // decoding everywhere), plus the best M4A audio.
+        // Best video-only stream up to 720p (looks the same on a phone, half
+        // the data of 1080p; MP4/H.264 first: hardware decoding everywhere),
+        // plus the best M4A audio.
         val video = info.videoOnlyStreams
             .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
-            .filter { shortSide(it.width, it.height) in 1..1080 }
+            .filter { shortSide(it.width, it.height) in 1..720 }
             .sortedWith(
                 compareByDescending<org.schabi.newpipe.extractor.stream.VideoStream> {
                     it.format == MediaFormat.MPEG_4
