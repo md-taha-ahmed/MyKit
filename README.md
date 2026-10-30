@@ -76,6 +76,28 @@ article). When a feed only ships a teaser, the app fetches the page and extracts
   `--dart-define-from-file=config/ai.local.json`, or paste it in the app (article ⋮ → Gemini API key…;
   stored on the device only). CI builds contain no key.
 
+## Backup — Google Drive
+
+Dashboard → cloud icon. Everything MyKit stores on the phone is packed into one gzipped JSON file and uploaded to
+the **app data folder** of your Google Drive (hidden; scope `drive.appdata`, so MyKit sees no other Drive files):
+
+- all Flutter preferences: settings, libraries, progress, feeds, countdowns, workouts, add-ons, API keys;
+- the Android side (`android/.../backup/BackupChannel.kt`): installed Mihon/Aniyomi extension APKs, their trust keys
+  and each source's own settings.
+
+Not included: imported book PDFs and caches/downloads. This install's Google sign-in token is never backed up.
+
+- **Automatic**: when you leave the app (at most every 15 min) and only if something changed; the last 10 backups
+  are kept. Can be switched off.
+- **Restore** (e.g. after reinstalling): Backup → Sign in with Google → pick a backup → Restore. MyKit replaces its
+  data and restarts.
+
+Setup: uses the same OAuth client as the YouTube import (below). In that Google Cloud project also **enable the
+Google Drive API** and add the scope `https://www.googleapis.com/auth/drive.appdata` under *Data access*. Build with
+`--dart-define-from-file=config/google_oauth.local.json` so a fresh install can sign in without re-entering the
+client. Move the consent screen to *In production* — in *Testing* Google expires the sign-in after 7 days, which
+stops automatic backups until you sign in again.
+
 ## YouTube subscriptions import
 
 RSS Feeds → **+** → **Import YouTube subscriptions** signs in with Google **in the browser** (OAuth with PKCE and a

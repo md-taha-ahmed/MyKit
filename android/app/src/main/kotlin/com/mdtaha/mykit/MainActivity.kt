@@ -2,6 +2,7 @@ package com.mdtaha.mykit
 
 import android.content.pm.PackageManager
 import com.mdtaha.mykit.apps.ExternalAppsChannel
+import com.mdtaha.mykit.backup.BackupChannel
 import com.mdtaha.mykit.calendar.CalendarChannel
 import com.mdtaha.mykit.manga.AnimeChannel
 import com.mdtaha.mykit.manga.MangaChannel
@@ -18,6 +19,7 @@ class MainActivity : AudioServiceActivity() {
     private var animeChannel: AnimeChannel? = null
     private var externalAppsChannel: ExternalAppsChannel? = null
     private var torrentChannel: TorrentChannel? = null
+    private var backupChannel: BackupChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -28,6 +30,7 @@ class MainActivity : AudioServiceActivity() {
         animeChannel = AnimeChannel(applicationContext, messenger)
         externalAppsChannel = ExternalAppsChannel(this, messenger)
         torrentChannel = TorrentChannel(applicationContext, messenger)
+        backupChannel = BackupChannel(this, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -43,6 +46,8 @@ class MainActivity : AudioServiceActivity() {
         externalAppsChannel = null
         torrentChannel?.dispose()
         torrentChannel = null
+        backupChannel?.dispose()
+        backupChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
