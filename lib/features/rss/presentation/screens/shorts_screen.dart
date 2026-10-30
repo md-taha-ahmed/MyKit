@@ -57,7 +57,7 @@ class _Slot {
   /// has to restart the decoder when the page appears — a ~2 s stall).
   late final controller = VideoController(
     player,
-    configuration: const VideoControllerConfiguration(width: 720, height: 1280),
+    configuration: const VideoControllerConfiguration(width: 360, height: 640),
   );
 
   /// The page (index) loaded into this player, if any.
@@ -199,8 +199,9 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
       if (id == null) throw StateError('No video id');
       final stream = await ref.read(shortsNativeProvider).resolve(id);
       if (token != slot.token) return;
+      // Second attempt: a single-file stream if there's one, else the same
+      // stream again (failures are often momentary).
       final single = fallback ? stream.fallback : null;
-      if (fallback && single == null) throw StateError('No fallback stream');
       await slot.player.setVolume(_muted ? 0 : 100);
       await slot.player.open(Media(single ?? stream.video), play: false);
       // Wait until the video is open; only then add the separate audio
@@ -225,8 +226,8 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
     }
   }
 
-  /// HD pair failed → try the single-file stream once; then give up (the
-  /// page offers "Watch in YouTube").
+  /// Failed → try once more (single-file stream if there is one); then give
+  /// up (the page offers "Watch in YouTube").
   Future<void> _fallBack(int page, _Slot slot, String why) async {
     if (slot.page != page) return;
     if (!_onFallback.contains(page)) {

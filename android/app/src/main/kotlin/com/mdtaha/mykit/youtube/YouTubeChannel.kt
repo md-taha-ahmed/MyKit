@@ -74,49 +74,53 @@ class YouTubeChannel(messenger: BinaryMessenger) : MethodChannel.MethodCallHandl
 
         fun shortSide(w: Int, h: Int) = if (w > 0 && h > 0) minOf(w, h) else maxOf(w, h)
 
-        // Best video-only stream up to 720p (looks the same on a phone, half
-        // the data of 1080p; MP4/H.264 first: hardware decoding everywhere),
-        // plus the best M4A audio.
-        val video = info.videoOnlyStreams
-            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
-            .filter { shortSide(it.width, it.height) in 1..720 }
+        // Shorts play at 360p or lower: light on data and battery, and
+        // looks fine on a phone. YouTube's single file with video + audio
+        // (usually 360p) is preferred; otherwise video-only ≤360p + audio.
+        val progressive = { s: org.schabi.newpipe.extractor.stream.Stream ->
+            s.isUrl && s.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP
+        }
+        val muxed = info.videoStreams
+            .filter { progressive(it) && shortSide(it.width, it.height) in 1..360 }
             .sortedWith(
                 compareByDescending<org.schabi.newpipe.extractor.stream.VideoStream> {
                     it.format == MediaFormat.MPEG_4
                 }.thenByDescending { shortSide(it.width, it.height) },
             )
             .firstOrNull()
+        val video = info.videoOnlyStreams
+            .filter { progressive(it) && shortSide(it.width, it.height) in 1..360 }
+            .sortedWith(
+                compareByDescending<org.schabi.newpipe.extractor.stream.VideoStream> {
+                    it.format == MediaFormat.MPEG_4
+                }.thenByDescending { shortSide(it.width, it.height) },
+            )
+            .firstOrNull()
+        // Lowest-bitrate M4A is plenty for Shorts.
         val audio = info.audioStreams
-            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
+            .filter { progressive(it) }
             .sortedWith(
                 compareByDescending<org.schabi.newpipe.extractor.stream.AudioStream> {
                     it.format == MediaFormat.M4A
-                }.thenByDescending { it.averageBitrate },
+                }.thenBy { it.averageBitrate },
             )
             .firstOrNull()
-        // Fallback: a stream with both (usually 360p).
-        val muxed = info.videoStreams
-            .filter { it.isUrl && it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
-            .maxByOrNull { shortSide(it.width, it.height) }
 
         val out: Map<String, Any?> = when {
+            muxed != null -> mapOf(
+                "video" to muxed.content,
+                "width" to muxed.width,
+                "height" to muxed.height,
+            )
             video != null && audio != null -> mapOf(
                 "video" to video.content,
                 "audio" to audio.content,
                 "width" to video.width,
                 "height" to video.height,
             )
-            muxed != null -> mapOf(
-                "video" to muxed.content,
-                "width" to muxed.width,
-                "height" to muxed.height,
-            )
             !info.hlsUrl.isNullOrEmpty() -> mapOf("video" to info.hlsUrl)
             else -> throw IllegalStateException("No playable stream")
         } + mapOf(
-            // Single-file stream (usually 360p): the fallback when the HD
-            // video + audio pair won't play.
-            "fallback" to muxed?.content,
             "title" to info.name,
             "channel" to info.uploaderName,
             "duration" to info.duration,
