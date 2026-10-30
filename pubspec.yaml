@@ -58,6 +58,7 @@ dependencies:
   workmanager: ^0.10.10
   mykit_backup:
     path: packages/mykit_backup
+  cryptography: ^2.9.0
 
 dev_dependencies:
   flutter_test:

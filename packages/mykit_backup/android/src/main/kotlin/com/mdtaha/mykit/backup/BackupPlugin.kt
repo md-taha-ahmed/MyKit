@@ -162,8 +162,11 @@ class BackupPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         /** Flutter's own preferences are backed up from Dart. */
         private const val FLUTTER_PREFS = "FlutterSharedPreferences"
 
-        /** Library/system state that belongs to this install only. */
-        private val SKIP_PREFIXES = listOf("androidx.", "com.google.", "WebView", "_")
+        /**
+         * Library/system state that belongs to this install only, and the
+         * fingerprint-unlock key (only this phone's Keystore can open it).
+         */
+        private val SKIP_PREFIXES = listOf("androidx.", "com.google.", "WebView", "_", "vault_biometric")
 
         /** `ExtensionHost` directories (manga and anime). */
         private val FILE_DIRS = listOf("manga_extensions", "anime_extensions")
