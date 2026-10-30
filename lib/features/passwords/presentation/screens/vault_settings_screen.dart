@@ -189,6 +189,19 @@ class VaultSettingsScreen extends ConsumerWidget {
               title: const Text('Change master password'),
               onTap: () => _changeMaster(context, ref),
             ),
+            const _Header('Autofill'),
+            const _AutofillTile(),
+            ListTile(
+              leading: const Icon(Icons.link_off),
+              title: const Text('Forget app links'),
+              subtitle: const Text(
+                'Logins picked for apps are suggested there next time',
+              ),
+              onTap: () async {
+                await ref.read(vaultNativeProvider).clearAutofillLinks();
+                if (context.mounted) _snack(context, 'App links forgotten.');
+              },
+            ),
             const _Header('Import & export'),
             ListTile(
               leading: const Icon(Icons.upload_file),
@@ -415,4 +428,95 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
       ),
     ],
   );
+}
+
+/// Autofill on/off status; re-checked when coming back from Settings.
+class _AutofillTile extends ConsumerStatefulWidget {
+  const _AutofillTile();
+
+  @override
+  ConsumerState<_AutofillTile> createState() => _AutofillTileState();
+}
+
+class _AutofillTileState extends ConsumerState<_AutofillTile> {
+  bool? _enabled;
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _check);
+    _check();
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  Future<void> _check() async {
+    final on = await ref.read(vaultNativeProvider).autofillEnabled();
+    if (mounted) setState(() => _enabled = on);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vault = ref.watch(vaultProvider);
+    final on = _enabled ?? false;
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(
+            on ? Icons.check_circle : Icons.password,
+            color: on ? const Color(0xFF34C759) : null,
+          ),
+          title: Text(
+            on ? 'Autofill is on' : 'Fill passwords in apps & Chrome',
+          ),
+          subtitle: Text(
+            !vault.biometricEnabled
+                ? 'Turn on fingerprint unlock first: autofill opens the '
+                      'vault with your fingerprint.'
+                : on
+                ? 'Tap a login field, then "Unlock MyKit to fill".'
+                : 'Choose MyKit as your phone\'s autofill service.',
+          ),
+          trailing: on
+              ? TextButton(
+                  onPressed: () =>
+                      ref.read(vaultNativeProvider).openAutofillSettings(),
+                  child: const Text('Change'),
+                )
+              : FilledButton(
+                  onPressed: () async {
+                    final opened = await ref
+                        .read(vaultNativeProvider)
+                        .openAutofillSettings();
+                    if (!opened && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Open Settings → Passwords & accounts → '
+                            'Autofill service, and pick MyKit.',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Turn on'),
+                ),
+        ),
+        if (on)
+          const ListTile(
+            leading: Icon(Icons.public),
+            title: Text('Chrome'),
+            subtitle: Text(
+              'In Chrome: Settings → Autofill services → "Autofill using '
+              'another service", then restart Chrome.',
+            ),
+          ),
+      ],
+    );
+  }
 }

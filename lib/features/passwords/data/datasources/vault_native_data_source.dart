@@ -67,6 +67,23 @@ class VaultNativeDataSource {
     'clearAfterMs': clearAfter.inMilliseconds,
   });
 
+  /// MyKit (or any app) is the phone's autofill service.
+  Future<bool> autofillEnabled() async {
+    try {
+      return await _channel.invokeMethod<bool>('autofillEnabled') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Opens Android's "choose autofill service" screen for MyKit.
+  Future<bool> openAutofillSettings() async =>
+      await _channel.invokeMethod<bool>('openAutofillSettings') ?? false;
+
+  /// Forgets which logins were used in which apps.
+  Future<void> clearAutofillLinks() =>
+      _channel.invokeMethod('clearAutofillLinks');
+
   static BiometricOutcome _outcome(PlatformException e) => switch (e.code) {
     'cancelled' => BiometricOutcome.cancelled,
     'invalidated' || 'missing' => BiometricOutcome.invalidated,
