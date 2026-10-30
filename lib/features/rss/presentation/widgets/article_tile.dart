@@ -73,7 +73,27 @@ class ArticleTile extends StatelessWidget {
                                 shape: BoxShape.circle,
                               ),
                             ),
-                          if (isVideo)
+                          if (article.isShort)
+                            Container(
+                              margin: const EdgeInsets.only(right: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF3B30),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'Shorts',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          else if (isVideo)
                             const Padding(
                               padding: EdgeInsets.only(right: 4),
                               child: Icon(

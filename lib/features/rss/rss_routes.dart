@@ -6,6 +6,7 @@ import 'presentation/screens/feed_articles_screen.dart';
 import 'presentation/screens/manage_feeds_screen.dart';
 import 'presentation/screens/rss_home_screen.dart';
 import 'presentation/screens/rss_scroll_screen.dart';
+import 'presentation/screens/shorts_screen.dart';
 import 'presentation/screens/youtube_import_screen.dart';
 
 abstract final class RssRoutes {
@@ -19,6 +20,17 @@ abstract final class RssRoutes {
     path: '/rss/scroll',
     queryParameters: {'category': ?categoryId, 'feed': ?feedId},
   ).toString();
+
+  /// Full-screen YouTube Shorts player (optionally starting at one Short).
+  static String shorts({String? startId, String? categoryId, String? feedId}) =>
+      Uri(
+        path: '/rss/shorts',
+        queryParameters: {
+          'start': ?startId,
+          'category': ?categoryId,
+          'feed': ?feedId,
+        },
+      ).toString();
 
   /// Article ids contain URLs, so they travel as an encoded query parameter.
   static String article(String articleId) =>
@@ -38,6 +50,14 @@ abstract final class RssRoutes {
         GoRoute(
           path: 'scroll',
           builder: (context, state) => RssScrollScreen(
+            categoryId: state.uri.queryParameters['category'],
+            feedId: state.uri.queryParameters['feed'],
+          ),
+        ),
+        GoRoute(
+          path: 'shorts',
+          builder: (context, state) => ShortsScreen(
+            startId: state.uri.queryParameters['start'],
             categoryId: state.uri.queryParameters['category'],
             feedId: state.uri.queryParameters['feed'],
           ),

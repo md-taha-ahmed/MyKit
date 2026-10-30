@@ -157,6 +157,11 @@ class _BriefPageState extends ConsumerState<_BriefPage>
   /// Opens the video in ReVanced / YouTube (see [ExternalApps.openYoutube]).
   Future<void> _watch(String? link) async {
     if (link == null) return;
+    if (widget.article.isShort) {
+      // Shorts play in MyKit's own swipe player.
+      await context.push(RssRoutes.shorts(startId: widget.article.id));
+      return;
+    }
     ref.read(rssReadIdsProvider.notifier).markRead([widget.article.id]);
     await ExternalApps.openYoutube(link);
   }

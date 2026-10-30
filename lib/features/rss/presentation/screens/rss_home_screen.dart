@@ -8,6 +8,7 @@ import '../widgets/add_feed_sheet.dart';
 import '../widgets/article_list.dart';
 import '../widgets/feeds_drawer.dart';
 import '../widgets/offline_sheet.dart';
+import 'shorts_screen.dart';
 import '../providers/offline_providers.dart';
 
 /// Articles from the selection in the feeds drawer (all, a category, a feed,
@@ -140,6 +141,17 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               tooltip: 'Refresh',
               icon: const Icon(Icons.refresh),
               onPressed: () => ref.read(rssArticlesProvider.notifier).refresh(),
+            ),
+          if (ref.watch(shortsProvider(filter)).isNotEmpty)
+            IconButton(
+              tooltip: 'Shorts',
+              icon: const Icon(Icons.slow_motion_video),
+              onPressed: () => context.push(
+                RssRoutes.shorts(
+                  categoryId: filter.categoryId,
+                  feedId: filter.feedId,
+                ),
+              ),
             ),
           IconButton(
             tooltip: 'Brief view (swipe through articles)',

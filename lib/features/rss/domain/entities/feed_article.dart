@@ -27,6 +27,21 @@ class FeedArticle {
   final String? author;
   final DateTime? publishedAt;
 
+  /// A YouTube Short (its link is youtube.com/shorts/…).
+  bool get isShort => link?.contains('youtube.com/shorts/') ?? false;
+
+  /// The YouTube video id, for videos and Shorts.
+  String? get youtubeId {
+    final l = link;
+    if (l == null) return null;
+    final uri = Uri.tryParse(l);
+    if (uri == null || !uri.host.contains('youtube.com')) return null;
+    if (uri.pathSegments.length >= 2 && uri.pathSegments.first == 'shorts') {
+      return uri.pathSegments[1];
+    }
+    return uri.queryParameters['v'];
+  }
+
   /// Binds a freshly parsed article to [feedId], namespacing its id.
   FeedArticle forFeed(String feedId) => FeedArticle(
     id: '$feedId::$id',

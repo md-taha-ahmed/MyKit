@@ -37,6 +37,37 @@ class RssRepositoryImpl implements RssRepository {
 
   @override
   Future<ParsedFeed> fetch(RssFeed feed) async {
+    final parsed = await _fetchMain(feed);
+    return feed.isYoutube ? _withMoreShorts(feed, parsed) : parsed;
+  }
+
+  /// A channel's feed only has its 15 newest uploads. For channels that post
+  /// Shorts, also read the Shorts-only playlist (UUSH…) to get more of them.
+  Future<ParsedFeed> _withMoreShorts(RssFeed feed, ParsedFeed parsed) async {
+    final channelId = Uri.tryParse(feed.url)?.queryParameters['channel_id'];
+    if (channelId == null || !channelId.startsWith('UC')) return parsed;
+    if (!parsed.articles.any((a) => a.isShort)) return parsed;
+    try {
+      final shorts = await _remote.fetch(
+        'https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH'
+        '${channelId.substring(2)}',
+      );
+      final seen = {for (final a in parsed.articles) a.id};
+      return ParsedFeed(
+        title: parsed.title,
+        siteUrl: parsed.siteUrl,
+        articles: [
+          ...parsed.articles,
+          for (final a in shorts.articles)
+            if (seen.add(a.id)) a,
+        ],
+      );
+    } catch (_) {
+      return parsed; // the extra Shorts are a bonus
+    }
+  }
+
+  Future<ParsedFeed> _fetchMain(RssFeed feed) async {
     try {
       return await _remote.fetch(feed.url);
     } on FeedException catch (e) {
