@@ -9,4 +9,9 @@
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">@color/app_background</item>
     </style>
+    <!-- Autofill unlock screen: transparent, so only the fingerprint prompt and
+         the list of logins show over the app being filled. -->
+    <style name="AutofillTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

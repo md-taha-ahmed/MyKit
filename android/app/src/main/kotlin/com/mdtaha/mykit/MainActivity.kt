@@ -7,17 +7,22 @@ import com.mdtaha.mykit.manga.AnimeChannel
 import com.mdtaha.mykit.manga.MangaChannel
 import com.mdtaha.mykit.media.MediaLibraryChannel
 import com.mdtaha.mykit.torrent.TorrentChannel
-import com.ryanheise.audioservice.AudioServiceActivity
+import com.mdtaha.mykit.vault.VaultChannel
+import com.ryanheise.audioservice.AudioServiceFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 
-/** AudioServiceActivity (a FlutterActivity) lets music keep playing in the background. */
-class MainActivity : AudioServiceActivity() {
+/**
+ * AudioServiceFragmentActivity lets music keep playing in the background; the
+ * Fragment variant is what BiometricPrompt (fingerprint unlock) needs.
+ */
+class MainActivity : AudioServiceFragmentActivity() {
     private var calendarChannel: CalendarChannel? = null
     private var mediaLibraryChannel: MediaLibraryChannel? = null
     private var mangaChannel: MangaChannel? = null
     private var animeChannel: AnimeChannel? = null
     private var externalAppsChannel: ExternalAppsChannel? = null
     private var torrentChannel: TorrentChannel? = null
+    private var vaultChannel: VaultChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -28,6 +33,7 @@ class MainActivity : AudioServiceActivity() {
         animeChannel = AnimeChannel(applicationContext, messenger)
         externalAppsChannel = ExternalAppsChannel(this, messenger)
         torrentChannel = TorrentChannel(applicationContext, messenger)
+        vaultChannel = VaultChannel(this, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -43,6 +49,8 @@ class MainActivity : AudioServiceActivity() {
         externalAppsChannel = null
         torrentChannel?.dispose()
         torrentChannel = null
+        vaultChannel?.dispose()
+        vaultChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
