@@ -16,14 +16,11 @@ import 'backup_service.dart';
 abstract final class BackupScheduler {
   static const delay = Duration(minutes: 2);
   static const _uniqueName = 'mykit.backup.auto';
-  static const _task = 'backup';
-
-  /// Once, in `main()`.
-  static Future<void> init() => Workmanager().initialize(backupTaskDispatcher);
+  static const task = 'backup';
 
   static Future<void> schedule() => Workmanager().registerOneOffTask(
     _uniqueName,
-    _task,
+    task,
     initialDelay: delay,
     existingWorkPolicy: ExistingWorkPolicy.replace,
     constraints: Constraints(networkType: NetworkType.connected),
@@ -34,32 +31,30 @@ abstract final class BackupScheduler {
   static Future<void> cancel() => Workmanager().cancelByUniqueName(_uniqueName);
 }
 
-/// WorkManager's entry point (its own engine, or the app's when it's alive).
-@pragma('vm:entry-point')
-void backupTaskDispatcher() {
-  Workmanager().executeTask((task, input) async {
-    final prefs = await SharedPreferences.getInstance();
-    // The app may have changed things since this isolate's cache was filled.
-    await prefs.reload();
-    final client = http.Client();
-    final service = BackupService.create(prefs, client);
-    try {
-      if (!service.auto || !service.drive.isSignedIn) return true;
-      await service.backUp(interactive: false, onlyIfChanged: true);
-      return true;
-    } on SocketException {
-      return false; // offline after all: retry later
-    } on http.ClientException {
-      return false;
-    } on BackupException catch (e) {
-      // Signed out, Drive full, API off…: retrying won't help; show it.
-      await service.setLastError(e.message);
-      return true;
-    } catch (e) {
-      await service.setLastError('$e');
-      return false;
-    } finally {
-      client.close();
-    }
-  });
+/// The automatic backup, run by WorkManager (see `app/background_tasks.dart`).
+/// True when done, false to retry later.
+Future<bool> runBackupTask() async {
+  final prefs = await SharedPreferences.getInstance();
+  // The app may have changed things since this isolate's cache was filled.
+  await prefs.reload();
+  final client = http.Client();
+  final service = BackupService.create(prefs, client);
+  try {
+    if (!service.auto || !service.drive.isSignedIn) return true;
+    await service.backUp(interactive: false, onlyIfChanged: true);
+    return true;
+  } on SocketException {
+    return false; // offline after all: retry later
+  } on http.ClientException {
+    return false;
+  } on BackupException catch (e) {
+    // Signed out, Drive full, API off…: retrying won't help; show it.
+    await service.setLastError(e.message);
+    return true;
+  } catch (e) {
+    await service.setLastError('$e');
+    return false;
+  } finally {
+    client.close();
+  }
 }
