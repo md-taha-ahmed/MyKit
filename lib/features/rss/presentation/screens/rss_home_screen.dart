@@ -8,6 +8,7 @@ import '../widgets/add_feed_sheet.dart';
 import '../widgets/article_list.dart';
 import '../widgets/feeds_drawer.dart';
 import '../widgets/offline_sheet.dart';
+import 'shorts_screen.dart';
 import '../providers/offline_providers.dart';
 
 /// Articles from the selection in the feeds drawer (all, a category, a feed,
@@ -26,6 +27,16 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Warm up Shorts: the first lookup also loads YouTube's player code
+    // (a few seconds), so do it now for the first two Shorts.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final native = ref.read(shortsNativeProvider);
+      for (final short in ref.read(shortsProvider(allArticles)).take(2)) {
+        final id = short.youtubeId;
+        if (id != null) native.prefetch(id);
+      }
+    });
     // Refresh when opened, unless we just did.
     Future.microtask(() {
       final state = ref.read(rssArticlesProvider);
@@ -140,6 +151,17 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               tooltip: 'Refresh',
               icon: const Icon(Icons.refresh),
               onPressed: () => ref.read(rssArticlesProvider.notifier).refresh(),
+            ),
+          if (ref.watch(shortsProvider(filter)).isNotEmpty)
+            IconButton(
+              tooltip: 'Shorts',
+              icon: const Icon(Icons.slow_motion_video),
+              onPressed: () => context.push(
+                RssRoutes.shorts(
+                  categoryId: filter.categoryId,
+                  feedId: filter.feedId,
+                ),
+              ),
             ),
           IconButton(
             tooltip: 'Brief view (swipe through articles)',

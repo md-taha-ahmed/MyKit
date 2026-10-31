@@ -80,7 +80,15 @@ class ArticleList extends ConsumerWidget {
               isRead: read.contains(article.id),
               isSaved: saved,
               isLiked: reactions.isLiked(article.id),
-              onTap: () => context.push(RssRoutes.article(article.id)),
+              onTap: () => context.push(
+                article.isShort
+                    ? RssRoutes.shorts(
+                        startId: article.id,
+                        categoryId: filter.categoryId,
+                        feedId: filter.feedId,
+                      )
+                    : RssRoutes.article(article.id),
+              ),
             ),
           );
         },

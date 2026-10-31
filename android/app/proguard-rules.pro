@@ -68,3 +68,14 @@
 
 # Aniyomi anime extensions link against these by name too.
 -keep class fi.iki.elonen.** { *; }
+
+# --- YouTube Shorts: NewPipeExtractor + Rhino (YouTube's player JS) --------
+# Rhino references desktop-only Java classes it never uses on Android.
+-dontwarn java.beans.**
+-dontwarn javax.script.**
+-dontwarn jdk.dynalink.**
+# Rhino and the extractor load classes by reflection (same rules as NewPipe).
+-keep class org.mozilla.javascript.** { *; }
+-keep class org.mozilla.classfile.ClassFileWriter
+-keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class org.schabi.newpipe.extractor.services.youtube.** { *; }

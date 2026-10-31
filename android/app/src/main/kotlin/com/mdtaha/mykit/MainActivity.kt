@@ -8,6 +8,7 @@ import com.mdtaha.mykit.manga.MangaChannel
 import com.mdtaha.mykit.media.MediaLibraryChannel
 import com.mdtaha.mykit.torrent.TorrentChannel
 import com.mdtaha.mykit.vault.VaultChannel
+import com.mdtaha.mykit.youtube.YouTubeChannel
 import com.ryanheise.audioservice.AudioServiceFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 
@@ -23,6 +24,7 @@ class MainActivity : AudioServiceFragmentActivity() {
     private var externalAppsChannel: ExternalAppsChannel? = null
     private var torrentChannel: TorrentChannel? = null
     private var vaultChannel: VaultChannel? = null
+    private var youTubeChannel: YouTubeChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -34,6 +36,7 @@ class MainActivity : AudioServiceFragmentActivity() {
         externalAppsChannel = ExternalAppsChannel(this, messenger)
         torrentChannel = TorrentChannel(applicationContext, messenger)
         vaultChannel = VaultChannel(this, messenger)
+        youTubeChannel = YouTubeChannel(messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -51,6 +54,8 @@ class MainActivity : AudioServiceFragmentActivity() {
         torrentChannel = null
         vaultChannel?.dispose()
         vaultChannel = null
+        youTubeChannel?.dispose()
+        youTubeChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

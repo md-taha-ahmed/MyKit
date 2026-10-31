@@ -97,6 +97,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     // Passwords: fingerprint unlock (BiometricPrompt + Keystore).
     implementation("androidx.biometric:biometric:1.1.0")
+    // RSS: YouTube Shorts played in MyKit (stream URLs via NewPipe's extractor).
+    implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-okio:1.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.12.0")
