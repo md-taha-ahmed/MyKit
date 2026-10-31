@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../domain/entities/torrent_stream_status.dart';
@@ -159,7 +160,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _torrent.value = status;
       if (status.failed) {
         _poll?.cancel();
-        setState(() => _error = status.error ?? 'Torrent failed.');
+        setState(() => _error = status.error ?? tr('Torrent failed.'));
       } else if (status.ready && !_opened && status.url != null) {
         _open(status.url!);
       } else {
@@ -251,9 +252,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not load subtitles ($e)')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('Could not load subtitles ({e})', {'e': e}))),
+      );
     }
   }
 
@@ -298,9 +299,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     await _player.pause();
     final ok = await ExternalApps.openVideo(url, title: _args.name);
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No video player app found.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(tr('No video player app found.'))));
     }
   }
 
@@ -389,7 +390,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           [
             ?_args.episodeLabel,
             if (status != null)
-              '↓ ${formatBytes(status.downloadRate)}/s · ${status.peers} peers',
+              tr('↓ {rate}/s · {peers} peers', {
+                'rate': formatBytes(status.downloadRate),
+                'peers': status.peers,
+              }),
           ].join('   '),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -405,21 +409,27 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     final String title;
     final String? detail;
     if (_error != null) {
-      title = 'Playback failed';
+      title = tr('Playback failed');
       detail = _error;
     } else if (status == null || status.state == 'metadata') {
-      title = 'Connecting to peers…';
+      title = tr('Connecting to peers…');
       detail = waited > const Duration(seconds: 40)
-          ? 'This is slow — the source may have few seeders. '
-                'Try another one with more 👤.'
+          ? tr(
+              'This is slow — the source may have few seeders. Try another one with more 👤.',
+            )
           : status == null
           ? null
-          : '${status.peers} peers';
+          : tr('{peers} peers', {'peers': status.peers});
     } else {
-      title = 'Buffering ${(status.buffer * 100).round()}%';
+      title = tr('Buffering {percent}%', {
+        'percent': (status.buffer * 100).round(),
+      });
       detail =
-          '↓ ${formatBytes(status.downloadRate)}/s · ${status.peers} peers'
-          '${status.fileSize > 0 ? ' · ${formatBytes(status.fileSize)}' : ''}';
+          tr('↓ {rate}/s · {peers} peers', {
+            'rate': formatBytes(status.downloadRate),
+            'peers': status.peers,
+          }) +
+          (status.fileSize > 0 ? ' · ${formatBytes(status.fileSize)}' : '');
     }
 
     return Stack(
@@ -492,7 +502,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _openExternally,
                       icon: const Icon(Icons.open_in_new),
-                      label: const Text('Open in another player'),
+                      label: Text(tr('Open in another player')),
                     ),
                   ),
               ],
@@ -560,21 +570,21 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
                   ListTile(
-                    title: const Text(
-                      'Subtitles',
+                    title: Text(
+                      tr('Subtitles'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          tooltip: 'Earlier',
+                          tooltip: tr('Earlier'),
                           icon: const Icon(Icons.remove),
                           onPressed: () => setSheet(() => _setDelay(-0.25)),
                         ),
                         Text('${_subDelay.toStringAsFixed(2)} s'),
                         IconButton(
-                          tooltip: 'Later',
+                          tooltip: tr('Later'),
                           icon: const Icon(Icons.add),
                           onPressed: () => setSheet(() => _setDelay(0.25)),
                         ),
@@ -582,12 +592,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                     ),
                   ),
                   tile(
-                    'Off',
+                    tr('Off'),
                     current.id == 'no',
                     () => _player.setSubtitleTrack(SubtitleTrack.no()),
                   ),
                   if (embedded.isNotEmpty) ...[
-                    const _SheetLabel('In the video'),
+                    _SheetLabel(tr('In the video')),
                     for (final t in embedded)
                       tile(
                         [
@@ -597,13 +607,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                             ]
                             .whereType<String>()
                             .join(' · ')
-                            .ifEmpty('Track ${t.id}'),
+                            .ifEmpty(tr('Track {id}', {'id': t.id})),
                         current.id == t.id,
                         () => _player.setSubtitleTrack(t),
                       ),
                   ],
                   if (langs.isNotEmpty) ...[
-                    _SheetLabel('Online (${_subtitles.first.addonName})'),
+                    _SheetLabel(
+                      tr('Online ({addonName})', {
+                        'addonName': _subtitles.first.addonName,
+                      }),
+                    ),
                     SizedBox(
                       height: 48,
                       child: ListView(
@@ -638,10 +652,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                         () => _selectExternal(s, i + 1),
                       ),
                   ] else
-                    const ListTile(
+                    ListTile(
                       dense: true,
                       title: Text(
-                        'No online subtitles found',
+                        tr('No online subtitles found'),
                         style: TextStyle(color: Colors.white54),
                       ),
                     ),
@@ -675,19 +689,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
-            const ListTile(
+            ListTile(
               title: Text(
-                'Audio',
+                tr('Audio'),
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             if (tracks.isEmpty && _args.audioTracks.isEmpty)
-              const ListTile(dense: true, title: Text('No audio tracks yet')),
+              ListTile(dense: true, title: Text(tr('No audio tracks yet'))),
             for (final a in _args.audioTracks)
               if (!tracks.any((t) => t.id == a.url))
                 ListTile(
                   dense: true,
-                  title: Text(a.lang.isEmpty ? 'Extra audio' : a.lang),
+                  title: Text(a.lang.isEmpty ? tr('Extra audio') : a.lang),
                   onTap: () {
                     _player.setAudioTrack(
                       AudioTrack.uri(a.url, title: a.lang, language: a.lang),
@@ -700,10 +714,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                 dense: true,
                 title: Text(
                   [
-                    t.title,
-                    if (t.language != null)
-                      languageNames[t.language] ?? t.language,
-                  ].whereType<String>().join(' · ').ifEmpty('Track ${t.id}'),
+                        t.title,
+                        if (t.language != null)
+                          languageNames[t.language] ?? t.language,
+                      ]
+                      .whereType<String>()
+                      .join(' · ')
+                      .ifEmpty(tr('Track {id}', {'id': t.id})),
                 ),
                 trailing: t.id == current.id
                     ? const Icon(Icons.check, color: moviesAccent)
@@ -760,8 +777,10 @@ class _StallStats extends StatelessWidget {
                 builder: (_, status, _) => status == null
                     ? const SizedBox.shrink()
                     : Text(
-                        '↓ ${formatBytes(status.downloadRate)}/s · '
-                        '${status.peers} peers',
+                        tr('↓ {0}/s · {peers} peers', {
+                          '0': formatBytes(status.downloadRate),
+                          'peers': status.peers,
+                        }),
                         style: const TextStyle(
                           color: Colors.white70,
                           shadows: [Shadow(blurRadius: 6)],

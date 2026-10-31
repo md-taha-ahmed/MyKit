@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'movies_routes.dart';
 import 'presentation/providers/movies_providers.dart';
@@ -14,6 +15,6 @@ final moviesTool = ToolDefinition(
   routes: MoviesRoutes.routes,
   status: (ref) {
     final n = ref.watch(continueWatchingProvider).length;
-    return n == 0 ? null : '$n in progress';
+    return n == 0 ? null : tr('{n} in progress', {'n': n});
   },
 );

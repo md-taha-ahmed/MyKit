@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/book.dart';
 import '../providers/books_providers.dart';
@@ -27,18 +28,18 @@ Future<void> showReaderSettingsSheet(BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const _Label('Scrolling'),
+                _Label(tr('Scrolling')),
                 SegmentedButton<ReaderScrollMode>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: ReaderScrollMode.vertical,
                       icon: Icon(Icons.swap_vert),
-                      label: Text('Vertical'),
+                      label: Text(tr('Vertical')),
                     ),
                     ButtonSegment(
                       value: ReaderScrollMode.horizontal,
                       icon: Icon(Icons.swap_horiz),
-                      label: Text('Horizontal'),
+                      label: Text(tr('Horizontal')),
                     ),
                   ],
                   selected: {settings.scrollMode},
@@ -51,7 +52,7 @@ Future<void> showReaderSettingsSheet(BuildContext context) {
                   style: const TextStyle(color: Colors.white54, fontSize: 13),
                 ),
                 const SizedBox(height: 20),
-                const _Label('Page colour'),
+                _Label(tr('Page colour')),
                 Row(
                   children: [
                     for (final mode in ReaderColorMode.values)
@@ -130,7 +131,7 @@ class _ColorOption extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'Aa',
+              tr('Aa'),
               style: TextStyle(
                 color: ink,
                 fontSize: 22,
@@ -164,7 +165,7 @@ Future<int?> showGoToPageDialog(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text('Go to page'),
+        title: Text(tr('Go to page')),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -174,7 +175,9 @@ Future<int?> showGoToPageDialog(
             helperText: '1 – $pageCount',
             errorText: controller.text.isEmpty || parse() != null
                 ? null
-                : 'Enter a page between 1 and $pageCount',
+                : tr('Enter a page between 1 and {pageCount}', {
+                    'pageCount': pageCount,
+                  }),
           ),
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) {
@@ -185,13 +188,13 @@ Future<int?> showGoToPageDialog(
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: parse() == null
                 ? null
                 : () => Navigator.pop(context, parse()),
-            child: const Text('Go'),
+            child: Text(tr('Go')),
           ),
         ],
       ),
@@ -231,7 +234,7 @@ Future<int?> showBookmarksSheet(
                   children: [
                     Expanded(
                       child: Text(
-                        'Bookmarks · ${marks.length}',
+                        tr('Bookmarks · {length}', {'length': marks.length}),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
@@ -242,19 +245,24 @@ Future<int?> showBookmarksSheet(
                       ),
                       label: Text(
                         isMarked
-                            ? 'Remove p. $currentPage'
-                            : 'Bookmark p. $currentPage',
+                            ? tr('Remove p. {currentPage}', {
+                                'currentPage': currentPage,
+                              })
+                            : tr('Bookmark p. {currentPage}', {
+                                'currentPage': currentPage,
+                              }),
                       ),
                     ),
                   ],
                 ),
               ),
               if (marks.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(32),
                   child: Text(
-                    'No bookmarks yet.\nTap the bookmark icon while reading '
-                    'to save a page.',
+                    tr(
+                      'No bookmarks yet.\nTap the bookmark icon while reading to save a page.',
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white54),
                   ),
@@ -268,7 +276,7 @@ Future<int?> showBookmarksSheet(
                         ? booksAccent
                         : Colors.white54,
                   ),
-                  title: Text('Page ${mark.page}'),
+                  title: Text(tr('Page {page}', {'page': mark.page})),
                   subtitle: Text(
                     mark.note.isEmpty
                         ? DateFormat('d MMM y').format(mark.createdAt)
@@ -280,14 +288,16 @@ Future<int?> showBookmarksSheet(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        tooltip: 'Edit note',
+                        tooltip: tr('Edit note'),
                         icon: const Icon(Icons.edit_note),
                         onPressed: () async {
                           final note = await showTextInputDialog(
                             context,
-                            title: 'Note for page ${mark.page}',
+                            title: tr('Note for page {page}', {
+                              'page': mark.page,
+                            }),
                             initialValue: mark.note,
-                            hint: 'What is on this page?',
+                            hint: tr('What is on this page?'),
                           );
                           if (note != null) {
                             await notifier.updateNote(mark.id, note);
@@ -295,7 +305,7 @@ Future<int?> showBookmarksSheet(
                         },
                       ),
                       IconButton(
-                        tooltip: 'Delete',
+                        tooltip: tr('Delete'),
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () => notifier.remove(mark.id),
                       ),
@@ -338,9 +348,9 @@ Future<int?> showContentsSheet(BuildContext context, PdfDocument document) {
 
           walk(snap.data!, 0);
           if (entries.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'This PDF has no table of contents.',
+                tr('This PDF has no table of contents.'),
                 style: TextStyle(color: Colors.white54),
               ),
             );
@@ -353,7 +363,7 @@ Future<int?> showContentsSheet(BuildContext context, PdfDocument document) {
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                   child: Text(
-                    'Contents',
+                    tr('Contents'),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 );
@@ -493,7 +503,7 @@ class _SearchSheetState extends State<_SearchSheet> {
                 autofocus: true,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Search in this book',
+                  hintText: tr('Search in this book'),
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.arrow_forward),
@@ -514,9 +524,16 @@ class _SearchSheetState extends State<_SearchSheet> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   _session == 0
-                      ? 'Searches the text of every page.'
+                      ? tr('Searches the text of every page.')
                       : _running
-                      ? 'Searching… page $_scanned of $total · ${_hits.length} found'
+                      ? tr(
+                          'Searching… page {_scanned} of {total} · {length} found',
+                          {
+                            '_scanned': _scanned,
+                            'total': total,
+                            'length': _hits.length,
+                          },
+                        )
                       : '${_hits.length}${_hits.length >= _maxHits ? '+' : ''} results',
                   style: const TextStyle(color: Colors.white54, fontSize: 13),
                 ),

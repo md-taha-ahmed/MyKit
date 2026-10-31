@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
 import '../parsers/extension_index_parser.dart';
@@ -19,13 +20,13 @@ class ExtensionRepoRemoteDataSource {
   ) async {
     final url = inputUrl.trim();
     final bytes = await _get(url);
-    if (bytes.isEmpty) throw const MangaException('Repository is empty.');
+    if (bytes.isEmpty) throw MangaException(tr('Repository is empty.'));
 
     switch (bytes.first) {
       case 0x5B: // '[' legacy index.min.json
         if (!url.endsWith('/index.min.json')) {
-          throw const MangaException(
-            'Legacy repositories must end with /index.min.json',
+          throw MangaException(
+            tr('Legacy repositories must end with /index.min.json'),
           );
         }
         final repoJsonUrl = url.replaceFirst(
@@ -53,11 +54,11 @@ class ExtensionRepoRemoteDataSource {
         if (json.containsKey('meta')) {
           final parsed = ExtensionIndexParser.parseRepoJson(url, json);
           if (parsed.indexV2 == null) {
-            throw const MangaException('repo.json has no extension index.');
+            throw MangaException(tr('repo.json has no extension index.'));
           }
           return _fromStore(url, parsed.indexV2!);
         }
-        throw const MangaException('Unsupported repository format.');
+        throw MangaException(tr('Unsupported repository format.'));
       default: // protobuf store
         return _storeFromBytes(url, bytes);
     }
@@ -71,13 +72,13 @@ class ExtensionRepoRemoteDataSource {
   _storeFromBytes(String repoUrl, Uint8List bytes) async {
     final store = ExtensionIndexParser.parseStore(repoUrl, bytes);
     if (store.repo.signingKey.isEmpty) {
-      throw const MangaException('Repository has no signing key.');
+      throw MangaException(tr('Repository has no signing key.'));
     }
     final list =
         store.list ??
         (store.listUrl != null ? await _get(store.listUrl!) : null);
     if (list == null) {
-      throw const MangaException('Repository has no extensions.');
+      throw MangaException(tr('Repository has no extensions.'));
     }
     return (
       repo: store.repo,
@@ -92,10 +93,12 @@ class ExtensionRepoRemoteDataSource {
           .get(Uri.parse(url))
           .timeout(const Duration(seconds: 30));
     } catch (_) {
-      throw MangaException('Could not reach $url');
+      throw MangaException(tr('Could not reach {url}', {'url': url}));
     }
     if (res.statusCode >= 400) {
-      throw MangaException('Repository returned ${res.statusCode}.');
+      throw MangaException(
+        tr('Repository returned {statusCode}.', {'statusCode': res.statusCode}),
+      );
     }
     return ExtensionIndexParser.maybeGunzip(res.bodyBytes);
   }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/ai/gemini_client.dart';
+import '../../../../core/ai/gemini_key_screen.dart';
 import '../../../../core/widgets/simple_markdown.dart';
 import '../../rss_routes.dart';
 import '../providers/article_ai_providers.dart';
@@ -40,7 +42,7 @@ class _ArticleAiPanelState extends ConsumerState<ArticleAiPanel> {
                 if (await _ensureKey()) setState(() => _show = true);
               },
               icon: const Icon(Icons.auto_awesome, size: 18),
-              label: const Text('Summarize'),
+              label: Text(tr('Summarize')),
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
@@ -50,7 +52,7 @@ class _ArticleAiPanelState extends ConsumerState<ArticleAiPanel> {
                 }
               },
               icon: const Icon(Icons.chat_bubble_outline, size: 18),
-              label: const Text('Ask'),
+              label: Text(tr('Ask')),
             ),
           ],
         ),
@@ -82,19 +84,19 @@ class _SummaryCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.auto_awesome, size: 16, color: aiAccent),
               SizedBox(width: 6),
               Text(
-                'Summary',
+                tr('Summary'),
                 style: TextStyle(color: aiAccent, fontWeight: FontWeight.w600),
               ),
             ],
           ),
           const SizedBox(height: 8),
           summary.when(
-            loading: () => const Padding(
+            loading: () => Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
@@ -104,7 +106,7 @@ class _SummaryCard extends ConsumerWidget {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    'Reading the article…',
+                    tr('Reading the article…'),
                     style: TextStyle(color: Colors.white60),
                   ),
                 ],
@@ -121,7 +123,7 @@ class _SummaryCard extends ConsumerWidget {
                 TextButton(
                   onPressed: () =>
                       ref.invalidate(articleSummaryProvider(articleId)),
-                  child: const Text('Retry'),
+                  child: Text(tr('Retry')),
                 ),
               ],
             ),
@@ -133,46 +135,6 @@ class _SummaryCard extends ConsumerWidget {
   }
 }
 
-/// Lets the user set (or clear) the Gemini API key stored on the device.
-Future<void> showGeminiKeyDialog(BuildContext context, WidgetRef ref) async {
-  final controller = TextEditingController();
-  final result = await showDialog<String>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Gemini API key'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Summaries and article chat use Google Gemini. Create a free key '
-            'at aistudio.google.com and paste it here. It stays on this '
-            'device.',
-            style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: controller,
-            autofocus: true,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'API key'),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, ''),
-          child: const Text('Use built-in / clear'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, controller.text),
-          child: const Text('Save'),
-        ),
-      ],
-    ),
-  );
-  controller.dispose();
-  if (result != null) {
-    await ref.read(geminiApiKeyProvider.notifier).set(result);
-  }
-}
+/// The step-by-step Gemini key setup (shared with the rest of MyKit).
+Future<void> showGeminiKeyDialog(BuildContext context, WidgetRef ref) =>
+    openGeminiKeySetup(context);

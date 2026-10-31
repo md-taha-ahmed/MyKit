@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/google/google_oauth.dart';
 import '../../domain/entities/feed_article.dart';
 import '../../domain/entities/youtube_channel.dart';
@@ -84,7 +85,7 @@ class YoutubeSubscriptionsDataSource {
   /// saved state carries over.
   Future<ParsedFeed> uploads(String channelId) async {
     if (!isConfigured || !isSignedIn) {
-      throw const FeedException('Not signed in to YouTube.');
+      throw FeedException(tr('Not signed in to YouTube.'));
     }
     try {
       return await _uploads(

@@ -1,3 +1,4 @@
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/feed_article.dart';
 import '../../domain/entities/feed_category.dart';
 import '../../domain/entities/feed_health.dart';
@@ -78,9 +79,10 @@ class RssRepositoryImpl implements RssRepository {
         rethrow;
       }
       if (!_youtube.isSignedIn) {
-        throw const FeedException(
-          'YouTube\'s RSS feeds are down. Sign in under "Import YouTube '
-          'subscriptions" to load videos through the YouTube API instead.',
+        throw FeedException(
+          tr(
+            'YouTube\'s RSS feeds are down. Sign in under "Import YouTube subscriptions" to load videos through the YouTube API instead.',
+          ),
           transient: true,
         );
       }

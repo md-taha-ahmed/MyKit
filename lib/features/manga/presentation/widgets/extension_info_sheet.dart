@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import 'manga_widgets.dart';
 
 /// One website an extension reads from, with the languages it serves.
@@ -93,7 +94,9 @@ Future<void> showExtensionInfoSheet(
           ],
           const SizedBox(height: 20),
           Text(
-            sites.length == 1 ? 'Website' : 'Websites · ${sites.length}',
+            sites.length == 1
+                ? tr('Website')
+                : tr('Websites · {length}', {'length': sites.length}),
             style: const TextStyle(
               color: mangaAccent,
               fontWeight: FontWeight.w600,
@@ -101,10 +104,10 @@ Future<void> showExtensionInfoSheet(
           ),
           const SizedBox(height: 4),
           if (sites.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Text(
-                'This extension doesn\'t list a website.',
+                tr('This extension doesn\'t list a website.'),
                 style: TextStyle(color: Colors.white54),
               ),
             ),
@@ -141,7 +144,7 @@ Future<void> showExtensionInfoSheet(
                 onInstall();
               },
               icon: const Icon(Icons.download),
-              label: Text(installLabel),
+              label: Text(tr(installLabel)),
             ),
           ],
         ],

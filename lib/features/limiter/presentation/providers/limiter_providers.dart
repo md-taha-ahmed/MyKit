@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/limiter_native_data_source.dart';
 import '../../domain/limiter_settings.dart';
@@ -91,7 +92,10 @@ class LimiterStatusNotifier extends Notifier<LimiterStatus> {
 /// "1 h 05 min" / "12 min" / "< 1 min".
 String formatMinutes(int seconds) {
   final m = seconds ~/ 60;
-  if (m < 1) return seconds > 0 ? '< 1 min' : '0 min';
-  if (m < 60) return '$m min';
-  return '${m ~/ 60} h ${(m % 60).toString().padLeft(2, '0')} min';
+  if (m < 1) return seconds > 0 ? tr('< 1 min') : tr('0 min');
+  if (m < 60) return tr('{m} min', {'m': m});
+  return tr('{h} h {m} min', {
+    'h': m ~/ 60,
+    'm': (m % 60).toString().padLeft(2, '0'),
+  });
 }

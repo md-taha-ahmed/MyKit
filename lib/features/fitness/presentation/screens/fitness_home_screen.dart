@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../../domain/progress_math.dart';
@@ -26,7 +27,7 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const titles = ['Today', 'Plan', 'Exercises', 'Progress'];
+    final titles = [tr('Today'), tr('Plan'), tr('Exercises'), tr('Progress')];
     return Scaffold(
       appBar: _tab == 2
           ? null
@@ -34,7 +35,7 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
               title: Text(titles[_tab]),
               actions: [
                 IconButton(
-                  tooltip: 'Profile, goal & reminders',
+                  tooltip: tr('Profile, goal & reminders'),
                   icon: const Icon(Icons.person_outline),
                   onPressed: () => showProfileSheet(context, ref),
                 ),
@@ -43,11 +44,11 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
                     onSelected: (_) async {
                       final ok = await showConfirmDialog(
                         context,
-                        title: 'Reset to the starter plan?',
-                        message:
-                            'Your routines are replaced by the 4-day starter '
-                            'plan. Workout history stays.',
-                        confirmLabel: 'Reset',
+                        title: tr('Reset to the starter plan?'),
+                        message: tr(
+                          'Your routines are replaced by the 4-day starter plan. Workout history stays.',
+                        ),
+                        confirmLabel: tr('Reset'),
                       );
                       if (ok) {
                         await ref
@@ -55,10 +56,10 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
                             .resetToDefault();
                       }
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: 'reset',
-                        child: Text('Reset to starter plan'),
+                        child: Text(tr('Reset to starter plan')),
                       ),
                     ],
                   ),
@@ -82,31 +83,31 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
                 if (context.mounted) context.push(FitnessRoutes.routine(r.id));
               },
               icon: const Icon(Icons.add),
-              label: const Text('Workout'),
+              label: Text(tr('Workout')),
             )
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.today_outlined),
             selectedIcon: Icon(Icons.today),
-            label: 'Today',
+            label: tr('Today'),
           ),
           NavigationDestination(
             icon: Icon(Icons.event_note_outlined),
             selectedIcon: Icon(Icons.event_note),
-            label: 'Plan',
+            label: tr('Plan'),
           ),
           NavigationDestination(
             icon: Icon(Icons.fitness_center_outlined),
             selectedIcon: Icon(Icons.fitness_center),
-            label: 'Exercises',
+            label: tr('Exercises'),
           ),
           NavigationDestination(
             icon: Icon(Icons.show_chart),
-            label: 'Progress',
+            label: tr('Progress'),
           ),
         ],
       ),
@@ -149,7 +150,11 @@ class _TodayTab extends ConsumerWidget {
             color: fitnessAccent.withValues(alpha: 0.15),
             child: ListTile(
               leading: const Icon(Icons.timer, color: fitnessAccent),
-              title: Text('${active.routineName} in progress'),
+              title: Text(
+                tr('{routineName} in progress', {
+                  'routineName': active.routineName,
+                }),
+              ),
               subtitle: Text(
                 '${active.doneSets}/${active.totalSets} sets · started '
                 '${DateFormat('HH:mm').format(active.startedAt)}',
@@ -160,7 +165,7 @@ class _TodayTab extends ConsumerWidget {
                   foregroundColor: Colors.black,
                 ),
                 onPressed: () => context.push(FitnessRoutes.workout),
-                child: const Text('Resume'),
+                child: Text(tr('Resume')),
               ),
             ),
           )
@@ -174,11 +179,11 @@ class _TodayTab extends ConsumerWidget {
         Row(
           children: [
             _Stat(
-              label: 'This week',
+              label: tr('This week'),
               value: '${thisWeek.length}${planned > 0 ? '/$planned' : ''}',
             ),
-            _Stat(label: 'Week streak', value: '$streak'),
-            _Stat(label: 'Workouts', value: '${sessions.length}'),
+            _Stat(label: tr('Week streak'), value: '$streak'),
+            _Stat(label: tr('Workouts'), value: '${sessions.length}'),
           ],
         ),
         const SizedBox(height: 12),
@@ -188,13 +193,13 @@ class _TodayTab extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => _chooseWorkout(context, ref),
             icon: const Icon(Icons.play_arrow),
-            label: const Text('Start a different workout'),
+            label: Text(tr('Start a different workout')),
           ),
         ],
         if (sessions.isNotEmpty) ...[
           const SizedBox(height: 20),
-          const Text(
-            'Recent workouts',
+          Text(
+            tr('Recent workouts'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           for (final s in sessions.take(4)) _SessionTile(session: s),
@@ -220,8 +225,8 @@ class _TodayTab extends ConsumerWidget {
               ),
             ListTile(
               leading: const Icon(Icons.add_circle_outline),
-              title: const Text('Free workout'),
-              subtitle: const Text('Add exercises as you go'),
+              title: Text(tr('Free workout')),
+              subtitle: Text(tr('Add exercises as you go')),
               onTap: () => Navigator.pop(context, 'free'),
             ),
           ],
@@ -250,9 +255,9 @@ class _NextWorkoutCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final when = inDays == 0
-        ? 'Today'
+        ? tr('Today')
         : inDays == 1
-        ? 'Tomorrow'
+        ? tr('Tomorrow')
         : DateFormat('EEEE').format(DateTime.now().add(Duration(days: inDays)));
     return Card(
       child: Padding(
@@ -305,7 +310,9 @@ class _NextWorkoutCard extends ConsumerWidget {
                         context.push(FitnessRoutes.workout);
                       },
                 icon: const Icon(Icons.play_arrow),
-                label: Text(inDays == 0 ? 'Start workout' : 'Start now anyway'),
+                label: Text(
+                  inDays == 0 ? tr('Start workout') : tr('Start now anyway'),
+                ),
               ),
             ),
           ],
@@ -378,7 +385,9 @@ class _WeightCard extends ConsumerWidget {
                 const SizedBox(width: 10),
                 if (lost.abs() >= 0.1)
                   Text(
-                    lost > 0 ? '−${fmtKg(lost)} kg' : '+${fmtKg(-lost)} kg',
+                    lost > 0
+                        ? tr('−{0} kg', {'0': fmtKg(lost)})
+                        : tr('+{0} kg', {'0': fmtKg(-lost)}),
                     style: TextStyle(
                       color: lost > 0 ? fitnessAccent : Colors.orangeAccent,
                       fontWeight: FontWeight.w600,
@@ -388,7 +397,7 @@ class _WeightCard extends ConsumerWidget {
                 FilledButton.tonalIcon(
                   onPressed: () => showBodyLogSheet(context, ref),
                   icon: const Icon(Icons.monitor_weight_outlined, size: 18),
-                  label: const Text('Log'),
+                  label: Text(tr('Log')),
                 ),
               ],
             ),
@@ -405,10 +414,15 @@ class _WeightCard extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(
               toGo > 0
-                  ? '${fmtKg(toGo)} kg to your goal of '
-                        '${fmtKg(profile.goalWeightKg)} kg · BMI '
-                        '${bmi.toStringAsFixed(1)} (${ProgressMath.bmiLabel(bmi)})'
-                  : 'Goal reached! 🎉 BMI ${bmi.toStringAsFixed(1)}',
+                  ? tr('{0} kg to your goal of {1} kg · BMI {2} ({3})', {
+                      '0': fmtKg(toGo),
+                      '1': fmtKg(profile.goalWeightKg),
+                      '2': bmi.toStringAsFixed(1),
+                      '3': ProgressMath.bmiLabel(bmi),
+                    })
+                  : tr('Goal reached! 🎉 BMI {0}', {
+                      '0': bmi.toStringAsFixed(1),
+                    }),
               style: const TextStyle(fontSize: 12.5, color: Colors.white60),
             ),
           ],
@@ -430,7 +444,7 @@ class _SessionTile extends ConsumerWidget {
       backgroundColor: fitnessAccent.withValues(alpha: 0.18),
       child: const Icon(Icons.check, color: fitnessAccent),
     ),
-    title: Text(session.routineName ?? 'Workout'),
+    title: Text(session.routineName ?? tr('Workout')),
     subtitle: Text(
       '${DateFormat('EEE d MMM').format(session.startedAt)} · '
       '${fmtDuration(session.duration)} · ${plural(session.setCount, 'set')}',
@@ -451,10 +465,11 @@ class _PlanTab extends ConsumerWidget {
     final routines = ref.watch(routinesProvider);
     final library = ref.watch(exerciseLibraryProvider).value ?? const {};
     if (routines.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'No workouts yet. Tap "Workout" to create one,\nor reset to the '
-          'starter plan from the ⋮ menu.',
+          tr(
+            'No workouts yet. Tap "Workout" to create one,\nor reset to the starter plan from the ⋮ menu.',
+          ),
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white60),
         ),
@@ -463,11 +478,12 @@ class _PlanTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(bottom: 8),
           child: Text(
-            'Add weight (or reps) once you hit the top of the rep range on '
-            'every set — the workout screen tells you when.',
+            tr(
+              'Add weight (or reps) once you hit the top of the rep range on every set — the workout screen tells you when.',
+            ),
             style: TextStyle(color: Colors.white60, fontSize: 13),
           ),
         ),
@@ -505,7 +521,7 @@ class _PlanTab extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                weekdayShort[d]!,
+                                tr(weekdayShort[d]!),
                                 style: const TextStyle(fontSize: 12),
                               ),
                             ),
@@ -514,7 +530,7 @@ class _PlanTab extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text(
                       r.items.isEmpty
-                          ? 'No exercises yet'
+                          ? tr('No exercises yet')
                           : r.items
                                 .map(
                                   (i) =>
@@ -612,16 +628,16 @@ class _ProgressTab extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Body weight',
+                tr('Body weight'),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
             TextButton.icon(
               onPressed: () => showBodyLogSheet(context, ref),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Log'),
+              label: Text(tr('Log')),
             ),
           ],
         ),
@@ -641,8 +657,8 @@ class _ProgressTab extends ConsumerWidget {
         ),
         if (measured.isNotEmpty) ...[
           const SizedBox(height: 16),
-          const Text(
-            'Measurements',
+          Text(
+            tr('Measurements'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           Card(
@@ -671,20 +687,21 @@ class _ProgressTab extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 16),
-        const Text(
-          'Muscles trained this week',
+        Text(
+          tr('Muscles trained this week'),
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
-        const Text(
-          'Sets in the last 7 days (helping muscles count half). Grey = '
-          'not trained yet.',
+        Text(
+          tr(
+            'Sets in the last 7 days (helping muscles count half). Grey = not trained yet.',
+          ),
           style: TextStyle(fontSize: 12.5, color: Colors.white60),
         ),
         const SizedBox(height: 10),
         BodyDiagram(intensity: _weeklyMuscles(sessions, library), height: 240),
         const SizedBox(height: 16),
-        const Text(
-          'Workouts per week',
+        Text(
+          tr('Workouts per week'),
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
@@ -717,15 +734,15 @@ class _ProgressTab extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Personal bests',
+        Text(
+          tr('Personal bests'),
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         if (bests.isEmpty)
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Text(
-              'Finish a workout to see your records here.',
+              tr('Finish a workout to see your records here.'),
               style: TextStyle(color: Colors.white54),
             ),
           ),
@@ -744,8 +761,8 @@ class _ProgressTab extends ConsumerWidget {
           ),
         if (sessions.isNotEmpty) ...[
           const SizedBox(height: 16),
-          const Text(
-            'History',
+          Text(
+            tr('History'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           for (final s in sessions) _SessionTile(session: s),

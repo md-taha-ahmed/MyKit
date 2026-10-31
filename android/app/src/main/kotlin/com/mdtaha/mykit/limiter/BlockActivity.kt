@@ -6,8 +6,10 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import com.mdtaha.mykit.AppLanguage
 import android.os.CountDownTimer
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
@@ -33,15 +35,28 @@ class BlockActivity : Activity() {
         val dp = resources.displayMetrics.density
 
         val used = store.secondsToday(groupId) / 60
-        val title = if (focus) "${group.name} is paused" else "Time's up for ${group.name}"
+        val ar = AppLanguage.isArabic(this)
+        fun t(en: String, arabic: String) = if (ar) arabic else en
+        val title = if (focus) {
+            t("${group.name} is paused", "${group.name} متوقف الآن")
+        } else {
+            t("Time's up for ${group.name}", "انتهى وقت ${group.name}")
+        }
         val message = if (focus) {
             val end = store.config.focus
                 .firstOrNull { it.isActive(LocalDateTime.now(), groupId) }
                 ?.end?.format(DateTimeFormatter.ofPattern("HH:mm"))
-            "Focus hours are on" + (end?.let { " until $it" } ?: "") + "."
+            t(
+                "Focus hours are on" + (end?.let { " until $it" } ?: "") + ".",
+                "ساعات التركيز مفعّلة" + (end?.let { " حتى $it" } ?: "") + ".",
+            )
         } else {
-            "You've used $used min of your ${group.limitMinutes} min today.\n" +
-                "It resets at midnight."
+            t(
+                "You've used $used min of your ${group.limitMinutes} min today.\n" +
+                    "It resets at midnight.",
+                "استخدمت $used د من ${group.limitMinutes} د اليوم.\n" +
+                    "يُعاد ضبطه عند منتصف الليل.",
+            )
         }
 
         fun text(value: String, size: Float, bold: Boolean = false, alpha: Float = 1f) =
@@ -71,6 +86,7 @@ class BlockActivity : Activity() {
         }
 
         val root = LinearLayout(this).apply {
+            layoutDirection = if (ar) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setBackgroundColor(0xFF121317.toInt())
@@ -82,7 +98,7 @@ class BlockActivity : Activity() {
         root.addView(text(message, 16f, alpha = 0.75f))
 
         root.addView(
-            button("Close", filled = true).apply { setOnClickListener { goHome() } },
+            button(t("Close", "إغلاق"), filled = true).apply { setOnClickListener { goHome() } },
         )
 
         val left = store.extensionsLeft(groupId)
@@ -92,11 +108,17 @@ class BlockActivity : Activity() {
             root.addView(more)
             timer = object : CountDownTimer(store.config.extensionWaitSeconds * 1000L, 1000) {
                 override fun onTick(ms: Long) {
-                    more.text = "$extra more minutes · wait ${(ms + 999) / 1000} s"
+                    more.text = t(
+                        "$extra more minutes · wait ${(ms + 999) / 1000} s",
+                        "$extra دقائق إضافية · انتظر ${(ms + 999) / 1000} ث",
+                    )
                 }
 
                 override fun onFinish() {
-                    more.text = "$extra more minutes ($left left today)"
+                    more.text = t(
+                        "$extra more minutes ($left left today)",
+                        "$extra دقائق إضافية (متبقٍّ اليوم: $left)",
+                    )
                     more.isEnabled = true
                 }
             }.start()
@@ -105,7 +127,9 @@ class BlockActivity : Activity() {
                 finish()
             }
         } else if (!focus) {
-            root.addView(text("No more extensions today.", 14f, alpha = 0.5f))
+            root.addView(
+                text(t("No more extensions today.", "لا مزيد من التمديد اليوم."), 14f, alpha = 0.5f),
+            )
         }
         setContentView(root)
     }

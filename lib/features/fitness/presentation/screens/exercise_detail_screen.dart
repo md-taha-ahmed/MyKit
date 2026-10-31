@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../../domain/progress_math.dart';
@@ -27,7 +28,7 @@ class ExerciseDetailScreen extends ConsumerWidget {
         body: Center(
           child: library.isLoading
               ? const CircularProgressIndicator()
-              : const Text('Exercise not found.'),
+              : Text(tr('Exercise not found.')),
         ),
       );
     }
@@ -69,8 +70,8 @@ class ExerciseDetailScreen extends ConsumerWidget {
                 case 'delete':
                   final ok = await showConfirmDialog(
                     context,
-                    title: 'Delete ${exercise.name}?',
-                    message: 'Workout history for it stays.',
+                    title: tr('Delete {name}?', {'name': exercise.name}),
+                    message: tr('Workout history for it stays.'),
                   );
                   if (ok && context.mounted) {
                     await ref
@@ -81,20 +82,20 @@ class ExerciseDetailScreen extends ConsumerWidget {
               }
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'routine',
-                child: Text('Add to a workout…'),
+                child: Text(tr('Add to a workout…')),
               ),
-              const PopupMenuItem(value: 'photo', child: Text('Add my photo…')),
+              PopupMenuItem(value: 'photo', child: Text(tr('Add my photo…'))),
               if (myPhotos.isNotEmpty)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'clear',
-                  child: Text('Remove my photos'),
+                  child: Text(tr('Remove my photos')),
                 ),
               if (exercise.custom)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
-                  child: Text('Delete exercise'),
+                  child: Text(tr('Delete exercise')),
                 ),
             ],
           ),
@@ -116,7 +117,7 @@ class ExerciseDetailScreen extends ConsumerWidget {
                 }
               },
               icon: const Icon(Icons.add_photo_alternate_outlined),
-              label: const Text('Add a photo'),
+              label: Text(tr('Add a photo')),
             ),
           const SizedBox(height: 12),
           Wrap(
@@ -127,12 +128,12 @@ class ExerciseDetailScreen extends ConsumerWidget {
               _tag(
                 exercise.level[0].toUpperCase() + exercise.level.substring(1),
               ),
-              if (exercise.custom) _tag('My exercise'),
+              if (exercise.custom) _tag(tr('My exercise')),
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Muscles worked',
+          Text(
+            tr('Muscles worked'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
@@ -142,15 +143,15 @@ class ExerciseDetailScreen extends ConsumerWidget {
           ),
           if (pb != null || history.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Text(
-              'Your progress',
+            Text(
+              tr('Your progress'),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             if (pb != null)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.emoji_events_outlined),
-                title: Text('Best: ${pb.label}'),
+                title: Text(tr('Best: {label}', {'label': pb.label})),
                 subtitle: Text(DateFormat('d MMM y').format(pb.date)),
               ),
             for (final h in history.take(6))
@@ -169,8 +170,8 @@ class ExerciseDetailScreen extends ConsumerWidget {
           ],
           if (exercise.instructions.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Text(
-              'How to do it',
+            Text(
+              tr('How to do it'),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -197,10 +198,10 @@ class ExerciseDetailScreen extends ConsumerWidget {
               ),
           ],
           if (!exercise.custom)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 12),
               child: Text(
-                'From free-exercise-db (public domain).',
+                tr('From free-exercise-db (public domain).'),
                 style: TextStyle(fontSize: 11, color: Colors.white38),
               ),
             ),
@@ -226,9 +227,9 @@ class ExerciseDetailScreen extends ConsumerWidget {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const ListTile(
+            ListTile(
               title: Text(
-                'Add to which workout?',
+                tr('Add to which workout?'),
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
@@ -254,9 +255,9 @@ class ExerciseDetailScreen extends ConsumerWidget {
           ),
         );
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Added to ${r.name}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('Added to {name}', {'name': r.name}))),
+      );
     }
   }
 }

@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/i18n/i18n.dart';
 import '../features/backup/presentation/providers/backup_providers.dart';
 import '../features/countdown/presentation/providers/countdown_providers.dart';
+import '../features/setup/presentation/providers/setup_providers.dart';
+import '../features/setup/setup_routes.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -23,6 +27,12 @@ class _MyKitAppState extends ConsumerState<MyKitApp> {
   void initState() {
     super.initState();
     _listenToHomeWidgetLaunches();
+    // A fresh install starts with the setup checklist.
+    if (ref.read(freshInstallProvider) && !ref.read(setupDoneProvider)) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(appRouterProvider).go(SetupRoutes.firstRun),
+      );
+    }
     // Google Drive backup: scheduled when the app is left, cancelled on return.
     final backup = ref.read(backupProvider.notifier);
     _lifecycle = AppLifecycleListener(
@@ -54,8 +64,19 @@ class _MyKitAppState extends ConsumerState<MyKitApp> {
 
   @override
   Widget build(BuildContext context) {
+    final language = ref.watch(appLanguageProvider);
     return MaterialApp.router(
       title: 'MyKit',
+      // Arabic: right-to-left layout, Arabic dates and Material dialogs.
+      locale: language.locale,
+      supportedLocales: const [Locale('en'), Locale('ar')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      // A new subtree when the language changes, so every screen rebuilds
+      // its text (the current route is kept).
+      builder: (context, child) => KeyedSubtree(
+        key: ValueKey(language.locale.languageCode),
+        child: child ?? const SizedBox.shrink(),
+      ),
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
       darkTheme: AppTheme.dark,

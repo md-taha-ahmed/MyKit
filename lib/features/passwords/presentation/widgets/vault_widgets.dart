@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/services/password_tools.dart';
 import '../providers/vault_providers.dart';
 
@@ -110,7 +111,7 @@ class _GeneratorSheetState extends State<_GeneratorSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Generate password',
+            tr('Generate password'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 14),
@@ -133,7 +134,7 @@ class _GeneratorSheetState extends State<_GeneratorSheet> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'New one',
+                  tooltip: tr('New one'),
                   icon: const Icon(Icons.refresh),
                   onPressed: () => _update(_options),
                 ),
@@ -144,7 +145,7 @@ class _GeneratorSheetState extends State<_GeneratorSheet> {
           const SizedBox(height: 10),
           Row(
             children: [
-              const Text('Length'),
+              Text(tr('Length')),
               Expanded(
                 child: Slider(
                   value: _options.length.toDouble(),
@@ -164,12 +165,12 @@ class _GeneratorSheetState extends State<_GeneratorSheet> {
             runSpacing: 4,
             children: [
               FilterChip(
-                label: const Text('A–Z'),
+                label: Text(tr('A–Z')),
                 selected: _options.upper,
                 onSelected: (v) => _update(_options.copyWith(upper: v)),
               ),
               FilterChip(
-                label: const Text('a–z'),
+                label: Text(tr('a–z')),
                 selected: _options.lower,
                 onSelected: (v) => _update(_options.copyWith(lower: v)),
               ),
@@ -184,7 +185,7 @@ class _GeneratorSheetState extends State<_GeneratorSheet> {
                 onSelected: (v) => _update(_options.copyWith(symbols: v)),
               ),
               FilterChip(
-                label: const Text('No look-alikes'),
+                label: Text(tr('No look-alikes')),
                 selected: _options.avoidAmbiguous,
                 onSelected: (v) =>
                     _update(_options.copyWith(avoidAmbiguous: v)),
@@ -194,7 +195,7 @@ class _GeneratorSheetState extends State<_GeneratorSheet> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => Navigator.pop(context, _password),
-            child: const Text('Use this password'),
+            child: Text(tr('Use this password')),
           ),
         ],
       ),

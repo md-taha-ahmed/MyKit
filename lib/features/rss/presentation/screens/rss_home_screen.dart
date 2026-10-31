@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
 import '../widgets/add_feed_sheet.dart';
@@ -112,12 +113,15 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
                       ),
                       Text(
                         [
-                          if (articlesState.offline) 'Offline',
+                          if (articlesState.offline) tr('Offline'),
                           if (offlineSave.running)
                             offlineSave.total == 0
-                                ? 'Saving for offline…'
-                                : 'Saving ${offlineSave.done}/${offlineSave.total}',
-                          unread == 0 ? 'All caught up' : '$unread unread',
+                                ? tr('Saving for offline…')
+                                : tr('Saving {done}/{total}', {
+                                    'done': offlineSave.done,
+                                    'total': offlineSave.total,
+                                  }),
+                          unread == 0 ? tr('All caught up') : '$unread unread',
                         ].join(' · '),
                         style: const TextStyle(
                           fontSize: 12.5,
@@ -133,7 +137,7 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
           ),
         ),
         leading: IconButton(
-          tooltip: 'Feeds & categories',
+          tooltip: tr('Feeds & categories'),
           icon: const Icon(Icons.menu),
           onPressed: () => _scaffold.currentState?.openDrawer(),
         ),
@@ -148,13 +152,13 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
             )
           else
             IconButton(
-              tooltip: 'Refresh',
+              tooltip: tr('Refresh'),
               icon: const Icon(Icons.refresh),
               onPressed: () => ref.read(rssArticlesProvider.notifier).refresh(),
             ),
           if (ref.watch(shortsProvider(filter)).isNotEmpty)
             IconButton(
-              tooltip: 'Shorts',
+              tooltip: tr('Shorts'),
               icon: const Icon(Icons.slow_motion_video),
               onPressed: () => context.push(
                 RssRoutes.shorts(
@@ -164,7 +168,7 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               ),
             ),
           IconButton(
-            tooltip: 'Brief view (swipe through articles)',
+            tooltip: tr('Brief view (swipe through articles)'),
             icon: const Icon(Icons.view_day_outlined),
             onPressed: () => context.push(
               RssRoutes.scroll(
@@ -180,16 +184,19 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               if (v == 'manage') context.push(RssRoutes.manage);
               if (v == 'offline') showOfflineSheet(context, filter);
             },
-            itemBuilder: (_) => const [
+            itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'offline',
-                child: Text('Download for offline…'),
+                child: Text(tr('Download for offline…')),
               ),
-              PopupMenuItem(value: 'read', child: Text('Mark all as read')),
-              PopupMenuItem(value: 'unread', child: Text('Mark all as unread')),
+              PopupMenuItem(value: 'read', child: Text(tr('Mark all as read'))),
+              PopupMenuItem(
+                value: 'unread',
+                child: Text(tr('Mark all as unread')),
+              ),
               PopupMenuItem(
                 value: 'manage',
-                child: Text('Manage feeds & categories'),
+                child: Text(tr('Manage feeds & categories')),
               ),
             ],
           ),
@@ -203,8 +210,10 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               leading: const Icon(Icons.warning_amber, color: Colors.orange),
               content: Text(
                 broken == 1
-                    ? '1 feed hasn\'t worked for days.'
-                    : '$broken feeds haven\'t worked for days.',
+                    ? tr('1 feed hasn\'t worked for days.')
+                    : tr('{broken} feeds haven\'t worked for days.', {
+                        'broken': broken,
+                      }),
               ),
               actions: [
                 TextButton(
@@ -219,28 +228,29 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
               empty: library.feeds.isEmpty
                   ? RssEmptyState(
                       icon: Icons.rss_feed,
-                      title: 'No feeds yet',
-                      message:
-                          'Add your favourite sites and YouTube channels, '
-                          'organised into categories.',
+                      title: tr('No feeds yet'),
+                      message: tr(
+                        'Add your favourite sites and YouTube channels, organised into categories.',
+                      ),
                       action: FilledButton.icon(
                         onPressed: () => showAddFeedSheet(context),
                         icon: const Icon(Icons.add),
-                        label: const Text('Add your first feed'),
+                        label: Text(tr('Add your first feed')),
                       ),
                     )
                   : RssEmptyState(
                       icon: Icons.inbox_outlined,
                       title: articlesState.refreshing
-                          ? 'Loading…'
-                          : 'Nothing here',
+                          ? tr('Loading…')
+                          : tr('Nothing here'),
                       message: switch (filter.categoryId) {
-                        savedArticlesFilter =>
+                        savedArticlesFilter => tr(
                           'No bookmarks yet. Swipe an article right to save it.',
-                        likedArticlesFilter =>
-                          'Nothing liked yet. Double-tap an article in the '
-                              'brief view to like it.',
-                        _ => 'Pull down to refresh.',
+                        ),
+                        likedArticlesFilter => tr(
+                          'Nothing liked yet. Double-tap an article in the brief view to like it.',
+                        ),
+                        _ => tr('Pull down to refresh.'),
                       },
                     ),
             ),
@@ -250,7 +260,7 @@ class _RssHomeScreenState extends ConsumerState<RssHomeScreen> {
       floatingActionButton: library.feeds.isEmpty
           ? null
           : FloatingActionButton(
-              tooltip: 'Add feed',
+              tooltip: tr('Add feed'),
               onPressed: () => showAddFeedSheet(
                 context,
                 initialCategoryId: filter.feedId == null

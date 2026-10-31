@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/utils/text_direction.dart';
 import '../../domain/entities/feed_article.dart';
 import '../../domain/services/reading_time.dart';
@@ -84,8 +85,8 @@ class ArticleTile extends StatelessWidget {
                                 color: const Color(0xFFFF3B30),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
-                                'Shorts',
+                              child: Text(
+                                tr('Shorts'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,

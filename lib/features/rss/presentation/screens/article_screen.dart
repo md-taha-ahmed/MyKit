@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
 import '../../../../core/utils/text_direction.dart';
 import '../../domain/services/reading_time.dart';
@@ -46,7 +47,7 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
     if (!ok && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Could not open link.')));
+      ).showSnackBar(SnackBar(content: Text(tr('Could not open link.'))));
     }
   }
 
@@ -56,7 +57,7 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
     if (article == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('Article not found.')),
+        body: Center(child: Text(tr('Article not found.'))),
       );
     }
 
@@ -87,7 +88,7 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-            tooltip: liked ? 'Unlike' : 'Like',
+            tooltip: liked ? tr('Unlike') : tr('Like'),
             icon: Icon(
               liked ? Icons.favorite : Icons.favorite_border,
               color: liked ? const Color(0xFFFF5A6E) : null,
@@ -96,13 +97,13 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
                 ref.read(rssReactionsProvider.notifier).toggleLike(article.id),
           ),
           IconButton(
-            tooltip: saved ? 'Remove bookmark' : 'Bookmark',
+            tooltip: saved ? tr('Remove bookmark') : tr('Bookmark'),
             icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
             onPressed: () => toggleSaveArticle(context, ref, article),
           ),
           if (link != null)
             IconButton(
-              tooltip: 'Open in browser',
+              tooltip: tr('Open in browser'),
               icon: const Icon(Icons.open_in_new),
               onPressed: () => _open(link),
             ),
@@ -129,13 +130,10 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
             itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'read',
-                child: Text(isRead ? 'Mark as unread' : 'Mark as read'),
+                child: Text(isRead ? tr('Mark as unread') : tr('Mark as read')),
               ),
-              const PopupMenuItem(value: 'delete', child: Text('Delete')),
-              const PopupMenuItem(
-                value: 'aiKey',
-                child: Text('Gemini API key…'),
-              ),
+              PopupMenuItem(value: 'delete', child: Text(tr('Delete'))),
+              PopupMenuItem(value: 'aiKey', child: Text(tr('Gemini API key…'))),
             ],
           ),
         ],
@@ -186,8 +184,10 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
             ],
             const SizedBox(height: 18),
             if (body.isEmpty)
-              const Text(
-                'This feed only provides a headline. Open the article to read it.',
+              Text(
+                tr(
+                  'This feed only provides a headline. Open the article to read it.',
+                ),
                 style: TextStyle(color: Colors.white60),
               )
             else
@@ -211,8 +211,8 @@ class _ArticleScreenState extends ConsumerState<ArticleScreen> {
                 ),
                 label: Text(
                   feed?.isYoutube ?? false
-                      ? 'Watch on YouTube'
-                      : 'Read full article',
+                      ? tr('Watch on YouTube')
+                      : tr('Read full article'),
                 ),
               ),
             ],

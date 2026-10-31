@@ -58,6 +58,20 @@ flutter run
 flutter test
 ```
 
+## Language and setup
+
+- **Arabic or English**: Settings (⚙ on the dashboard) → Language (System / English / العربية). Arabic lays the
+  whole app out right to left and uses Arabic dates and system dialogs. All text goes through `tr()`
+  (`lib/core/i18n/i18n.dart`); the English text is the key and `lib/core/i18n/ar.dart` holds the Arabic.
+  `test/core/i18n_test.dart` fails if a `tr('…')` text has no Arabic, so add new text there too.
+- **Setup checklist** (`lib/features/setup/`): opens on a fresh install and from Settings. It checks
+  notifications, running in the background, the Gemini key, Drive backup, the password vault, autofill and
+  Screen time, and fixes each with one tap. The Gemini key screen explains how to get a free key and tests it
+  before saving.
+- **Sharing the app**: `tool/build_shared_apk.sh` builds an APK with Google sign-in but without your Gemini key,
+  so each person uses their own (from the checklist). A normal build with `config/ai.local.json` would give
+  everyone your key.
+
 ## RSS feeds
 
 - Add a feed by pasting a feed URL **or a website address**: the app reads the page's `<link rel="alternate">` or tries common paths (`/feed`, `/rss.xml`, …).

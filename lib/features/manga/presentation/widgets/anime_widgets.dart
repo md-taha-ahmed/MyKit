@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/anime_entities.dart';
 import '../../manga_routes.dart';
 import '../providers/anime_providers.dart';
@@ -66,7 +67,7 @@ class AnimeGridCard extends ConsumerWidget {
         (l) => l.any((e) => e.anime.key == anime.key),
       ),
     );
-    final label = badge ?? (inLibrary ? 'In library' : null);
+    final label = badge ?? (inLibrary ? tr('In library') : null);
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: () {

@@ -14,6 +14,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.mdtaha.mykit.AppLanguage
 import com.mdtaha.mykit.R
 import java.time.LocalDateTime
 
@@ -207,8 +208,20 @@ class LimiterService : AccessibilityService() {
         val minutes = (remainingSeconds + 59) / 60
         val notification = NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("${group.name}: $minutes min left today")
-            .setContentText("Your daily limit is almost used up.")
+            .setContentTitle(
+                AppLanguage.t(
+                    this,
+                    "${group.name}: $minutes min left today",
+                    "${group.name}: بقي $minutes د اليوم",
+                ),
+            )
+            .setContentText(
+                AppLanguage.t(
+                    this,
+                    "Your daily limit is almost used up.",
+                    "أوشك حدّك اليومي على الانتهاء.",
+                ),
+            )
             .setAutoCancel(true)
             .build()
         try {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/calendar/device_calendar_service.dart';
 import '../../domain/services/countdown_calculator.dart';
 import '../providers/countdown_providers.dart';
@@ -57,14 +58,14 @@ class _CalendarEventPickerScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pick an event'),
+        title: Text(tr('Pick an event')),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search events',
+              decoration: InputDecoration(
+                hintText: tr('Search events'),
                 prefixIcon: Icon(Icons.search),
                 isDense: true,
               ),
@@ -78,31 +79,33 @@ class _CalendarEventPickerScreenState
         error: (error, _) => error is CalendarPermissionDenied
             ? _Message(
                 icon: Icons.lock_outline,
-                text:
-                    'MyKit needs permission to read your calendar to list '
-                    'your events. Nothing is changed or uploaded.',
+                text: tr(
+                  'MyKit needs permission to read your calendar to list your events. Nothing is changed or uploaded.',
+                ),
                 actions: [
                   FilledButton(
                     onPressed: () =>
                         ref.invalidate(upcomingCalendarEventsProvider),
-                    child: const Text('Allow access'),
+                    child: Text(tr('Allow access')),
                   ),
                   TextButton(
                     onPressed: () => ref
                         .read(deviceCalendarServiceProvider)
                         .openAppSettings(),
-                    child: const Text('Open settings'),
+                    child: Text(tr('Open settings')),
                   ),
                 ],
               )
             : _Message(
                 icon: Icons.error_outline,
-                text: 'Could not read your calendar.\n$error',
+                text: tr('Could not read your calendar.\n{error}', {
+                  'error': error,
+                }),
                 actions: [
                   FilledButton(
                     onPressed: () =>
                         ref.invalidate(upcomingCalendarEventsProvider),
-                    child: const Text('Try again'),
+                    child: Text(tr('Try again')),
                   ),
                 ],
               ),
@@ -120,8 +123,8 @@ class _CalendarEventPickerScreenState
             return _Message(
               icon: Icons.event_busy,
               text: all.isEmpty
-                  ? 'No upcoming events in the next two years.'
-                  : 'No events match "$_query".',
+                  ? tr('No upcoming events in the next two years.')
+                  : tr('No events match "{_query}".', {'_query': _query}),
             );
           }
           return _EventList(events: filtered);
@@ -182,11 +185,13 @@ class _EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final days = CountdownCalculator.daysBetween(DateTime.now(), event.date);
-    final when = event.allDay ? 'All day' : DateFormat.jm().format(event.start);
+    final when = event.allDay
+        ? tr('All day')
+        : DateFormat.jm().format(event.start);
     final away = switch (days) {
-      0 => 'Today',
-      1 => 'Tomorrow',
-      _ => 'in $days days',
+      0 => tr('Today'),
+      1 => tr('Tomorrow'),
+      _ => tr('in {days} days', {'days': days}),
     };
 
     return ListTile(
@@ -220,7 +225,7 @@ class _EventTile extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              event.title.isEmpty ? '(No title)' : event.title,
+              event.title.isEmpty ? tr('(No title)') : event.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
