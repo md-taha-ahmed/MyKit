@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/drive_backup.dart';
 import '../datasources/backup_native_data_source.dart';
 
@@ -74,13 +75,13 @@ class BackupArchive {
     try {
       doc = jsonDecode(utf8.decode(gzip.decode(bytes))) as Map<String, dynamic>;
     } catch (_) {
-      throw const BackupException('This backup file is damaged.');
+      throw BackupException(tr('This backup file is damaged.'));
     }
     if (doc['format'] != _format) {
-      throw const BackupException('Not a MyKit backup.');
+      throw BackupException(tr('Not a MyKit backup.'));
     }
     if ((doc['version'] as num? ?? 0) > _version) {
-      throw const BackupException('This backup is from a newer MyKit.');
+      throw BackupException(tr('This backup is from a newer MyKit.'));
     }
     // Decode everything before touching the current data.
     final content = doc['content'] as Map<String, dynamic>;

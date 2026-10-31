@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/countdown.dart';
 import '../../domain/entities/countdown_theme.dart';
 import 'countdown_ring.dart';
@@ -22,7 +23,7 @@ Future<CountdownTheme?> showThemePickerSheet(
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 12),
               child: Text(
-                'Select theme',
+                tr('Select theme'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),

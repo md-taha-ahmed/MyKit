@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../../domain/progress_math.dart';
@@ -95,7 +96,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     });
     ref
         .read(fitnessNotificationsProvider)
-        .scheduleRestEnd(next.difference(DateTime.now()), 'Next set');
+        .scheduleRestEnd(next.difference(DateTime.now()), tr('Next set'));
   }
 
   void _startHold(int exercise, int set) {
@@ -136,8 +137,12 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     if (lastSet && lastExercise) return;
     final library = ref.read(exerciseLibraryProvider).value ?? const {};
     final nextName = lastSet
-        ? library[w.exercises[ex + 1].item.exerciseId]?.name ?? 'Next exercise'
-        : '${library[exercise.item.exerciseId]?.name ?? 'Next'} — set ${set + 2}';
+        ? library[w.exercises[ex + 1].item.exerciseId]?.name ??
+              tr('Next exercise')
+        : tr('{name} — set {set}', {
+            'name': library[exercise.item.exerciseId]?.name ?? tr('Next'),
+            'set': set + 2,
+          });
     _startRest(exercise.item.restSeconds, nextName);
     if (lastSet) notifier.goTo(ex + 1);
   }
@@ -148,11 +153,12 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     if (w.doneSets < w.totalSets) {
       final ok = await showConfirmDialog(
         context,
-        title: 'Finish workout?',
-        message:
-            '${w.doneSets} of ${w.totalSets} sets done. Unticked sets '
-            'aren\'t saved.',
-        confirmLabel: 'Finish',
+        title: tr('Finish workout?'),
+        message: tr(
+          '{doneSets} of {totalSets} sets done. Unticked sets aren\'t saved.',
+          {'doneSets': w.doneSets, 'totalSets': w.totalSets},
+        ),
+        confirmLabel: tr('Finish'),
       );
       if (!ok) return;
     }
@@ -175,7 +181,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Workout done 💪'),
+        title: Text(tr('Workout done 💪')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,16 +192,17 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
             ),
             if (records.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Text(
-                'New personal bests',
+              Text(
+                tr('New personal bests'),
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               for (final r in records) Text('🏆 $r'),
             ],
             const SizedBox(height: 12),
-            const Text(
-              'Log your weight once or twice a week, at the same time of '
-              'day, to see the trend.',
+            Text(
+              tr(
+                'Log your weight once or twice a week, at the same time of day, to see the trend.',
+              ),
               style: TextStyle(color: Colors.white60, fontSize: 13),
             ),
           ],
@@ -203,7 +210,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
+            child: Text(tr('Done')),
           ),
         ],
       ),
@@ -230,9 +237,13 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(w.routineName ?? 'Workout'),
+            Text(w.routineName ?? tr('Workout')),
             Text(
-              '${_clock(elapsed)} · ${w.doneSets}/${w.totalSets} sets',
+              tr('{0} · {doneSets}/{totalSets} sets', {
+                '0': _clock(elapsed),
+                'doneSets': w.doneSets,
+                'totalSets': w.totalSets,
+              }),
               style: const TextStyle(fontSize: 12.5, color: Colors.white60),
             ),
           ],
@@ -250,9 +261,9 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
               } else if (v == 'discard') {
                 final ok = await showConfirmDialog(
                   context,
-                  title: 'Discard this workout?',
-                  message: 'Nothing from it will be saved.',
-                  confirmLabel: 'Discard',
+                  title: tr('Discard this workout?'),
+                  message: tr('Nothing from it will be saved.'),
+                  confirmLabel: tr('Discard'),
                 );
                 if (ok) {
                   _endRest();
@@ -261,9 +272,12 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                 }
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'add', child: Text('Add exercise')),
-              PopupMenuItem(value: 'discard', child: Text('Discard workout')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'add', child: Text(tr('Add exercise'))),
+              PopupMenuItem(
+                value: 'discard',
+                child: Text(tr('Discard workout')),
+              ),
             ],
           ),
           Padding(
@@ -274,7 +288,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                 foregroundColor: Colors.black,
               ),
               onPressed: _finish,
-              child: const Text('Finish'),
+              child: Text(tr('Finish')),
             ),
           ),
         ],
@@ -330,7 +344,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                         }
                       },
                       icon: const Icon(Icons.add),
-                      label: const Text('Add an exercise'),
+                      label: Text(tr('Add an exercise')),
                     ),
                   )
                 : _ExercisePage(
@@ -375,7 +389,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Rest', style: TextStyle(color: Colors.white60)),
+                  Text(tr('Rest'), style: TextStyle(color: Colors.white60)),
                   Text(
                     _clock(Duration(seconds: left)),
                     style: const TextStyle(
@@ -390,7 +404,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
               onPressed: () => _addRest(15),
               child: const Text('+15s'),
             ),
-            TextButton(onPressed: _endRest, child: const Text('Skip')),
+            TextButton(onPressed: _endRest, child: Text(tr('Skip'))),
           ],
         ),
       ),
@@ -451,7 +465,10 @@ class _ExercisePage extends ConsumerWidget {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         Text(
-          'Target ${item.target} · rest ${item.restSeconds}s',
+          tr('Target {target} · rest {restSeconds}s', {
+            'target': item.target,
+            'restSeconds': item.restSeconds,
+          }),
           style: const TextStyle(color: fitnessAccent),
         ),
         if (item.note != null)
@@ -466,11 +483,16 @@ class _ExercisePage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              'Last time: ${[for (final s in last) s.seconds > 0
-                    ? '${s.seconds}s'
-                    : s.weightKg > 0
-                    ? '${fmtKg(s.weightKg)}×${s.reps}'
-                    : '${s.reps}'].join('  ')}',
+              tr('Last time: {sets}', {
+                'sets': [
+                  for (final s in last)
+                    s.seconds > 0
+                        ? '${s.seconds}s'
+                        : s.weightKg > 0
+                        ? '${fmtKg(s.weightKg)}×${s.reps}'
+                        : '${s.reps}',
+                ].join('  '),
+              }),
               style: const TextStyle(color: Colors.white60),
             ),
           ),
@@ -484,19 +506,25 @@ class _ExercisePage extends ConsumerWidget {
             ),
             child: Text(
               item.timed
-                  ? '⬆ You held the full time last session — add 5–10 seconds.'
+                  ? tr(
+                      '⬆ You held the full time last session — add 5–10 seconds.',
+                    )
                   : weighted
-                  ? '⬆ You hit ${item.repsMax} reps on every set last time — '
-                        'add 1–2 kg today.'
-                  : '⬆ You hit ${item.repsMax} reps on every set — try a '
-                        'harder variation or slow the tempo down.',
+                  ? tr(
+                      '⬆ You hit {repsMax} reps on every set last time — add 1–2 kg today.',
+                      {'repsMax': item.repsMax},
+                    )
+                  : tr(
+                      '⬆ You hit {repsMax} reps on every set — try a harder variation or slow the tempo down.',
+                      {'repsMax': item.repsMax},
+                    ),
               style: const TextStyle(color: Colors.amber),
             ),
           ),
         const SizedBox(height: 12),
         Row(
           children: [
-            const SizedBox(width: 36, child: Text('Set')),
+            SizedBox(width: 36, child: Text(tr('Set'))),
             if (weighted) const Expanded(child: Center(child: Text('kg'))),
             Expanded(
               child: Center(child: Text(item.timed ? 'seconds' : 'reps')),
@@ -532,7 +560,7 @@ class _ExercisePage extends ConsumerWidget {
           child: TextButton.icon(
             onPressed: () => notifier.addSet(index),
             icon: const Icon(Icons.add),
-            label: const Text('Add set'),
+            label: Text(tr('Add set')),
           ),
         ),
         const SizedBox(height: 8),
@@ -542,14 +570,14 @@ class _ExercisePage extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () => notifier.goTo(index - 1),
                 icon: const Icon(Icons.chevron_left),
-                label: const Text('Previous'),
+                label: Text(tr('Previous')),
               ),
             const Spacer(),
             if (!isLast)
               FilledButton.tonalIcon(
                 onPressed: () => notifier.goTo(index + 1),
                 icon: const Icon(Icons.chevron_right),
-                label: const Text('Next exercise'),
+                label: Text(tr('Next exercise')),
               ),
           ],
         ),
@@ -642,10 +670,10 @@ class _SetRow extends StatelessWidget {
             child: IconButton(
               iconSize: 30,
               tooltip: timed && !done
-                  ? (holding ? 'Stop' : 'Start timer')
+                  ? (holding ? tr('Stop') : tr('Start timer'))
                   : done
-                  ? 'Undo'
-                  : 'Done',
+                  ? tr('Undo')
+                  : tr('Done'),
               icon: Icon(
                 done
                     ? Icons.check_circle
@@ -696,7 +724,7 @@ class _Stepper extends StatelessWidget {
           onTap: () async {
             final typed = await showTextInputDialog(
               context,
-              title: decimals ? 'Weight (kg)' : 'Reps',
+              title: decimals ? tr('Weight (kg)') : tr('Reps'),
               initialValue: text,
             );
             final v = double.tryParse((typed ?? '').replaceAll(',', '.'));

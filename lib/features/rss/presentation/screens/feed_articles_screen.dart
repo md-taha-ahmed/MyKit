@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../providers/rss_providers.dart';
 import '../widgets/article_list.dart';
 
@@ -17,7 +18,7 @@ class FeedArticlesScreen extends ConsumerWidget {
     if (feed == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('This feed was removed.')),
+        body: Center(child: Text(tr('This feed was removed.'))),
       );
     }
     final filter = (categoryId: null, feedId: feedId);
@@ -29,7 +30,7 @@ class FeedArticlesScreen extends ConsumerWidget {
         actions: [
           if (site != null)
             IconButton(
-              tooltip: 'Open website',
+              tooltip: tr('Open website'),
               icon: const Icon(Icons.public),
               onPressed: () => launchUrl(
                 Uri.parse(site),
@@ -37,7 +38,7 @@ class FeedArticlesScreen extends ConsumerWidget {
               ),
             ),
           IconButton(
-            tooltip: 'Mark all as read',
+            tooltip: tr('Mark all as read'),
             icon: const Icon(Icons.done_all),
             onPressed: () {
               final ids = ref
@@ -47,7 +48,7 @@ class FeedArticlesScreen extends ConsumerWidget {
             },
           ),
           IconButton(
-            tooltip: 'Mark all as unread',
+            tooltip: tr('Mark all as unread'),
             icon: const Icon(Icons.mark_email_unread_outlined),
             onPressed: () {
               final ids = ref
@@ -62,10 +63,10 @@ class FeedArticlesScreen extends ConsumerWidget {
         filter: filter,
         empty: RssEmptyState(
           icon: Icons.inbox_outlined,
-          title: 'No articles',
+          title: tr('No articles'),
           message:
               ref.watch(rssArticlesProvider).errors[feedId] ??
-              'Pull down to refresh.',
+              tr('Pull down to refresh.'),
         ),
       ),
     );

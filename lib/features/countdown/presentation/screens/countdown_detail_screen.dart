@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../countdown_routes.dart';
 import '../../domain/services/countdown_calculator.dart';
 import '../providers/countdown_providers.dart';
@@ -24,7 +25,7 @@ class CountdownDetailScreen extends ConsumerWidget {
     if (countdown == null) {
       return Scaffold(
         appBar: AppBar(leading: CloseButton(onPressed: close)),
-        body: const Center(child: Text('This countdown no longer exists.')),
+        body: Center(child: Text(tr('This countdown no longer exists.'))),
       );
     }
 
@@ -58,7 +59,7 @@ class CountdownDetailScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 56),
                     Text(
-                      'Countdown for',
+                      tr('Countdown for'),
                       style: TextStyle(
                         fontSize: 22,
                         color: Colors.white.withValues(alpha: .8),

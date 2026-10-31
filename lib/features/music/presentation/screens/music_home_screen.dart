@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/track.dart';
 import '../../domain/music_organizer.dart';
 import '../../domain/repositories/music_library_repository.dart';
@@ -47,15 +48,15 @@ class _MusicHomeScreenState extends ConsumerState<MusicHomeScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Music'),
+        title: Text(tr('Music')),
         actions: [
           IconButton(
-            tooltip: 'Sort',
+            tooltip: tr('Sort'),
             icon: const Icon(Icons.sort_by_alpha),
             onPressed: () => showMusicSortSheet(context),
           ),
           IconButton(
-            tooltip: 'Rescan device',
+            tooltip: tr('Rescan device'),
             icon: const Icon(Icons.refresh),
             onPressed: rescan,
           ),
@@ -66,37 +67,37 @@ class _MusicHomeScreenState extends ConsumerState<MusicHomeScreen>
         error: (error, _) => error is MusicPermissionDenied
             ? _Message(
                 icon: Icons.lock_outline,
-                title: 'Allow access to your music',
-                message:
-                    'MyKit needs permission to read audio files on this '
-                    'device. Nothing leaves your phone.',
+                title: tr('Allow access to your music'),
+                message: tr(
+                  'MyKit needs permission to read audio files on this device. Nothing leaves your phone.',
+                ),
                 actions: [
-                  FilledButton(onPressed: rescan, child: const Text('Allow')),
+                  FilledButton(onPressed: rescan, child: Text(tr('Allow'))),
                   TextButton(
                     onPressed: ref
                         .read(musicLibraryRepositoryProvider)
                         .openAppSettings,
-                    child: const Text('Open settings'),
+                    child: Text(tr('Open settings')),
                   ),
                 ],
               )
             : _Message(
                 icon: Icons.error_outline,
-                title: 'Could not read your music',
+                title: tr('Could not read your music'),
                 message: '$error',
                 actions: [
-                  FilledButton(onPressed: rescan, child: const Text('Retry')),
+                  FilledButton(onPressed: rescan, child: Text(tr('Retry'))),
                 ],
               ),
         data: (folders) => folders.isEmpty
             ? _Message(
                 icon: Icons.library_music_outlined,
-                title: 'No music found',
-                message:
-                    'Copy audio files (MP3, M4A, FLAC, …) to your phone, '
-                    'then tap refresh.',
+                title: tr('No music found'),
+                message: tr(
+                  'Copy audio files (MP3, M4A, FLAC, …) to your phone, then tap refresh.',
+                ),
                 actions: [
-                  FilledButton(onPressed: rescan, child: const Text('Rescan')),
+                  FilledButton(onPressed: rescan, child: Text(tr('Rescan'))),
                 ],
               )
             : RefreshIndicator(
@@ -125,8 +126,8 @@ class _FolderList extends ConsumerWidget {
       children: [
         _FolderTile(
           icon: Icons.library_music,
-          name: 'All songs',
-          subtitle: '$total songs',
+          name: tr('All songs'),
+          subtitle: tr('{total} songs', {'total': total}),
           onTap: () => context.push(MusicRoutes.folder(allSongsFolder)),
           onShuffle: () => player.playTracks(
             ref.read(folderTracksProvider(allSongsFolder)),
@@ -134,10 +135,10 @@ class _FolderList extends ConsumerWidget {
             nameSource: nameSource,
           ),
         ),
-        const Padding(
+        Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
           child: Text(
-            'FOLDERS',
+            tr('FOLDERS'),
             style: TextStyle(
               color: musicAccent,
               fontSize: 12.5,
@@ -201,7 +202,7 @@ class _FolderTile extends StatelessWidget {
         style: const TextStyle(color: Colors.white54),
       ),
       trailing: IconButton(
-        tooltip: 'Shuffle',
+        tooltip: tr('Shuffle'),
         icon: const Icon(Icons.shuffle),
         onPressed: onShuffle,
       ),

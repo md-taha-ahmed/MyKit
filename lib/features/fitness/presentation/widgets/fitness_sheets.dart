@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../../domain/progress_math.dart';
@@ -94,9 +95,9 @@ Future<void> showBodyLogSheet(BuildContext context, WidgetRef ref) async {
             children: [
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Log body weight',
+                      tr('Log body weight'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -119,12 +120,12 @@ Future<void> showBodyLogSheet(BuildContext context, WidgetRef ref) async {
                 ],
               ),
               const SizedBox(height: 8),
-              _NumberField(weight, 'Weight', suffix: 'kg'),
+              _NumberField(weight, tr('Weight'), suffix: 'kg'),
               const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Add measurements'),
-                subtitle: const Text('Waist, chest, arm, hips, thigh (cm)'),
+                title: Text(tr('Add measurements')),
+                subtitle: Text(tr('Waist, chest, arm, hips, thigh (cm)')),
                 value: showMeasures,
                 onChanged: (v) => setSheet(() => showMeasures = v),
               ),
@@ -165,7 +166,7 @@ Future<void> showBodyLogSheet(BuildContext context, WidgetRef ref) async {
                       );
                   Navigator.pop(context);
                 },
-                child: const Text('Save'),
+                child: Text(tr('Save')),
               ),
             ],
           ),
@@ -207,28 +208,29 @@ Future<void> showProfileSheet(BuildContext context, WidgetRef ref) async {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Profile & goal',
+                Text(
+                  tr('Profile & goal'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
-                _NumberField(height, 'Height', suffix: 'cm'),
+                _NumberField(height, tr('Height'), suffix: 'cm'),
                 const SizedBox(height: 8),
-                _NumberField(start, 'Starting weight', suffix: 'kg'),
+                _NumberField(start, tr('Starting weight'), suffix: 'kg'),
                 const SizedBox(height: 8),
-                _NumberField(goal, 'Goal weight', suffix: 'kg'),
+                _NumberField(goal, tr('Goal weight'), suffix: 'kg'),
                 const SizedBox(height: 4),
                 Text(
-                  'A healthy BMI (under 25) at ${fmtKg(h)} cm is up to '
-                  '${fmtKg(healthy)} kg. A first goal of losing 5–10% is a '
-                  'great start.',
+                  tr(
+                    'A healthy BMI (under 25) at {0} cm is up to {1} kg. A first goal of losing 5–10% is a great start.',
+                    {'0': fmtKg(h), '1': fmtKg(healthy)},
+                  ),
                   style: const TextStyle(fontSize: 12, color: Colors.white60),
                 ),
                 const Divider(height: 28),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Workout reminders'),
-                  subtitle: const Text('A notification on your training days'),
+                  title: Text(tr('Workout reminders')),
+                  subtitle: Text(tr('A notification on your training days')),
                   value: reminders,
                   onChanged: (v) => setSheet(() => reminders = v),
                 ),
@@ -236,7 +238,7 @@ Future<void> showProfileSheet(BuildContext context, WidgetRef ref) async {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.alarm),
-                    title: const Text('Remind me at'),
+                    title: Text(tr('Remind me at')),
                     trailing: Text(
                       TimeOfDay(
                         hour: minutes ~/ 60,
@@ -277,15 +279,17 @@ Future<void> showProfileSheet(BuildContext context, WidgetRef ref) async {
                     if (reminders != p.remindersOn &&
                         !await notifier.enableReminders(reminders)) {
                       messenger.showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
-                            'Allow notifications for MyKit to get reminders.',
+                            tr(
+                              'Allow notifications for MyKit to get reminders.',
+                            ),
                           ),
                         ),
                       );
                     }
                   },
-                  child: const Text('Save'),
+                  child: Text(tr('Save')),
                 ),
               ],
             ),
@@ -324,7 +328,7 @@ Future<void> showSessionSheet(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      s.routineName ?? 'Workout',
+                      s.routineName ?? tr('Workout'),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -340,13 +344,13 @@ Future<void> showSessionSheet(
                 ),
               ),
               IconButton(
-                tooltip: 'Delete workout',
+                tooltip: tr('Delete workout'),
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () async {
                   final ok = await showConfirmDialog(
                     context,
-                    title: 'Delete this workout?',
-                    message: 'It disappears from your history and records.',
+                    title: tr('Delete this workout?'),
+                    message: tr('It disappears from your history and records.'),
                   );
                   if (ok && context.mounted) {
                     await ref.read(sessionsProvider.notifier).remove(s.id);

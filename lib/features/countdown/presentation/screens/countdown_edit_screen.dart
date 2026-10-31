@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../countdown_routes.dart';
 import '../../domain/entities/countdown.dart';
 import '../../domain/entities/countdown_enums.dart';
@@ -110,10 +111,11 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
         if (!await widgetService.canPinWidget()) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Your launcher can\'t add widgets from apps. Long-press the '
-                'home screen → Widgets → MyKit instead.',
+                tr(
+                  'Your launcher can\'t add widgets from apps. Long-press the home screen → Widgets → MyKit instead.',
+                ),
               ),
             ),
           );
@@ -127,18 +129,20 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete countdown?'),
-            content: const Text(
-              'Home screen widgets showing it will ask you to pick another one.',
+            title: Text(tr('Delete countdown?')),
+            content: Text(
+              tr(
+                'Home screen widgets showing it will ask you to pick another one.',
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(tr('Cancel')),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete'),
+                child: Text(tr('Delete')),
               ),
             ],
           ),
@@ -162,7 +166,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
               ? context.pop()
               : context.go(CountdownRoutes.list),
         ),
-        title: Text(isNew ? 'New countdown' : 'Edit countdown'),
+        title: Text(isNew ? tr('New countdown') : tr('Edit countdown')),
         actions: [
           FilledButton(
             onPressed: _save,
@@ -177,14 +181,14 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
           PopupMenuButton<_MenuAction>(
             onSelected: _onMenu,
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _MenuAction.addToHome,
-                child: Text('Add to home screen'),
+                child: Text(tr('Add to home screen')),
               ),
               if (!isNew)
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: _MenuAction.delete,
-                  child: Text('Delete'),
+                  child: Text(tr('Delete')),
                 ),
             ],
           ),
@@ -214,22 +218,22 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
                     Expanded(
                       flex: 3,
                       child: _FieldButton(
-                        label: 'Select a date',
+                        label: tr('Select a date'),
                         value: _dateFormat.format(draft.targetDate),
                         onTap: () => _pickDate(draft),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       flex: 2,
                       child: _FieldButton(
-                        label: 'Select a time',
-                        value: 'All day',
+                        label: tr('Select a time'),
+                        value: tr('All day'),
                       ),
                     ),
                   ],
                 ),
-                const _Hint('Cannot set time for widgets.'),
+                _Hint(tr('Cannot set time for widgets.')),
               ],
             ),
           ),
@@ -238,7 +242,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
           _Section(
             icon: Icons.refresh,
             child: _Dropdown<Recurrence>(
-              label: 'Recurrence',
+              label: tr('Recurrence'),
               value: draft.recurrence,
               items: {for (final r in Recurrence.values) r: r.label},
               onChanged: (v) => _update((d) => d.copyWith(recurrence: v)),
@@ -254,13 +258,13 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
                 TextField(
                   controller: _title,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(
-                    hintText: 'What is on that day?',
+                  decoration: InputDecoration(
+                    hintText: tr('What is on that day?'),
                   ),
                   onChanged: (v) => _update((d) => d.copyWith(title: v)),
                 ),
                 _SwitchRow(
-                  label: 'Show title in widget',
+                  label: tr('Show title in widget'),
                   value: draft.showTitleInWidget,
                   onChanged: (v) =>
                       _update((d) => d.copyWith(showTitleInWidget: v)),
@@ -277,7 +281,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
               minLines: 1,
               maxLines: 5,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(hintText: 'Your notes'),
+              decoration: InputDecoration(hintText: tr('Your notes')),
               onChanged: (v) => _update((d) => d.copyWith(notes: v)),
             ),
           ),
@@ -291,37 +295,37 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
                 Row(
                   children: [
                     _ColorChoice(
-                      tooltip: 'Ring color',
+                      tooltip: tr('Ring color'),
                       color: draft.ringColor,
                       onTap: () => _pickColor(
-                        'Ring color',
+                        tr('Ring color'),
                         draft.ringColor,
                         (d, c) => d.copyWith(ringColor: c),
                       ),
                     ),
                     _ColorChoice(
-                      tooltip: 'Background color',
+                      tooltip: tr('Background color'),
                       color: draft.backgroundColor,
                       onTap: () => _pickColor(
-                        'Background color',
+                        tr('Background color'),
                         draft.backgroundColor,
                         (d, c) => d.copyWith(backgroundColor: c),
                       ),
                     ),
                     _ColorChoice(
-                      tooltip: 'Ring track color',
+                      tooltip: tr('Ring track color'),
                       color: draft.trackColor,
                       onTap: () => _pickColor(
-                        'Ring track color',
+                        tr('Ring track color'),
                         draft.trackColor,
                         (d, c) => d.copyWith(trackColor: c),
                       ),
                     ),
                     _ColorChoice(
-                      tooltip: 'Text color',
+                      tooltip: tr('Text color'),
                       color: draft.textColor,
                       onTap: () => _pickColor(
-                        'Text color',
+                        tr('Text color'),
                         draft.textColor,
                         (d, c) => d.copyWith(textColor: c),
                       ),
@@ -342,8 +346,8 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
                       vertical: 14,
                     ),
                   ),
-                  child: const Text(
-                    'SELECT THEME',
+                  child: Text(
+                    tr('SELECT THEME'),
                     style: TextStyle(letterSpacing: 1.2),
                   ),
                 ),
@@ -358,13 +362,13 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _Dropdown<CountUnit>(
-                  label: 'Count for',
+                  label: tr('Count for'),
                   value: draft.unit,
                   items: {for (final u in CountUnit.values) u: u.label},
                   onChanged: (v) => _update((d) => d.copyWith(unit: v)),
                 ),
                 _SwitchRow(
-                  label: 'Show label',
+                  label: tr('Show label'),
                   value: draft.showLabel,
                   onChanged: (v) => _update((d) => d.copyWith(showLabel: v)),
                 ),
@@ -380,7 +384,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SwitchRow(
-                  label: 'Decrease circle with time',
+                  label: tr('Decrease circle with time'),
                   large: true,
                   value: draft.decreaseCircle,
                   onChanged: (v) =>
@@ -388,15 +392,16 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
                 ),
                 const SizedBox(height: 4),
                 _Dropdown<int>(
-                  label: 'When should the circle start decreasing?',
+                  label: tr('When should the circle start decreasing?'),
                   value: draft.decreaseStartDays,
                   enabled: draft.decreaseCircle,
                   items: {
                     for (final days in _startDayOptions(
                       draft.decreaseStartDays,
                     ))
-                      days:
-                          '$days ${days == 1 ? 'day' : 'days'} before deadline',
+                      days: days == 1
+                          ? tr('1 day before deadline')
+                          : tr('{days} days before deadline', {'days': days}),
                   },
                   onChanged: _editor.setDecreaseStartDays,
                 ),
@@ -408,7 +413,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
           _Section(
             icon: Icons.text_fields,
             child: _Dropdown<CountdownFont>(
-              label: 'Select font',
+              label: tr('Select font'),
               value: draft.font,
               items: {for (final f in CountdownFont.values) f: f.label},
               itemStyle: (f) => TextStyle(fontFamily: f.family),
@@ -420,7 +425,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
             icon: Icons.blur_on,
             alignIconToTop: false,
             child: _SwitchRow(
-              label: 'Drop shadow',
+              label: tr('Drop shadow'),
               large: true,
               value: draft.dropShadow,
               onChanged: (v) => _update((d) => d.copyWith(dropShadow: v)),
@@ -430,7 +435,7 @@ class _CountdownEditScreenState extends ConsumerState<CountdownEditScreen> {
             icon: Icons.rotate_right,
             alignIconToTop: false,
             child: _SwitchRow(
-              label: 'Clockwise',
+              label: tr('Clockwise'),
               large: true,
               value: draft.clockwise,
               onChanged: (v) => _update((d) => d.copyWith(clockwise: v)),
@@ -482,7 +487,7 @@ class _PreviewCard extends StatelessWidget {
           Align(
             alignment: Alignment.topLeft,
             child: Tooltip(
-              message: 'Light wallpaper preview',
+              message: tr('Light wallpaper preview'),
               child: Switch(value: light, onChanged: onToggleLight),
             ),
           ),
@@ -490,7 +495,10 @@ class _PreviewCard extends StatelessWidget {
             alignment: Alignment.topRight,
             child: Padding(
               padding: const EdgeInsets.only(top: 14),
-              child: Text('Preview', style: TextStyle(color: fg, fontSize: 16)),
+              child: Text(
+                tr('Preview'),
+                style: TextStyle(color: fg, fontSize: 16),
+              ),
             ),
           ),
           Align(

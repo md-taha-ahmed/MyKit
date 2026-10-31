@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
@@ -26,11 +27,11 @@ class AnimeLibraryTab extends ConsumerWidget {
         return db.compareTo(da);
       });
     if (library.isEmpty) {
-      return const EmptyHint(
+      return EmptyHint(
         icon: Icons.video_library_outlined,
-        text:
-            'Your anime library is empty.\nFind something in Browse and tap '
-            '"Add to library".',
+        text: tr(
+          'Your anime library is empty.\nFind something in Browse and tap "Add to library".',
+        ),
       );
     }
     return GridView.builder(
@@ -65,11 +66,11 @@ class AnimeBrowseTab extends ConsumerWidget {
           ),
           data: (sources) {
             if (sources.isEmpty) {
-              return const EmptyHint(
+              return EmptyHint(
                 icon: Icons.explore_outlined,
-                text:
-                    'No anime sources yet.\nInstall an extension from the '
-                    'Extensions tab (check the language filter too).',
+                text: tr(
+                  'No anime sources yet.\nInstall an extension from the Extensions tab (check the language filter too).',
+                ),
               );
             }
             String? lastLang;
@@ -96,7 +97,7 @@ class AnimeBrowseTab extends ConsumerWidget {
                             onPressed: () => context.push(
                               MangaRoutes.animeSource(s.id, latest: true),
                             ),
-                            child: const Text('Latest'),
+                            child: Text(tr('Latest')),
                           )
                         : null,
                     onTap: () => context.push(MangaRoutes.animeSource(s.id)),
@@ -124,7 +125,7 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
       await ref.read(installedAnimeExtensionsProvider.notifier).install(ext);
       _snack('${ext.name} installed');
     } on MangaException catch (e) {
-      _snack('Install failed: ${e.message}');
+      _snack(tr('Install failed: {message}', {'message': e.message}));
     }
   }
 
@@ -188,8 +189,8 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                     child: TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Search anime extensions',
+                      decoration: InputDecoration(
+                        hintText: tr('Search anime extensions'),
                         prefixIcon: Icon(Icons.search),
                         isDense: true,
                       ),
@@ -197,7 +198,9 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                     ),
                   ),
                   if (installed.isNotEmpty)
-                    SectionLabel('Installed · ${installed.length}'),
+                    SectionLabel(
+                      tr('Installed · {length}', {'length': installed.length}),
+                    ),
                   for (final e in installed)
                     ExtensionTile(
                       name: e.name,
@@ -219,7 +222,7 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                         onInstall: updates.contains(e.pkgName)
                             ? () => _install(byPkg[e.pkgName]!)
                             : null,
-                        installLabel: 'Update',
+                        installLabel: tr('Update'),
                       ),
                       trailing: busy.contains(e.pkgName)
                           ? const SmallSpinner()
@@ -230,19 +233,21 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                                   FilledButton(
                                     onPressed: () =>
                                         _install(byPkg[e.pkgName]!),
-                                    child: const Text('Update'),
+                                    child: Text(tr('Update')),
                                   ),
                                 IconButton(
-                                  tooltip: 'Uninstall',
+                                  tooltip: tr('Uninstall'),
                                   icon: const Icon(Icons.delete_outline),
                                   onPressed: () async {
                                     final ok = await showConfirmDialog(
                                       context,
-                                      title: 'Uninstall ${e.name}?',
-                                      message:
-                                          'Its sources disappear from Browse. '
-                                          'Library entries stay.',
-                                      confirmLabel: 'Uninstall',
+                                      title: tr('Uninstall {name}?', {
+                                        'name': e.name,
+                                      }),
+                                      message: tr(
+                                        'Its sources disappear from Browse. Library entries stay.',
+                                      ),
+                                      confirmLabel: tr('Uninstall'),
                                     );
                                     if (ok) {
                                       await ref
@@ -257,7 +262,9 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                               ],
                             ),
                     ),
-                  SectionLabel('Available · ${shown.length}'),
+                  SectionLabel(
+                    tr('Available · {length}', {'length': shown.length}),
+                  ),
                   for (final a in shown)
                     ExtensionTile(
                       name: a.name,
@@ -279,12 +286,15 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                             (name: s.name, lang: s.lang, url: s.homeUrl),
                         ]),
                         note: a.isTorrent
-                            ? 'Torrent extensions need Aniyomi\'s torrent '
-                                  'server, which MyKit doesn\'t include.'
+                            ? tr(
+                                'Torrent extensions need Aniyomi\'s torrent server, which MyKit doesn\'t include.',
+                              )
                             : a.isSupported
                             ? null
-                            : 'Needs extension lib ${a.libVersion}, which '
-                                  'MyKit doesn\'t support yet.',
+                            : tr(
+                                'Needs extension lib {version}, which MyKit doesn\'t support yet.',
+                                {'version': a.libVersion},
+                              ),
                         onInstall: a.isSupported && !busy.contains(a.pkgName)
                             ? () => _install(a)
                             : null,
@@ -295,7 +305,7 @@ class _AnimeExtensionsTabState extends ConsumerState<AnimeExtensionsTab> {
                               onPressed: a.isSupported
                                   ? () => _install(a)
                                   : null,
-                              child: const Text('Install'),
+                              child: Text(tr('Install')),
                             ),
                     ),
                   const SizedBox(height: 32),
@@ -353,15 +363,16 @@ class _AddAnimeRepoPromptState extends ConsumerState<_AddAnimeRepoPrompt> {
       children: [
         const Icon(Icons.dns_outlined, size: 48, color: Colors.white38),
         const SizedBox(height: 16),
-        const Text(
-          'Add an anime repository',
+        Text(
+          tr('Add an anime repository'),
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Anime extensions come from Aniyomi repositories. MyKit only '
-          'installs extensions signed with the key the repository publishes.',
+        Text(
+          tr(
+            'Anime extensions come from Aniyomi repositories. MyKit only installs extensions signed with the key the repository publishes.',
+          ),
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white60),
         ),
@@ -369,7 +380,7 @@ class _AddAnimeRepoPromptState extends ConsumerState<_AddAnimeRepoPrompt> {
         TextField(
           controller: _url,
           decoration: InputDecoration(
-            labelText: 'Repository URL',
+            labelText: tr('Repository URL'),
             errorText: _error,
           ),
         ),
@@ -382,7 +393,7 @@ class _AddAnimeRepoPromptState extends ConsumerState<_AddAnimeRepoPrompt> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.add),
-          label: const Text('Add repository'),
+          label: Text(tr('Add repository')),
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../rss_routes.dart';
 import '../providers/rss_providers.dart';
 import 'article_actions.dart';
@@ -54,13 +55,13 @@ class ArticleList extends ConsumerWidget {
             key: ValueKey(article.id),
             background: SwipeBackground(
               icon: saved ? Icons.bookmark_remove : Icons.bookmark_add,
-              label: saved ? 'Unsave' : 'Save',
+              label: saved ? tr('Unsave') : tr('Save'),
               color: const Color(0xFF1F6F4A),
               alignment: Alignment.centerLeft,
             ),
             secondaryBackground: SwipeBackground(
               icon: fromSaved ? Icons.bookmark_remove : Icons.delete_outline,
-              label: fromSaved ? 'Remove' : 'Delete',
+              label: fromSaved ? tr('Remove') : tr('Delete'),
               color: const Color(0xFF8E2B2B),
               alignment: Alignment.centerRight,
             ),

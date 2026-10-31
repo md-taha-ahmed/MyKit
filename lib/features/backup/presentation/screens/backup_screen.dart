@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/drive_backup.dart';
 import '../providers/backup_providers.dart';
 
@@ -25,33 +26,31 @@ class BackupScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Backup')),
+      appBar: AppBar(title: Text(tr('Backup'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
         children: [
           if (!drive.isConfigured)
-            const _Note(
+            _Note(
               icon: Icons.key_off_outlined,
-              text:
-                  'Google sign-in isn\'t set up in this build. Add the OAuth '
-                  'client (RSS Feeds → Import YouTube subscriptions) or build '
-                  'with config/google_oauth.local.json.',
+              text: tr(
+                'Google sign-in isn\'t set up in this build. Add the OAuth client (RSS Feeds → Import YouTube subscriptions) or build with config/google_oauth.local.json.',
+              ),
             )
           else if (!drive.isSignedIn) ...[
-            const _Note(
+            _Note(
               icon: Icons.cloud_outlined,
-              text:
-                  'Back up your settings, extensions, libraries and progress '
-                  'to a private MyKit folder in your Google Drive. If the app '
-                  'is ever deleted, sign in here again and restore.',
+              text: tr(
+                'Back up your settings, extensions, libraries and progress to a private MyKit folder in your Google Drive. If the app is ever deleted, sign in here again and restore.',
+              ),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: status.busy
                   ? null
-                  : () => run(notifier.signIn, 'Backed up to Google Drive'),
+                  : () => run(notifier.signIn, tr('Backed up to Google Drive')),
               icon: status.busy ? const _Spinner() : const Icon(Icons.login),
-              label: const Text('Sign in with Google'),
+              label: Text(tr('Sign in with Google')),
             ),
           ] else ...[
             _LastBackupCard(status: status),
@@ -59,25 +58,27 @@ class BackupScreen extends ConsumerWidget {
             FilledButton.icon(
               onPressed: status.busy
                   ? null
-                  : () => run(notifier.backUpNow, 'Backed up'),
+                  : () => run(notifier.backUpNow, tr('Backed up')),
               icon: status.activity == BackupActivity.backingUp
                   ? const _Spinner()
                   : const Icon(Icons.cloud_upload_outlined),
-              label: const Text('Back up now'),
+              label: Text(tr('Back up now')),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-              title: const Text('Back up automatically'),
-              subtitle: const Text(
-                'A couple of minutes after you leave MyKit, if something changed',
+              title: Text(tr('Back up automatically')),
+              subtitle: Text(
+                tr(
+                  'A couple of minutes after you leave MyKit, if something changed',
+                ),
               ),
               value: status.auto,
               onChanged: notifier.setAuto,
             ),
             const SizedBox(height: 12),
             Text(
-              'Backups in Google Drive',
+              tr('Backups in Google Drive'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
@@ -85,10 +86,10 @@ class BackupScreen extends ConsumerWidget {
                 .watch(driveBackupsProvider)
                 .when(
                   data: (backups) => backups.isEmpty
-                      ? const Padding(
+                      ? Padding(
                           padding: EdgeInsets.symmetric(vertical: 16),
                           child: Text(
-                            'No backups yet.',
+                            tr('No backups yet.'),
                             style: TextStyle(color: Colors.white60),
                           ),
                         )
@@ -102,7 +103,7 @@ class BackupScreen extends ConsumerWidget {
                                   if (await _confirmRestore(context, b)) {
                                     await run(
                                       () => notifier.restore(b),
-                                      'Restored. Restarting…',
+                                      tr('Restored. Restarting…'),
                                     );
                                   }
                                 },
@@ -122,13 +123,10 @@ class BackupScreen extends ConsumerWidget {
                   ),
                 ),
             const SizedBox(height: 20),
-            const Text(
-              'Included: all settings, extensions and their settings, '
-              'libraries, watch/reading progress, feeds, countdowns and '
-              'workouts. Not included: imported book PDFs and downloaded '
-              'or cached files.\n\n'
-              'Kept in Drive: the 5 latest backups, one per day for a week '
-              'and one per week for a month.',
+            Text(
+              tr(
+                'Included: all settings, extensions and their settings, libraries, watch/reading progress, feeds, countdowns and workouts. Not included: imported book PDFs and downloaded or cached files.\n\nKept in Drive: the 5 latest backups, one per day for a week and one per week for a month.',
+              ),
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
@@ -148,20 +146,21 @@ class BackupScreen extends ConsumerWidget {
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Restore this backup?'),
+          title: Text(tr('Restore this backup?')),
           content: Text(
-            'Everything in MyKit on this phone is replaced with the backup '
-            'from ${DateFormat('d MMM y, HH:mm').format(b.createdAt)}. '
-            'MyKit restarts afterwards.',
+            tr(
+              'Everything in MyKit on this phone is replaced with the backup from {date}. MyKit restarts afterwards.',
+              {'date': DateFormat('d MMM y, HH:mm').format(b.createdAt)},
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(tr('Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Restore'),
+              child: Text(tr('Restore')),
             ),
           ],
         ),
@@ -197,8 +196,8 @@ class _LastBackupCard extends StatelessWidget {
                 children: [
                   Text(
                     last == null
-                        ? 'No backup yet'
-                        : 'Last backup ${_ago(last)}',
+                        ? tr('No backup yet')
+                        : tr('Last backup {0}', {'0': _ago(last)}),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -207,7 +206,9 @@ class _LastBackupCard extends StatelessWidget {
                   if (failed != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Automatic backup failed: $failed',
+                      tr('Automatic backup failed: {failed}', {
+                        'failed': failed,
+                      }),
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.white60,
@@ -225,11 +226,13 @@ class _LastBackupCard extends StatelessWidget {
 
   static String _ago(DateTime t) {
     final d = DateTime.now().difference(t);
-    if (d.inMinutes < 1) return 'just now';
-    if (d.inHours < 1) return '${d.inMinutes} min ago';
-    if (d.inDays < 1) return '${d.inHours} h ago';
+    if (d.inMinutes < 1) return tr('just now');
+    if (d.inHours < 1) {
+      return tr('{inMinutes} min ago', {'inMinutes': d.inMinutes});
+    }
+    if (d.inDays < 1) return tr('{inHours} h ago', {'inHours': d.inHours});
     if (d.inDays == 1) return 'yesterday';
-    if (d.inDays < 7) return '${d.inDays} days ago';
+    if (d.inDays < 7) return tr('{inDays} days ago', {'inDays': d.inDays});
     return 'on ${DateFormat('d MMM y').format(t)}';
   }
 }
@@ -258,7 +261,7 @@ class _BackupTile extends StatelessWidget {
       subtitle: Text(size),
       trailing: TextButton(
         onPressed: enabled ? onRestore : null,
-        child: const Text('Restore'),
+        child: Text(tr('Restore')),
       ),
     );
   }

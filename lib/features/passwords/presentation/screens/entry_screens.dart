@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../passwords_routes.dart';
@@ -56,7 +57,7 @@ class _EntryScreenState extends ConsumerState<EntryScreen> {
       child: e == null
           ? Scaffold(
               appBar: AppBar(),
-              body: const Center(child: Text('Not found.')),
+              body: Center(child: Text(tr('Not found.'))),
             )
           : _details(context, e, vault.reusedPasswords.contains(e.password)),
     );
@@ -69,7 +70,9 @@ class _EntryScreenState extends ConsumerState<EntryScreen> {
         title: Text(e.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
           IconButton(
-            tooltip: e.favorite ? 'Remove from favourites' : 'Favourite',
+            tooltip: e.favorite
+                ? tr('Remove from favourites')
+                : tr('Favourite'),
             icon: Icon(
               e.favorite ? Icons.star : Icons.star_border,
               color: e.favorite ? const Color(0xFFF5C518) : null,
@@ -77,7 +80,7 @@ class _EntryScreenState extends ConsumerState<EntryScreen> {
             onPressed: () => notifier.toggleFavorite(e.id),
           ),
           IconButton(
-            tooltip: 'Edit',
+            tooltip: tr('Edit'),
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => context.push(PasswordsRoutes.edit(e.id)),
           ),
@@ -85,16 +88,16 @@ class _EntryScreenState extends ConsumerState<EntryScreen> {
             onSelected: (_) async {
               final ok = await showConfirmDialog(
                 context,
-                title: 'Delete "${e.title}"?',
-                message: 'This password will be removed from the vault.',
+                title: tr('Delete "{title}"?', {'title': e.title}),
+                message: tr('This password will be removed from the vault.'),
               );
               if (ok) {
                 await notifier.delete(e.id);
                 if (context.mounted) context.pop();
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'delete', child: Text('Delete')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'delete', child: Text(tr('Delete'))),
             ],
           ),
         ],
@@ -117,30 +120,32 @@ class _EntryScreenState extends ConsumerState<EntryScreen> {
           const SizedBox(height: 16),
           if (e.username.isNotEmpty)
             _Field(
-              label: 'Username',
+              label: tr('Username'),
               value: e.username,
-              onCopy: () => copySecret(context, ref, e.username, 'Username'),
+              onCopy: () =>
+                  copySecret(context, ref, e.username, tr('Username')),
             ),
           _Field(
-            label: 'Password',
+            label: tr('Password'),
             value: _reveal ? e.password : '•' * e.password.length.clamp(8, 16),
             monospace: _reveal,
             extra: IconButton(
-              tooltip: _reveal ? 'Hide' : 'Show',
+              tooltip: _reveal ? tr('Hide') : tr('Show'),
               icon: Icon(_reveal ? Icons.visibility_off : Icons.visibility),
               onPressed: () => setState(() => _reveal = !_reveal),
             ),
-            onCopy: () => copySecret(context, ref, e.password, 'Password'),
+            onCopy: () => copySecret(context, ref, e.password, tr('Password')),
             footer: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 StrengthMeter(e.password),
                 if (reused)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 6),
                     child: Text(
-                      'Also used for another login. A unique password per '
-                      'site is safer.',
+                      tr(
+                        'Also used for another login. A unique password per site is safer.',
+                      ),
                       style: TextStyle(
                         color: Colors.orangeAccent,
                         fontSize: 13,
@@ -152,26 +157,30 @@ class _EntryScreenState extends ConsumerState<EntryScreen> {
           ),
           if (e.url.isNotEmpty)
             _Field(
-              label: 'Website',
+              label: tr('Website'),
               value: e.url,
               extra: IconButton(
-                tooltip: 'Open',
+                tooltip: tr('Open'),
                 icon: const Icon(Icons.open_in_new),
                 onPressed: () => launchUrl(
                   Uri.parse(e.url.contains('://') ? e.url : 'https://${e.url}'),
                   mode: LaunchMode.externalApplication,
                 ),
               ),
-              onCopy: () => copySecret(context, ref, e.url, 'Website'),
+              onCopy: () => copySecret(context, ref, e.url, tr('Website')),
             ),
           if (e.notes.isNotEmpty)
-            _Field(label: 'Notes', value: e.notes, multiline: true),
+            _Field(label: tr('Notes'), value: e.notes, multiline: true),
           const SizedBox(height: 12),
           Text(
             [
-              'Updated ${DateFormat('d MMM y').format(e.updatedAt)}',
+              tr('Updated {date}', {
+                'date': DateFormat('d MMM y').format(e.updatedAt),
+              }),
               if (e.passwordChangedAt != null)
-                'password set ${DateFormat('d MMM y').format(e.passwordChangedAt!)}',
+                tr('password set {date}', {
+                  'date': DateFormat('d MMM y').format(e.passwordChangedAt!),
+                }),
             ].join(' · '),
             style: const TextStyle(color: Colors.white38, fontSize: 12.5),
           ),
@@ -226,7 +235,7 @@ class _Field extends StatelessWidget {
               ?extra,
               if (onCopy != null)
                 IconButton(
-                  tooltip: 'Copy',
+                  tooltip: tr('Copy'),
                   icon: const Icon(Icons.copy, size: 20),
                   onPressed: onCopy,
                 ),
@@ -289,9 +298,7 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
     }
     if (title.isEmpty || _password.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Add a name (or website) and a password.'),
-        ),
+        SnackBar(content: Text(tr('Add a name (or website) and a password.'))),
       );
       return;
     }
@@ -325,11 +332,11 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
     return VaultGuard(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_original == null ? 'New password' : 'Edit'),
+          title: Text(_original == null ? tr('New password') : tr('Edit')),
           actions: [
             TextButton(
               onPressed: _saving ? null : _save,
-              child: const Text('Save'),
+              child: Text(tr('Save')),
             ),
           ],
         ),
@@ -339,9 +346,9 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
             TextField(
               controller: _title,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'e.g. Gmail, Bank, Netflix',
+              decoration: InputDecoration(
+                labelText: tr('Name'),
+                hintText: tr('e.g. Gmail, Bank, Netflix'),
               ),
             ),
             const SizedBox(height: 12),
@@ -349,8 +356,8 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
               controller: _url,
               keyboardType: TextInputType.url,
               autocorrect: false,
-              decoration: const InputDecoration(
-                labelText: 'Website (optional)',
+              decoration: InputDecoration(
+                labelText: tr('Website (optional)'),
                 hintText: 'example.com',
               ),
             ),
@@ -360,7 +367,7 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
               autocorrect: false,
               enableSuggestions: false,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Username or email'),
+              decoration: InputDecoration(labelText: tr('Username or email')),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -371,19 +378,19 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
               onChanged: (_) => setState(() {}),
               style: TextStyle(fontFamily: _show ? 'monospace' : null),
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: tr('Password'),
                 suffixIcon: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: _show ? 'Hide' : 'Show',
+                      tooltip: _show ? tr('Hide') : tr('Show'),
                       icon: Icon(
                         _show ? Icons.visibility_off : Icons.visibility,
                       ),
                       onPressed: () => setState(() => _show = !_show),
                     ),
                     IconButton(
-                      tooltip: 'Generate',
+                      tooltip: tr('Generate'),
                       icon: const Icon(Icons.casino_outlined),
                       onPressed: () async {
                         final p = await showPasswordGenerator(context);
@@ -406,9 +413,9 @@ class _EntryEditScreenState extends ConsumerState<EntryEditScreen> {
               minLines: 2,
               maxLines: 6,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Notes (optional)',
-                hintText: 'Security questions, recovery codes…',
+              decoration: InputDecoration(
+                labelText: tr('Notes (optional)'),
+                hintText: tr('Security questions, recovery codes…'),
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/datasources/anime_native_data_source.dart';
 import '../../data/repositories/anime_repository_impl.dart';
@@ -146,7 +147,7 @@ final animeDetailsProvider = FutureProvider.autoDispose.family<Anime, String>((
   key,
 ) async {
   final cached = ref.read(animeCacheProvider)[key];
-  if (cached == null) throw const MangaException('Anime not found');
+  if (cached == null) throw MangaException(tr('Anime not found'));
   final fresh = cached.merge(
     await ref.read(animeRepositoryProvider).details(cached),
   );
@@ -159,7 +160,7 @@ final animeDetailsProvider = FutureProvider.autoDispose.family<Anime, String>((
 final animeEpisodesProvider = FutureProvider.autoDispose
     .family<List<AnimeEpisode>, String>((ref, key) async {
       final anime = ref.read(animeCacheProvider)[key];
-      if (anime == null) throw const MangaException('Anime not found');
+      if (anime == null) throw MangaException(tr('Anime not found'));
       final episodes = await ref.read(animeRepositoryProvider).episodes(anime);
       ref.keepAlive();
       return episodes;
@@ -168,7 +169,7 @@ final animeEpisodesProvider = FutureProvider.autoDispose
 final animeSeasonsProvider = FutureProvider.autoDispose
     .family<List<Anime>, String>((ref, key) async {
       final anime = ref.read(animeCacheProvider)[key];
-      if (anime == null) throw const MangaException('Anime not found');
+      if (anime == null) throw MangaException(tr('Anime not found'));
       final seasons = await ref.read(animeRepositoryProvider).seasons(anime);
       ref.read(animeCacheProvider.notifier).putAll(seasons);
       return seasons;

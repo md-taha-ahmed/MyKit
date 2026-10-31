@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'countdown_routes.dart';
 import 'presentation/providers/countdown_providers.dart';
@@ -14,6 +15,10 @@ final countdownTool = ToolDefinition(
   routes: CountdownRoutes.routes,
   status: (ref) {
     final n = ref.watch(countdownsProvider).length;
-    return n == 0 ? null : '$n ${n == 1 ? 'countdown' : 'countdowns'}';
+    return n == 0
+        ? null
+        : n == 1
+        ? tr('1 countdown')
+        : tr('{n} countdowns', {'n': n});
   },
 );

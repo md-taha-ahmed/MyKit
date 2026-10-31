@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/rss_feed.dart';
 import '../../domain/repositories/rss_repository.dart';
@@ -21,12 +22,12 @@ Future<RssFeed?> showAddFeedSheet(
   );
 }
 
-const _suggestions = <(String, String)>[
-  ('Hacker News', 'https://hnrss.org/frontpage'),
-  ('The Verge', 'https://www.theverge.com/rss/index.xml'),
-  ('BBC World', 'https://feeds.bbci.co.uk/news/world/rss.xml'),
-  ('Ars Technica', 'https://feeds.arstechnica.com/arstechnica/index'),
-  ('Flutter blog', 'https://medium.com/feed/flutter'),
+final _suggestions = <(String, String)>[
+  (tr('Hacker News'), 'https://hnrss.org/frontpage'),
+  (tr('The Verge'), 'https://www.theverge.com/rss/index.xml'),
+  (tr('BBC World'), 'https://feeds.bbci.co.uk/news/world/rss.xml'),
+  (tr('Ars Technica'), 'https://feeds.arstechnica.com/arstechnica/index'),
+  (tr('Flutter blog'), 'https://medium.com/feed/flutter'),
 ];
 
 class _AddFeedSheet extends ConsumerStatefulWidget {
@@ -79,7 +80,7 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
       final preview = await ref.read(rssRepositoryProvider).preview(_url.text);
       if (!mounted) return;
       if (ref.read(rssLibraryProvider.notifier).isSubscribed(preview.url)) {
-        setState(() => _error = 'You already follow this feed.');
+        setState(() => _error = tr('You already follow this feed.'));
         return;
       }
       _title.text = preview.feed.title;
@@ -87,7 +88,9 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
     } on FeedException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Something went wrong: $e');
+      if (mounted) {
+        setState(() => _error = tr('Something went wrong: {e}', {'e': e}));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -101,9 +104,9 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
     }
     final name = await showTextInputDialog(
       context,
-      title: 'New category',
-      hint: 'e.g. Tech, News, Design',
-      confirmLabel: 'Create',
+      title: tr('New category'),
+      hint: tr('e.g. Tech, News, Design'),
+      confirmLabel: tr('Create'),
     );
     if (name == null) return;
     final category = await ref
@@ -138,11 +141,12 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Add feed', style: Theme.of(context).textTheme.titleLarge),
+            Text(tr('Add feed'), style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
-            const Text(
-              'Paste a feed URL or just a website address — '
-              'MyKit will find its feed.',
+            Text(
+              tr(
+                'Paste a feed URL or just a website address — MyKit will find its feed.',
+              ),
               style: TextStyle(color: Colors.white60),
             ),
             const SizedBox(height: 16),
@@ -153,7 +157,7 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
               autocorrect: false,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                labelText: 'Feed or website URL',
+                labelText: tr('Feed or website URL'),
                 hintText: 'example.com/feed',
                 prefixIcon: const Icon(Icons.link),
                 errorText: _error,
@@ -171,7 +175,9 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.search),
-                label: Text(_loading ? 'Looking for feed…' : 'Find feed'),
+                label: Text(
+                  _loading ? tr('Looking for feed…') : tr('Find feed'),
+                ),
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
@@ -184,11 +190,11 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
                         router.push(RssRoutes.youtubeImport);
                       },
                 icon: const Icon(Icons.subscriptions, color: Color(0xFFFF3B30)),
-                label: const Text('Import YouTube subscriptions'),
+                label: Text(tr('Import YouTube subscriptions')),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Suggestions',
+              Text(
+                tr('Suggestions'),
                 style: TextStyle(color: Colors.white60, fontSize: 13),
               ),
               const SizedBox(height: 8),
@@ -209,13 +215,13 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
               const SizedBox(height: 16),
               TextField(
                 controller: _title,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: tr('Name')),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: ValueKey(_categoryId),
                 initialValue: _categoryId,
-                decoration: const InputDecoration(labelText: 'Category'),
+                decoration: InputDecoration(labelText: tr('Category')),
                 items: [
                   for (final (:category, depth: _) in library.tree())
                     DropdownMenuItem(
@@ -225,13 +231,13 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  const DropdownMenuItem(
+                  DropdownMenuItem(
                     value: _newCategory,
                     child: Row(
                       children: [
                         Icon(Icons.add, size: 18),
                         SizedBox(width: 8),
-                        Text('New category…'),
+                        Text(tr('New category…')),
                       ],
                     ),
                   ),
@@ -245,13 +251,13 @@ class _AddFeedSheetState extends ConsumerState<_AddFeedSheet> {
                     onPressed: _saving
                         ? null
                         : () => setState(() => _preview = null),
-                    child: const Text('Back'),
+                    child: Text(tr('Back')),
                   ),
                   const Spacer(),
                   FilledButton.icon(
                     onPressed: _saving ? null : _subscribe,
                     icon: const Icon(Icons.add),
-                    label: const Text('Subscribe'),
+                    label: Text(tr('Subscribe')),
                   ),
                 ],
               ),
@@ -298,7 +304,10 @@ class _PreviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${articles.length} articles · ${Uri.parse(preview.url).host}',
+              tr('{length} articles · {0}', {
+                'length': articles.length,
+                '0': Uri.parse(preview.url).host,
+              }),
               style: const TextStyle(color: Colors.white60, fontSize: 13),
             ),
             for (final a in articles.take(3))

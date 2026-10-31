@@ -1,3 +1,5 @@
+import '../../../../core/i18n/i18n.dart';
+
 /// An audio file on the device.
 class Track {
   const Track({
@@ -43,8 +45,9 @@ enum TrackNameSource {
   title('Song title'),
   fileName('File name');
 
-  const TrackNameSource(this.label);
-  final String label;
+  const TrackNameSource(this._label);
+  final String _label;
+  String get label => tr(_label);
 }
 
 enum TrackSort {
@@ -52,8 +55,9 @@ enum TrackSort {
   nameDesc('Name (Z–A)'),
   recentlyAdded('Recently added');
 
-  const TrackSort(this.label);
-  final String label;
+  const TrackSort(this._label);
+  final String _label;
+  String get label => tr(_label);
 }
 
 /// A folder that directly contains audio files.

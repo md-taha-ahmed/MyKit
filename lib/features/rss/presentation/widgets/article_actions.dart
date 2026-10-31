@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/feed_article.dart';
 import '../providers/rss_providers.dart';
 
@@ -32,7 +33,10 @@ Future<void> toggleSaveArticle(
   final saved = await ref
       .read(rssReactionsProvider.notifier)
       .toggleSave(article);
-  _snack(messenger, saved ? 'Saved to bookmarks' : 'Removed from bookmarks');
+  _snack(
+    messenger,
+    saved ? tr('Saved to bookmarks') : tr('Removed from bookmarks'),
+  );
 }
 
 /// Deletes an article with an Undo. In the Saved view "delete" removes the
@@ -50,7 +54,7 @@ Future<void> deleteArticle(
     await notifier.toggleSave(article);
     _snack(
       messenger,
-      'Bookmark removed',
+      tr('Bookmark removed'),
       action: SnackBarAction(
         label: 'UNDO',
         onPressed: () => notifier.toggleSave(article),
@@ -61,7 +65,7 @@ Future<void> deleteArticle(
   await notifier.delete(article.id);
   _snack(
     messenger,
-    'Article deleted',
+    tr('Article deleted'),
     action: SnackBarAction(
       label: 'UNDO',
       onPressed: () => notifier.undoDelete(article.id),

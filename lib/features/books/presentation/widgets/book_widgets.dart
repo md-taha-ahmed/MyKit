@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../books_routes.dart';
 import '../../domain/entities/book.dart';
@@ -92,8 +93,10 @@ class BookProgressBar extends StatelessWidget {
 }
 
 String progressLabel(Book book) {
-  if (!book.isStarted) return 'New · ${book.pageCount} pages';
-  if (book.lastPage >= book.pageCount) return 'Finished';
+  if (!book.isStarted) {
+    return tr('New · {pageCount} pages', {'pageCount': book.pageCount});
+  }
+  if (book.lastPage >= book.pageCount) return tr('Finished');
   return '${(book.progress * 100).round()}% · p. ${book.lastPage}/${book.pageCount}';
 }
 
@@ -178,11 +181,11 @@ Future<String?> pickShelf(
         SimpleDialogOption(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           onPressed: () => Navigator.pop(context, newShelf),
-          child: const Row(
+          child: Row(
             children: [
               Icon(Icons.add, size: 20),
               SizedBox(width: 12),
-              Text('New shelf…', style: TextStyle(fontSize: 16)),
+              Text(tr('New shelf…'), style: TextStyle(fontSize: 16)),
             ],
           ),
         ),
@@ -193,9 +196,9 @@ Future<String?> pickShelf(
 
   final name = await showTextInputDialog(
     context,
-    title: 'New shelf',
-    hint: 'e.g. Novels, Study, Manuals',
-    confirmLabel: 'Create',
+    title: tr('New shelf'),
+    hint: tr('e.g. Novels, Study, Manuals'),
+    confirmLabel: tr('Create'),
   );
   if (name == null) return null;
   return (await ref.read(booksLibraryProvider.notifier).addShelf(name)).id;
@@ -214,7 +217,8 @@ Future<void> importBooks(
   if (picked.isEmpty || !context.mounted) return;
 
   final targetShelf =
-      shelfId ?? await pickShelf(context, ref, title: 'Add to which shelf?');
+      shelfId ??
+      await pickShelf(context, ref, title: tr('Add to which shelf?'));
   if (targetShelf == null || !context.mounted) return;
 
   final files = [
@@ -234,7 +238,9 @@ Future<void> importBooks(
           ),
           const SizedBox(width: 16),
           Text(
-            'Importing ${files.length} ${files.length == 1 ? 'book' : 'books'}…',
+            files.length == 1
+                ? tr('Importing 1 book…')
+                : tr('Importing {count} books…', {'count': files.length}),
           ),
         ],
       ),
@@ -253,9 +259,16 @@ Future<void> importBooks(
     SnackBar(
       content: Text(
         failed == 0
-            ? 'Added $ok ${ok == 1 ? 'book' : 'books'}.'
-            : 'Added $ok, $failed failed: '
-                  '${report.failures.entries.map((e) => '${e.key} (${e.value})').join(', ')}',
+            ? (ok == 1
+                  ? tr('Added 1 book.')
+                  : tr('Added {ok} books.', {'ok': ok}))
+            : tr('Added {ok}, {failed} failed: {details}', {
+                'ok': ok,
+                'failed': failed,
+                'details': report.failures.entries
+                    .map((e) => '${e.key} (${e.value})')
+                    .join(', '),
+              }),
       ),
     ),
   );
@@ -282,35 +295,40 @@ Future<void> showBookActions(
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Text(
-              '${library.shelfById(book.shelfId)?.name ?? ''} · '
-              '${book.pageCount} pages · ${_size(book.fileSize)}',
+              tr('{shelf} · {pages} pages · {size}', {
+                'shelf': library.shelfById(book.shelfId)?.name ?? '',
+                'pages': book.pageCount,
+                'size': _size(book.fileSize),
+              }),
             ),
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.menu_book),
-            title: Text(book.isStarted ? 'Continue reading' : 'Start reading'),
+            title: Text(
+              book.isStarted ? tr('Continue reading') : tr('Start reading'),
+            ),
             onTap: () => Navigator.pop(context, 'open'),
           ),
           ListTile(
             leading: const Icon(Icons.edit_outlined),
-            title: const Text('Rename'),
+            title: Text(tr('Rename')),
             onTap: () => Navigator.pop(context, 'rename'),
           ),
           ListTile(
             leading: const Icon(Icons.drive_file_move_outline),
-            title: const Text('Move to shelf'),
+            title: Text(tr('Move to shelf')),
             onTap: () => Navigator.pop(context, 'move'),
           ),
           if (book.isStarted)
             ListTile(
               leading: const Icon(Icons.restart_alt),
-              title: const Text('Reset progress'),
+              title: Text(tr('Reset progress')),
               onTap: () => Navigator.pop(context, 'reset'),
             ),
           ListTile(
             leading: const Icon(Icons.delete_outline),
-            title: const Text('Delete'),
+            title: Text(tr('Delete')),
             onTap: () => Navigator.pop(context, 'delete'),
           ),
         ],
@@ -325,7 +343,7 @@ Future<void> showBookActions(
     case 'rename':
       final name = await showTextInputDialog(
         context,
-        title: 'Rename book',
+        title: tr('Rename book'),
         initialValue: book.title,
       );
       if (name != null) await notifier.updateBook(book.copyWith(title: name));
@@ -333,7 +351,7 @@ Future<void> showBookActions(
       final shelf = await pickShelf(
         context,
         ref,
-        title: 'Move to',
+        title: tr('Move to'),
         current: book.shelfId,
       );
       if (shelf != null) {
@@ -355,10 +373,10 @@ Future<void> showBookActions(
     case 'delete':
       final ok = await showConfirmDialog(
         context,
-        title: 'Delete "${book.title}"?',
-        message:
-            'The PDF, your progress and its bookmarks will be removed '
-            'from MyKit.',
+        title: tr('Delete "{title}"?', {'title': book.title}),
+        message: tr(
+          'The PDF, your progress and its bookmarks will be removed from MyKit.',
+        ),
       );
       if (ok) await notifier.deleteBook(book.id);
   }

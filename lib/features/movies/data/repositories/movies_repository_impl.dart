@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../domain/entities/torrent_stream_status.dart';
 import '../../domain/repositories/movies_repository.dart';
@@ -88,7 +89,7 @@ class MoviesRepositoryImpl implements MoviesRepository {
     }
     throw lastError is MoviesException
         ? lastError
-        : const MoviesException('No add-on has details for this title.');
+        : MoviesException(tr('No add-on has details for this title.'));
   }
 
   @override
@@ -103,7 +104,7 @@ class MoviesRepositoryImpl implements MoviesRepository {
     final controller = StreamController<List<StreamSource>>();
     if (sources.isEmpty) {
       controller.addError(
-        const MoviesException('No stream add-on installed for this title.'),
+        MoviesException(tr('No stream add-on installed for this title.')),
       );
       controller.close();
       return controller.stream;

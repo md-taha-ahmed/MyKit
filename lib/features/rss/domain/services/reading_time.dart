@@ -1,3 +1,4 @@
+import '../../../../core/i18n/i18n.dart';
 import '../entities/feed_article.dart';
 
 enum ReadingLength { preview, short, medium, long }
@@ -52,8 +53,8 @@ class ReadingTime {
   }
 
   String get label => switch (length) {
-    ReadingLength.preview => 'Preview',
-    _ when minutes < 1 => '< 1 min',
-    _ => '$minutes min',
+    ReadingLength.preview => tr('Preview'),
+    _ when minutes < 1 => tr('< 1 min'),
+    _ => tr('{m} min', {'m': minutes}),
   };
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../movies_routes.dart';
 import '../providers/movies_providers.dart';
@@ -29,15 +30,15 @@ class _MoviesHomeScreenState extends ConsumerState<MoviesHomeScreen> {
       length: MediaType.values.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Movies & Series'),
+          title: Text(tr('Movies & Series')),
           actions: [
             IconButton(
-              tooltip: 'Search',
+              tooltip: tr('Search'),
               icon: const Icon(Icons.search),
               onPressed: () => context.push(MoviesRoutes.search),
             ),
             IconButton(
-              tooltip: 'Add-ons',
+              tooltip: tr('Add-ons'),
               icon: const Icon(Icons.extension_outlined),
               onPressed: () => context.push(MoviesRoutes.addons),
             ),
@@ -85,7 +86,7 @@ class _TypeTab extends ConsumerWidget {
           children: [
             MessageView(
               icon: Icons.cloud_off,
-              title: 'Could not load add-ons',
+              title: tr('Could not load add-ons'),
               message: '$e',
             ),
           ],
@@ -94,7 +95,7 @@ class _TypeTab extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 24),
           children: [
             if (continueWatching.isNotEmpty) ...[
-              const SectionHeader('Continue watching'),
+              SectionHeader(tr('Continue watching')),
               SizedBox(
                 height: 150,
                 child: ListView.separated(
@@ -110,21 +111,23 @@ class _TypeTab extends ConsumerWidget {
             if (list.isEmpty && failed.isNotEmpty)
               MessageView(
                 icon: Icons.cloud_off,
-                title: 'Could not reach the add-ons',
-                message: 'Check your internet connection.\n${failed.first}',
+                title: tr('Could not reach the add-ons'),
+                message: tr('Check your internet connection.\n{first}', {
+                  'first': failed.first,
+                }),
                 action: FilledButton(
                   onPressed: () => ref.invalidate(addonsProvider),
-                  child: const Text('Retry'),
+                  child: Text(tr('Retry')),
                 ),
               )
             else if (list.isEmpty)
               MessageView(
                 icon: Icons.extension_off_outlined,
-                title: 'No ${type.label.toLowerCase()} catalogs',
-                message: 'Install a catalog add-on such as Cinemeta.',
+                title: tr('No {0} catalogs', {'0': type.label.toLowerCase()}),
+                message: tr('Install a catalog add-on such as Cinemeta.'),
                 action: FilledButton(
                   onPressed: () => context.push(MoviesRoutes.addons),
-                  child: const Text('Manage add-ons'),
+                  child: Text(tr('Manage add-ons')),
                 ),
               ),
             for (final c in list) _CatalogRow(catalog: c),
@@ -204,7 +207,7 @@ class _ContinueCard extends ConsumerWidget {
             builder: (context) => SafeArea(
               child: ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('Remove from Continue watching'),
+                title: Text(tr('Remove from Continue watching')),
                 onTap: () => Navigator.pop(context, true),
               ),
             ),

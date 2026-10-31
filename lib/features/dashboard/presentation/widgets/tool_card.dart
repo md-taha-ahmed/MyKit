@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/tools/tool_definition.dart';
 
 /// A plain dashboard tile: flat card, the tool's colour only on its icon,
@@ -49,15 +50,15 @@ class ToolCard extends ConsumerWidget {
                   ),
                   const Spacer(),
                   if (beta)
-                    const Text(
-                      'Beta',
+                    Text(
+                      tr('Beta'),
                       style: TextStyle(fontSize: 12, color: Colors.white38),
                     ),
                 ],
               ),
               const Spacer(),
               Text(
-                name,
+                tr(name),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -67,7 +68,9 @@ class ToolCard extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                status != null && status.isNotEmpty ? status : tool.description,
+                status != null && status.isNotEmpty
+                    ? status
+                    : tr(tool.description),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

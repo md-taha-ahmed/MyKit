@@ -2,15 +2,18 @@
 /// (https://github.com/Stremio/stremio-addon-sdk/tree/master/docs/api).
 library;
 
+import '../../../../core/i18n/i18n.dart';
+
 /// `movie` / `series` (Stremio's content types).
 enum MediaType {
   movie('movie', 'Movies'),
   series('series', 'Series');
 
-  const MediaType(this.id, this.label);
+  const MediaType(this.id, this._label);
 
   final String id;
-  final String label;
+  final String _label;
+  String get label => tr(_label);
 
   static MediaType? fromId(String? id) =>
       values.where((t) => t.id == id).firstOrNull;

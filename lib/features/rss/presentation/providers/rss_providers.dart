@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/google/google_oauth.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/datasources/rss_local_data_source.dart';
@@ -194,7 +195,7 @@ class RssLibraryNotifier extends Notifier<RssLibrary> {
       ],
       feeds: state.feeds.where((f) => f.categoryId != id).toList(),
     );
-    if (state.categories.isEmpty) await addCategory('General');
+    if (state.categories.isEmpty) await addCategory(tr('General'));
     await ref.read(rssArticlesProvider.notifier).removeFeeds(removed);
   }
 

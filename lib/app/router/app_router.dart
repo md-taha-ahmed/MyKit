@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../features/backup/backup_routes.dart';
 import '../../features/backup/presentation/providers/backup_providers.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/setup/setup_routes.dart';
 
 abstract final class AppRoutes {
   static const dashboard = '/';
@@ -31,6 +32,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       for (final tool in toolsRegistry)
         ...themedRoutes(tool.routes, tool.color),
       ...themedRoutes(BackupRoutes.routes, backupAccent),
+      ...themedRoutes(SetupRoutes.routes, SetupRoutes.accent),
     ],
   );
   ref.onDispose(router.dispose);

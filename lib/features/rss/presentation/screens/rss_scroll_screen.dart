@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
 import '../../../../core/utils/text_direction.dart';
 import '../../domain/entities/feed_article.dart';
@@ -87,11 +88,11 @@ class _RssScrollScreenState extends ConsumerState<RssScrollScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: _cardColor,
-        appBar: articles.isEmpty ? AppBar(title: const Text('Brief')) : null,
+        appBar: articles.isEmpty ? AppBar(title: Text(tr('Brief'))) : null,
         body: articles.isEmpty
-            ? const Center(
+            ? Center(
                 child: Text(
-                  'Nothing to show here.',
+                  tr('Nothing to show here.'),
                   style: TextStyle(color: Colors.white60),
                 ),
               )
@@ -309,7 +310,7 @@ class _BriefPageState extends ConsumerState<_BriefPage>
                                   ? Icons.favorite
                                   : Icons.favorite_border,
                               color: liked ? _likeColor : Colors.white70,
-                              tooltip: liked ? 'Unlike' : 'Like',
+                              tooltip: liked ? tr('Unlike') : tr('Like'),
                               onTap: () => ref
                                   .read(rssReactionsProvider.notifier)
                                   .toggleLike(a.id),
@@ -319,13 +320,15 @@ class _BriefPageState extends ConsumerState<_BriefPage>
                                   ? Icons.bookmark
                                   : Icons.bookmark_border,
                               color: saved ? accent : Colors.white70,
-                              tooltip: saved ? 'Remove bookmark' : 'Save',
+                              tooltip: saved
+                                  ? tr('Remove bookmark')
+                                  : tr('Save'),
                               onTap: () => toggleSaveArticle(context, ref, a),
                             ),
                             _ActionButton(
                               icon: Icons.delete_outline,
                               color: Colors.white70,
-                              tooltip: 'Delete',
+                              tooltip: tr('Delete'),
                               onTap: widget.onDelete,
                             ),
                             const Spacer(),
@@ -336,7 +339,7 @@ class _BriefPageState extends ConsumerState<_BriefPage>
                                 ),
                                 onPressed: () => _watch(a.link),
                                 icon: const Icon(Icons.play_arrow),
-                                label: const Text('Watch'),
+                                label: Text(tr('Watch')),
                               )
                             else
                               FilledButton.icon(
@@ -345,7 +348,7 @@ class _BriefPageState extends ConsumerState<_BriefPage>
                                 icon: const Icon(
                                   Icons.chrome_reader_mode_outlined,
                                 ),
-                                label: const Text('Read'),
+                                label: Text(tr('Read')),
                               ),
                           ],
                         ),

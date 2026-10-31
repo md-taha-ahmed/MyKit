@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../providers/movies_providers.dart';
 import '../widgets/movies_widgets.dart';
@@ -31,8 +32,8 @@ class _MoviesSearchScreenState extends ConsumerState<MoviesSearchScreen> {
           controller: _controller,
           autofocus: true,
           textInputAction: TextInputAction.search,
-          decoration: const InputDecoration(
-            hintText: 'Title, or IMDb link / id',
+          decoration: InputDecoration(
+            hintText: tr('Title, or IMDb link / id'),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
@@ -52,12 +53,12 @@ class _MoviesSearchScreenState extends ConsumerState<MoviesSearchScreen> {
         ],
       ),
       body: _query.isEmpty
-          ? const MessageView(
+          ? MessageView(
               icon: Icons.search,
-              title: 'Find something to watch',
-              message:
-                  'Type a title and press search. You can also paste an '
-                  'IMDb link.',
+              title: tr('Find something to watch'),
+              message: tr(
+                'Type a title and press search. You can also paste an IMDb link.',
+              ),
             )
           : ListView(
               padding: const EdgeInsets.only(bottom: 24),
@@ -91,9 +92,9 @@ class _ResultsRow extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('$e')),
             data: (metas) => metas.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      'No results',
+                      tr('No results'),
                       style: TextStyle(color: Colors.white54),
                     ),
                   )

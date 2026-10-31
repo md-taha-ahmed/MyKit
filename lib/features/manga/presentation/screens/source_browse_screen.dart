@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../providers/manga_providers.dart';
 import '../widgets/manga_widgets.dart';
@@ -114,15 +115,15 @@ class _SourceBrowseScreenState extends ConsumerState<SourceBrowseScreen> {
                 controller: _search,
                 autofocus: true,
                 textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
-                  hintText: 'Search',
+                decoration: InputDecoration(
+                  hintText: tr('Search'),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                 ),
                 onSubmitted: (_) => _reset(),
               )
-            : Text(source?.name ?? 'Source'),
+            : Text(source?.name ?? tr('Source')),
         actions: [
           IconButton(
             icon: Icon(
@@ -142,14 +143,14 @@ class _SourceBrowseScreenState extends ConsumerState<SourceBrowseScreen> {
                   child: Row(
                     children: [
                       ChoiceChip(
-                        label: const Text('Popular'),
+                        label: Text(tr('Popular')),
                         selected: _listing == _Listing.popular,
                         onSelected: (_) => _reset(_Listing.popular),
                       ),
                       const SizedBox(width: 8),
                       if (source?.supportsLatest ?? false)
                         ChoiceChip(
-                          label: const Text('Latest'),
+                          label: Text(tr('Latest')),
                           selected: _listing == _Listing.latest,
                           onSelected: (_) => _reset(_Listing.latest),
                         ),
@@ -166,8 +167,8 @@ class _SourceBrowseScreenState extends ConsumerState<SourceBrowseScreen> {
           ? Center(
               child: Text(
                 _listing == _Listing.search && _search.text.isEmpty
-                    ? 'Type a title and press search.'
-                    : 'Nothing found.',
+                    ? tr('Type a title and press search.')
+                    : tr('Nothing found.'),
                 style: const TextStyle(color: Colors.white54),
               ),
             )
@@ -194,7 +195,9 @@ class _SourceBrowseScreenState extends ConsumerState<SourceBrowseScreen> {
                           ? TextButton(
                               onPressed: _loadMore,
                               child: Text(
-                                'Failed to load more · Retry\n$_error',
+                                tr('Failed to load more · Retry\n{_error}', {
+                                  '_error': _error,
+                                }),
                               ),
                             )
                           : const SizedBox.shrink(),

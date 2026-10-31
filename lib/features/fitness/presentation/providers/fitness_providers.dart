@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/app_directories.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/exercise_library_source.dart';
@@ -157,7 +158,7 @@ class RoutinesNotifier extends Notifier<List<Routine>> {
   Future<Routine> add(String name) async {
     final r = Routine(
       id: 'routine_${DateTime.now().millisecondsSinceEpoch}',
-      name: name.trim().isEmpty ? 'Workout' : name.trim(),
+      name: name.trim().isEmpty ? tr('Workout') : name.trim(),
     );
     await _save([...state, r]);
     return r;
@@ -299,8 +300,10 @@ class FitnessProfileNotifier extends Notifier<FitnessProfile> {
                 if (r.weekdays.contains(d)) r.name,
             ];
             return names.isEmpty
-                ? 'Time to train.'
-                : 'Today: ${names.join(' + ')}. Let\'s go!';
+                ? tr('Time to train.')
+                : tr('Today: {names}. Let\'s go!', {
+                    'names': names.join(' + '),
+                  });
           },
         );
   }
@@ -449,7 +452,7 @@ class ActiveWorkoutNotifier extends Notifier<ActiveWorkout?> {
       ActiveWorkout(
         startedAt: DateTime.now(),
         routineId: routine?.id,
-        routineName: routine?.name ?? 'Free workout',
+        routineName: routine?.name ?? tr('Free workout'),
         exercises: [
           for (final item in routine?.items ?? const <PlanItem>[])
             _fresh(item, sessions),

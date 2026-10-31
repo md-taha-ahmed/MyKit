@@ -1,3 +1,4 @@
+import '../../../core/i18n/i18n.dart';
 import 'entities/fitness_entities.dart';
 
 /// Pure calculations for progress views (unit-tested).
@@ -112,10 +113,10 @@ class PersonalBest {
   final double score;
 
   String get label => set.weightKg > 0
-      ? '${_kg(set.weightKg)} kg × ${set.reps}'
+      ? tr('{kg} kg × {reps}', {'kg': _kg(set.weightKg), 'reps': set.reps})
       : set.seconds > 0
       ? '${set.seconds}s'
-      : '${set.reps} reps';
+      : tr('{reps} reps', {'reps': set.reps});
 
   static String _kg(double v) =>
       v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);

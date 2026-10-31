@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/youtube_channel.dart';
 import '../providers/rss_providers.dart';
@@ -60,7 +61,7 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Add to category'),
+        title: Text(tr('Add to category')),
         children: [
           for (final (:category, :depth) in library.tree())
             SimpleDialogOption(
@@ -71,11 +72,11 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
           SimpleDialogOption(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             onPressed: () => Navigator.pop(context, newCategory),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.add, size: 20),
                 SizedBox(width: 12),
-                Text('New category…', style: TextStyle(fontSize: 16)),
+                Text(tr('New category…'), style: TextStyle(fontSize: 16)),
               ],
             ),
           ),
@@ -89,9 +90,9 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
     }
     final name = await showTextInputDialog(
       context,
-      title: 'New category',
+      title: tr('New category'),
       initialValue: 'YouTube',
-      confirmLabel: 'Create',
+      confirmLabel: tr('Create'),
     );
     if (name == null) return;
     final category = await ref
@@ -117,8 +118,11 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Added $count ${count == 1 ? 'channel' : 'channels'}. '
-          'Loading their videos…',
+          count == 1
+              ? tr('Added 1 channel. Loading its videos…')
+              : tr('Added {count} channels. Loading their videos…', {
+                  'count': count,
+                }),
         ),
       ),
     );
@@ -128,11 +132,11 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
   Future<void> _disconnect() async {
     final ok = await showConfirmDialog(
       context,
-      title: 'Disconnect Google account?',
-      message:
-          'MyKit loses access to your YouTube subscriptions. Channels you '
-          'already added stay in your feeds.',
-      confirmLabel: 'Disconnect',
+      title: tr('Disconnect Google account?'),
+      message: tr(
+        'MyKit loses access to your YouTube subscriptions. Channels you already added stay in your feeds.',
+      ),
+      confirmLabel: tr('Disconnect'),
     );
     if (!ok) return;
     await ref.read(rssRepositoryProvider).disconnectYoutube();
@@ -154,29 +158,29 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('YouTube subscriptions'),
+        title: Text(tr('YouTube subscriptions')),
         actions: [
           if (channels != null)
             PopupMenuButton<String>(
               onSelected: (_) => _disconnect(),
-              itemBuilder: (_) => const [
+              itemBuilder: (_) => [
                 PopupMenuItem(
                   value: 'disconnect',
-                  child: Text('Disconnect Google account'),
+                  child: Text(tr('Disconnect Google account')),
                 ),
               ],
             ),
         ],
       ),
       body: channels == null && _loading && _error == null
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularProgressIndicator(color: _youtubeRed),
                   SizedBox(height: 16),
                   Text(
-                    'Loading your subscriptions…',
+                    tr('Loading your subscriptions…'),
                     style: TextStyle(color: Colors.white60),
                   ),
                 ],
@@ -220,8 +224,10 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
                         onPressed: _selected.isEmpty || _adding ? null : _add,
                         child: Text(
                           _selected.isEmpty
-                              ? 'Select channels'
-                              : 'Add ${_selected.length}',
+                              ? tr('Select channels')
+                              : tr('Add {length}', {
+                                  'length': _selected.length,
+                                }),
                         ),
                       ),
                     ),
@@ -234,9 +240,9 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
 
   Widget _list(List<YoutubeChannel> channels, Set<String> followed) {
     if (channels.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'This account has no subscriptions.',
+          tr('This account has no subscriptions.'),
           style: TextStyle(color: Colors.white60),
         ),
       );
@@ -257,8 +263,8 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search your subscriptions',
+            decoration: InputDecoration(
+              hintText: tr('Search your subscriptions'),
               prefixIcon: Icon(Icons.search),
               isDense: true,
             ),
@@ -271,8 +277,10 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
             children: [
               Expanded(
                 child: Text(
-                  '${channels.length} subscriptions · '
-                  '${_selected.length} selected',
+                  tr('{length} subscriptions · {0} selected', {
+                    'length': channels.length,
+                    '0': _selected.length,
+                  }),
                   style: const TextStyle(color: Colors.white60, fontSize: 13),
                 ),
               ),
@@ -284,7 +292,7 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
                             ? _selected.removeAll(selectable)
                             : _selected.addAll(selectable);
                       }),
-                child: Text(allSelected ? 'Select none' : 'Select all'),
+                child: Text(allSelected ? tr('Select none') : tr('Select all')),
               ),
             ],
           ),
@@ -318,7 +326,7 @@ class _YoutubeImportScreenState extends ConsumerState<YoutubeImportScreen> {
                 ),
                 subtitle: Text(
                   added
-                      ? 'Already in your feeds'
+                      ? tr('Already in your feeds')
                       : c.description.replaceAll('\n', ' '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -357,17 +365,15 @@ class _Intro extends StatelessWidget {
         const Icon(Icons.subscriptions, size: 72, color: _youtubeRed),
         const SizedBox(height: 16),
         Text(
-          'Bring your YouTube channels',
+          tr('Bring your YouTube channels'),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Sign in with Google to see your subscriptions, then choose which '
-          'channels to follow here. New uploads arrive through each channel\'s '
-          'RSS feed — no algorithm, no recommendations.\n\n'
-          'Your browser opens to sign in (works with microG). MyKit only asks '
-          'for read-only access and never changes your YouTube account.',
+        Text(
+          tr(
+            'Sign in with Google to see your subscriptions, then choose which channels to follow here. New uploads arrive through each channel\'s RSS feed — no algorithm, no recommendations.\n\nYour browser opens to sign in (works with microG). MyKit only asks for read-only access and never changes your YouTube account.',
+          ),
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white60, height: 1.4),
         ),
@@ -386,7 +392,7 @@ class _Intro extends StatelessWidget {
                 )
               : const Icon(Icons.account_circle),
           label: Text(
-            loading ? 'Loading subscriptions…' : 'Continue with Google',
+            loading ? tr('Loading subscriptions…') : tr('Continue with Google'),
           ),
         ),
         if (error != null) ...[
@@ -438,15 +444,15 @@ class _SetupFormState extends State<_SetupForm> {
         const Icon(Icons.vpn_key_outlined, size: 56, color: _youtubeRed),
         const SizedBox(height: 12),
         Text(
-          'Connect a Google API client',
+          tr('Connect a Google API client'),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'One-time setup: create a free "Desktop app" OAuth client in Google '
-          'Cloud with the YouTube Data API enabled, then paste its ID and '
-          'secret here. They stay on this phone.',
+        Text(
+          tr(
+            'One-time setup: create a free "Desktop app" OAuth client in Google Cloud with the YouTube Data API enabled, then paste its ID and secret here. They stay on this phone.',
+          ),
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white60, height: 1.4),
         ),
@@ -454,13 +460,13 @@ class _SetupFormState extends State<_SetupForm> {
           onPressed: () =>
               launchUrl(Uri.parse(_docs), mode: LaunchMode.externalApplication),
           icon: const Icon(Icons.help_outline),
-          label: const Text('Step-by-step guide'),
+          label: Text(tr('Step-by-step guide')),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _id,
-          decoration: const InputDecoration(
-            labelText: 'Client ID',
+          decoration: InputDecoration(
+            labelText: tr('Client ID'),
             hintText: '…apps.googleusercontent.com',
           ),
           onChanged: (_) => setState(() {}),
@@ -469,7 +475,7 @@ class _SetupFormState extends State<_SetupForm> {
         TextField(
           controller: _secret,
           obscureText: true,
-          decoration: const InputDecoration(labelText: 'Client secret'),
+          decoration: InputDecoration(labelText: tr('Client secret')),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 20),
@@ -477,7 +483,7 @@ class _SetupFormState extends State<_SetupForm> {
           onPressed: _valid
               ? () => widget.onSaved(_id.text, _secret.text)
               : null,
-          child: const Text('Save'),
+          child: Text(tr('Save')),
         ),
       ],
     );

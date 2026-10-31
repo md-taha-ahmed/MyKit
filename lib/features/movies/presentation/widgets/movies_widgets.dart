@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../movies_routes.dart';
 import '../providers/movies_providers.dart';
@@ -128,7 +129,7 @@ class SectionHeader extends StatelessWidget {
           ),
         ),
         if (onMore != null)
-          TextButton(onPressed: onMore, child: const Text('See all')),
+          TextButton(onPressed: onMore, child: Text(tr('See all'))),
       ],
     ),
   );

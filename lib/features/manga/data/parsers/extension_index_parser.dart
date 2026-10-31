@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/manga_entities.dart';
 
 /// Minimal protobuf wire-format reader (varint, 64-bit, length-delimited, 32-bit).
@@ -41,7 +42,7 @@ class _ProtoReader {
         case 5:
           _i += 4;
         default:
-          throw const FormatException('Unsupported protobuf wire type');
+          throw FormatException(tr('Unsupported protobuf wire type'));
       }
     }
   }
