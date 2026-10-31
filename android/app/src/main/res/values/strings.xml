@@ -2,4 +2,5 @@
 <resources>
     <string name="countdown_widget_name">Countdown</string>
     <string name="countdown_widget_description">A countdown ring for an upcoming day</string>
+    <string name="limiter_description">Counts the time you spend in social media apps and sites you chose in MyKit → Screen time, and blocks them when your daily limit is reached. It only looks at which app is open and the browser\'s address bar; nothing leaves your phone.</string>
 </resources>

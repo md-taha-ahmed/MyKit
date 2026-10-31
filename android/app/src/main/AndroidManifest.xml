@@ -129,6 +129,26 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@style/AutofillTheme" />
+        <!-- Screen time: counts and limits social media use (apps and sites). -->
+        <service
+            android:name=".limiter.LimiterService"
+            android:exported="true"
+            android:label="MyKit Screen time"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/limiter_accessibility" />
+        </service>
+        <activity
+            android:name=".limiter.BlockActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.mdtaha.mykit.block"
+            android:theme="@android:style/Theme.Black.NoTitleBar" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

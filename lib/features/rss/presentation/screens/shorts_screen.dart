@@ -8,6 +8,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../../../../core/platform/external_apps.dart';
 import '../../../../core/utils/text_direction.dart';
+import '../../../limiter/presentation/providers/limiter_providers.dart';
 import '../../data/datasources/shorts_native_data_source.dart';
 import '../../domain/entities/feed_article.dart';
 import '../providers/rss_providers.dart';
@@ -120,13 +121,17 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
     if (_shorts.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _activate(0));
     }
+    // Watching Shorts here counts toward the YouTube screen-time limit.
+    _limiterSource.setShortsActive(true);
   }
 
   bool _disposed = false;
+  late final _limiterSource = ref.read(limiterNativeProvider);
 
   @override
   void dispose() {
     _disposed = true;
+    _limiterSource.setShortsActive(false);
     _watchdog?.cancel();
     for (final s in _subs) {
       s.cancel();

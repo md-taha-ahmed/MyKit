@@ -2,6 +2,7 @@ import '../core/tools/tool_definition.dart';
 import '../features/books/books_tool.dart';
 import '../features/countdown/countdown_tool.dart';
 import '../features/fitness/fitness_tool.dart';
+import '../features/limiter/limiter_tool.dart';
 import '../features/manga/manga_tool.dart';
 import '../features/movies/movies_tool.dart';
 import '../features/music/music_tool.dart';
@@ -24,4 +25,5 @@ final List<ToolDefinition> toolsRegistry = [
   moviesTool,
   fitnessTool,
   passwordsTool,
+  limiterTool,
 ];
