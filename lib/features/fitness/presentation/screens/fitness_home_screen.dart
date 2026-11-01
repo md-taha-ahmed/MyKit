@@ -12,6 +12,7 @@ import '../providers/fitness_providers.dart';
 import '../widgets/body_diagram.dart';
 import '../widgets/fitness_sheets.dart';
 import '../widgets/line_chart.dart';
+import '../widgets/exercise_options.dart';
 import 'exercise_list_screen.dart';
 
 /// Today · Plan · Exercises · Progress.
@@ -44,9 +45,9 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
                     onSelected: (_) async {
                       final ok = await showConfirmDialog(
                         context,
-                        title: tr('Reset to the starter plan?'),
+                        title: tr('Use the 5-day plan?'),
                         message: tr(
-                          'Your routines are replaced by the 4-day starter plan. Workout history stays.',
+                          'Your routines are replaced by the 5-day plan: chest, back, legs, shoulders and arms. Workout history stays.',
                         ),
                         confirmLabel: tr('Reset'),
                       );
@@ -59,7 +60,7 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
                     itemBuilder: (_) => [
                       PopupMenuItem(
                         value: 'reset',
-                        child: Text(tr('Reset to starter plan')),
+                        child: Text(tr('Use the 5-day plan')),
                       ),
                     ],
                   ),
@@ -274,24 +275,39 @@ class _NextWorkoutCard extends ConsumerWidget {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            for (final item in routine.items)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  children: [
-                    const Icon(Icons.circle, size: 6, color: Colors.white38),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        library[item.exerciseId]?.name ??
-                            item.exerciseId.replaceAll('_', ' '),
+            for (final (i, item) in routine.items.indexed)
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => showExerciseOptions(
+                  context,
+                  ref,
+                  routine: routine,
+                  index: i,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.circle, size: 6, color: Colors.white38),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          library[item.exerciseId]?.name ??
+                              item.exerciseId.replaceAll('_', ' '),
+                        ),
                       ),
-                    ),
-                    Text(
-                      item.target,
-                      style: const TextStyle(color: Colors.white54),
-                    ),
-                  ],
+                      Text(
+                        item.target,
+                        style: const TextStyle(color: Colors.white54),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 18,
+                        color: Colors.white38,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             const SizedBox(height: 12),
@@ -475,9 +491,68 @@ class _PlanTab extends ConsumerWidget {
         ),
       );
     }
+    final notifier = ref.read(routinesProvider.notifier);
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
       children: [
+        if (!notifier.usesFiveDayPlan)
+          Card(
+            color: fitnessAccent.withValues(alpha: 0.15),
+            child: ListTile(
+              leading: const Icon(Icons.auto_awesome, color: fitnessAccent),
+              title: Text(tr('New: 5-day home plan')),
+              subtitle: Text(
+                tr(
+                  'Chest, back, legs, shoulders and arms — dumbbells and bodyweight, no pull-up bar.',
+                ),
+              ),
+              trailing: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: fitnessAccent,
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: () async {
+                  final ok = await showConfirmDialog(
+                    context,
+                    title: tr('Use the 5-day plan?'),
+                    message: tr(
+                      'Your routines are replaced by the 5-day plan: chest, back, legs, shoulders and arms. Workout history stays.',
+                    ),
+                    confirmLabel: tr('Use it'),
+                  );
+                  if (ok) await notifier.resetToDefault();
+                },
+                child: Text(tr('Use it')),
+              ),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                final before = await notifier.shuffle();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        tr(
+                          'New exercises for all 5 days. Same muscles, same sets.',
+                        ),
+                      ),
+                      action: SnackBarAction(
+                        label: tr('Undo'),
+                        onPressed: () => notifier.restore(before),
+                      ),
+                    ),
+                  );
+              },
+              icon: const Icon(Icons.shuffle),
+              label: Text(tr('Shuffle exercises')),
+            ),
+          ),
         Padding(
           padding: EdgeInsets.only(bottom: 8),
           child: Text(

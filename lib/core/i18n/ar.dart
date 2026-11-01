@@ -119,6 +119,7 @@ const arabicStrings = <String, String>{
   'API key': 'مفتاح API',
   'App links forgotten.': 'نُسيت روابط التطبيقات.',
   'Arabic': 'العربية',
+  'Arm day': 'يوم الذراعين',
   'Ars Technica': 'Ars Technica',
   'Article deleted': 'حُذفت المقالة',
   'Article not found.': 'لم يُعثر على المقالة.',
@@ -139,6 +140,7 @@ const arabicStrings = <String, String>{
   'A–Z': 'أ–ي',
   'a–z': 'أ–ي',
   'Back': 'الخلف',
+  'Back day': 'يوم الظهر',
   'Back to Cinemeta, Torrentio and OpenSubtitles with default settings.':
       'العودة إلى Cinemeta وTorrentio وOpenSubtitles بالإعدادات الافتراضية.',
   'Back up automatically': 'نسخ احتياطي تلقائي',
@@ -190,6 +192,9 @@ const arabicStrings = <String, String>{
   'Check your internet connection.\n{first}':
       'تحقق من اتصالك بالإنترنت.\n{first}',
   'Chest': 'الصدر',
+  'Chest day': 'يوم الصدر',
+  'Chest, back, legs, shoulders and arms — dumbbells and bodyweight, no pull-up bar.':
+      'صدر، ظهر، أرجل، أكتاف، ذراعان — بالدمبل ووزن الجسم، دون بار عقلة.',
   'Chinese': 'الصينية',
   'Chinese (Simplified)': 'الصينية (المبسطة)',
   'Chinese (Traditional)': 'الصينية (التقليدية)',
@@ -315,6 +320,7 @@ const arabicStrings = <String, String>{
   'Edit': 'تعديل',
   'Edit countdown': 'تعديل العدّ التنازلي',
   'Edit note': 'تعديل الملاحظة',
+  'Edit this workout': 'تعديل هذا التمرين',
   'Encrypted password vault': 'خزنة كلمات مرور مشفّرة',
   'English': 'English',
   'Enter 0 – {_max}': 'أدخل 0 – {_max}',
@@ -513,6 +519,7 @@ const arabicStrings = <String, String>{
   'Latest': 'الأحدث',
   'Lats': 'الظهر العريضة',
   'Left to right': 'من اليسار إلى اليمين',
+  'Leg day': 'يوم الأرجل',
   'Legacy repositories must end with /index.min.json':
       'يجب أن تنتهي المستودعات القديمة بـ /index.min.json',
   'Length': 'الطول',
@@ -604,6 +611,8 @@ const arabicStrings = <String, String>{
   'New conversation': 'محادثة جديدة',
   'New countdown': 'عدّ تنازلي جديد',
   'New exercise': 'تمرين جديد',
+  'New exercises for all 5 days. Same muscles, same sets.':
+      'تمارين جديدة للأيام الخمسة. العضلات نفسها والمجموعات نفسها.',
   'New folder in "{name}"': 'مجلد جديد في «{name}»',
   'New one': 'جديدة',
   'New password': 'كلمة المرور الجديدة',
@@ -613,6 +622,7 @@ const arabicStrings = <String, String>{
   'New shelf…': 'رف جديد…',
   'New sub-folder': 'مجلد فرعي جديد',
   'New · {pageCount} pages': 'جديد · {pageCount} صفحة',
+  'New: 5-day home plan': 'جديد: خطة منزلية لخمسة أيام',
   'Newest first': 'الأحدث أولاً',
   'Next': 'التالي',
   'Next chapter': 'الفصل التالي',
@@ -794,6 +804,7 @@ const arabicStrings = <String, String>{
   'Remove bookmark': 'إزالة العلامة',
   'Remove from Continue watching': 'إزالة من «متابعة المشاهدة»',
   'Remove from favourites': 'إزالة من المفضلة',
+  'Remove from this workout': 'إزالة من هذا التمرين',
   'Remove my photos': 'إزالة صوري',
   'Remove p. {currentPage}': 'إزالة ص {currentPage}',
   'Remove the saved key': 'إزالة المفتاح المحفوظ',
@@ -892,12 +903,14 @@ const arabicStrings = <String, String>{
   'Sets': 'المجموعات',
   'Sets in the last 7 days (helping muscles count half). Grey = not trained yet.':
       'المجموعات في آخر 7 أيام (العضلات المساعدة تُحسب بالنصف). الرمادي = لم تُمرَّن بعد.',
+  'Sets, reps & rest': 'المجموعات والتكرارات والراحة',
   'Settings': 'الإعدادات',
   'Setup': 'الإعداد',
   'Setup checklist': 'قائمة الإعداد',
   'Shelf': 'الرف',
   'Shelves': 'الرفوف',
   'Shorts': 'Shorts',
+  'Shoulder day': 'يوم الأكتاف',
   'Shoulders': 'الكتفان',
   'Show': 'إظهار',
   'Show 18+ extensions and sources': 'إظهار إضافات ومصادر +18',
@@ -906,6 +919,7 @@ const arabicStrings = <String, String>{
   'Show title in widget': 'إظهار العنوان في الأداة',
   'Show tool tips again': 'إظهار نصائح الأدوات مجدداً',
   'Shuffle': 'تشغيل عشوائي',
+  'Shuffle exercises': 'تبديل التمارين',
   'Sign in': 'تسجيل الدخول',
   'Sign in with Google': 'تسجيل الدخول بـ Google',
   'Sign in with Google first.': 'سجّل الدخول بـ Google أولاً.',
@@ -938,6 +952,7 @@ const arabicStrings = <String, String>{
   'Start workout': 'ابدأ التمرين',
   'Starting weight': 'الوزن في البداية',
   'Step-by-step guide': 'دليل خطوة بخطوة',
+  'Steps, pictures and muscles worked': 'الخطوات والصور والعضلات العاملة',
   'Stop': 'إيقاف',
   'Stopped. {saved} articles saved.': 'توقف. حُفظت {saved} مقالة.',
   'Streams': 'مصادر البث',
@@ -954,6 +969,8 @@ const arabicStrings = <String, String>{
   'Summarize': 'تلخيص',
   'Summary': 'الملخص',
   'Sun': 'أحد',
+  'Swap for': 'استبدال بـ',
+  'Swap for a similar exercise': 'استبدال بتمرين مشابه',
   'Swipe an article right to save it. The brief view lets you swipe through articles one by one.':
       'اسحب المقالة إلى اليمين لحفظها. والعرض الموجز يتيح لك تصفح المقالات واحدة تلو الأخرى.',
   'Swipe page by page': 'اسحب صفحة صفحة',
@@ -1096,6 +1113,9 @@ const arabicStrings = <String, String>{
   'Upper back': 'أعلى الظهر',
   'Use at least 8 characters.': 'استخدم 8 أحرف على الأقل.',
   'Use fingerprint': 'استخدام البصمة',
+  'Use it': 'استخدمها',
+  'Use the 5-day plan': 'استخدام خطة الأيام الخمسة',
+  'Use the 5-day plan?': 'استخدام خطة الأيام الخمسة؟',
   'Use this password': 'استخدم كلمة المرور هذه',
   'Username': 'اسم المستخدم',
   'Username or email': 'اسم المستخدم أو البريد',
@@ -1165,6 +1185,8 @@ const arabicStrings = <String, String>{
       'يُحفظ تقدّمك في القراءة والمشاهدة تلقائياً.',
   'Your routines are replaced by the 4-day starter plan. Workout history stays.':
       'ستُستبدل خططك بخطة البداية ذات الأيام الأربعة. يبقى سجل التمارين.',
+  'Your routines are replaced by the 5-day plan: chest, back, legs, shoulders and arms. Workout history stays.':
+      'ستُستبدل خططك بخطة الأيام الخمسة: صدر، ظهر، أرجل، أكتاف، ذراعان. يبقى سجل التمارين.',
   'Your songs are grouped by the folders they\'re in on the phone.':
       'أغانيك مجمّعة حسب المجلدات الموجودة فيها على الهاتف.',
   'Your stream add-ons have nothing for this yet.':
@@ -1211,6 +1233,7 @@ const arabicStrings = <String, String>{
   '{n} countdowns': '{n} عدّات تنازلية',
   '{n} in progress': '{n} قيد المشاهدة',
   '{n} manga': '{n} مانغا',
+  '{n} options for the same muscles': '{n} بدائل للعضلات نفسها',
   '{n} passwords': '{n} كلمة مرور',
   '{n} unread': '{n} غير مقروءة',
   '{n} were already in the vault.': '{n} كانت موجودة في الخزنة.',
