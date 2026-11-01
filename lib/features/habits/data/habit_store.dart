@@ -23,7 +23,8 @@ class HabitStore {
   static const _tasks = 'habits.tasks.v1';
   static const _taskLists = 'habits.taskLists.v1';
   static const _tasksGone = 'habits.tasks.gone.v1';
-  static const _tasksSynced = 'habits.tasks.synced.v1';
+  // v2: the first v1 pull missed open tasks, so pull everything once more.
+  static const _tasksSynced = 'habits.tasks.synced.v2';
   static const _aid = 'habits.aidKit.v1';
   static const _aidUses = 'habits.aidUses.v1';
   static const _days = 'habits.days.v1';

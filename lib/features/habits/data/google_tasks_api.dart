@@ -91,6 +91,7 @@ class GoogleTasksApi {
   /// it — deletions included.
   Future<List<RemoteTask>> tasks(String list, {DateTime? since}) async {
     final out = <RemoteTask>[];
+    final oldDone = DateTime.now().subtract(const Duration(days: 30));
     String? page;
     do {
       final body = await _json('GET', '/tasks/v1/lists/$list/tasks', {
@@ -98,19 +99,21 @@ class GoogleTasksApi {
         'showCompleted': 'true',
         'showHidden': 'true',
         'fields': 'items($_taskFields),nextPageToken',
+        // Later syncs: only what changed, deletions included. (No
+        // completedMin on the first one: Google would drop open tasks.)
         if (since != null) ...{
           'showDeleted': 'true',
           'updatedMin': since.toUtc().toIso8601String(),
-        } else
-          // First sync: open tasks and the last month of done ones.
-          'completedMin': DateTime.now()
-              .subtract(const Duration(days: 30))
-              .toUtc()
-              .toIso8601String(),
+        },
         'pageToken': ?page,
       });
       for (final t in (body['items'] as List? ?? const [])) {
-        out.add(_task(t as Map<String, dynamic>));
+        final task = _task(t as Map<String, dynamic>);
+        // First sync: open tasks and the last month of done ones.
+        if (since == null && task.done && task.updated.isBefore(oldDone)) {
+          continue;
+        }
+        out.add(task);
       }
       page = body['nextPageToken'] as String?;
     } while (page != null);
