@@ -1,0 +1,130 @@
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../domain/habit_models.dart';
+
+/// Habits, check-ins and what the System knows, in SharedPreferences (so the
+/// Drive backup includes them). Works fully offline.
+class HabitStore {
+  HabitStore(this._prefs);
+
+  final SharedPreferences _prefs;
+
+  static const _habits = 'habits.list.v1';
+  static const _checks = 'habits.checkins.v1';
+  static const _weekly = 'habits.weekly.v1';
+  static const _notes = 'habits.notes.v1';
+  static const _understanding = 'habits.understanding.v1';
+  static const _life = 'habits.life.v1';
+  static const _hardDays = 'habits.hardDays.v1';
+  static const _talks = 'habits.talks.v1';
+
+  /// Check-ins kept per habit (about two years of daily ones).
+  static const _checksPerHabit = 730;
+  static const _notesPerHabit = 30;
+
+  Object? _json(String key) {
+    final raw = _prefs.getString(key);
+    if (raw == null) return null;
+    try {
+      return jsonDecode(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _put(String key, Object value) =>
+      _prefs.setString(key, jsonEncode(value));
+
+  List<T> _list<T>(String key, T Function(Map<String, dynamic>) read) => [
+    for (final j in (_json(key) as List?) ?? const [])
+      ?_try(() => read(j as Map<String, dynamic>)),
+  ];
+
+  static T? _try<T>(T Function() f) {
+    try {
+      return f();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<Habit> get habits => _list(_habits, Habit.fromJson);
+
+  Future<void> saveHabits(List<Habit> v) =>
+      _put(_habits, [for (final h in v) h.toJson()]);
+
+  List<CheckIn> get checkIns => _list(_checks, CheckIn.fromJson);
+
+  Future<void> saveCheckIns(List<CheckIn> v) {
+    final byHabit = <String, List<CheckIn>>{};
+    for (final c in v) {
+      byHabit.putIfAbsent(c.habitId, () => []).add(c);
+    }
+    final kept = [
+      for (final list in byHabit.values)
+        ...(list..sort((a, b) => b.day.compareTo(a.day))).take(_checksPerHabit),
+    ];
+    return _put(_checks, [for (final c in kept) c.toJson()]);
+  }
+
+  List<AutomaticityCheck> get weekly =>
+      _list(_weekly, AutomaticityCheck.fromJson);
+
+  Future<void> saveWeekly(List<AutomaticityCheck> v) =>
+      _put(_weekly, [for (final c in v) c.toJson()]);
+
+  List<CoachNote> get notes => _list(_notes, CoachNote.fromJson);
+
+  Future<void> saveNotes(List<CoachNote> v) {
+    final byHabit = <String, List<CoachNote>>{};
+    for (final n in v) {
+      byHabit.putIfAbsent(n.habitId, () => []).add(n);
+    }
+    final kept = [
+      for (final list in byHabit.values)
+        ...(list..sort((a, b) => b.date.compareTo(a.date))).take(
+          _notesPerHabit,
+        ),
+    ];
+    return _put(_notes, [for (final n in kept) n.toJson()]);
+  }
+
+  Map<String, HabitUnderstanding> get understanding => {
+    for (final e in ((_json(_understanding) as Map?) ?? const {}).entries)
+      '${e.key}': ?_try(
+        () => HabitUnderstanding.fromJson(e.value as Map<String, dynamic>),
+      ),
+  };
+
+  Future<void> saveUnderstanding(Map<String, HabitUnderstanding> v) => _put(
+    _understanding,
+    {for (final e in v.entries) e.key: e.value.toJson()},
+  );
+
+  LifeContext get life => switch (_json(_life)) {
+    final Map<String, dynamic> j => LifeContext.fromJson(j),
+    _ => const LifeContext(),
+  };
+
+  Future<void> saveLife(LifeContext v) => _put(_life, v.toJson());
+
+  List<HardDay> get hardDays => _list(_hardDays, HardDay.fromJson);
+
+  Future<void> saveHardDays(List<HardDay> v) =>
+      _put(_hardDays, [for (final d in v.take(400)) d.toJson()]);
+
+  /// Talks in progress per habit (kept when there's no connection).
+  Map<String, List<CoachMessage>> get talks => {
+    for (final e in ((_json(_talks) as Map?) ?? const {}).entries)
+      '${e.key}': [
+        for (final m in (e.value as List))
+          CoachMessage.fromJson(m as Map<String, dynamic>),
+      ],
+  };
+
+  Future<void> saveTalks(Map<String, List<CoachMessage>> v) => _put(_talks, {
+    for (final e in v.entries) e.key: [for (final m in e.value) m.toJson()],
+  });
+}

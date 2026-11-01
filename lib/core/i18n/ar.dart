@@ -3,6 +3,8 @@
 /// Arabic for every English text in the app (the English text is the key).
 const arabicStrings = <String, String>{
   '\n{days} days from today': '\nبعد {days} يوماً من اليوم',
+  '"After X, I will Y" plans roughly double follow-through. Pick something you already do every day — prayers stay stable even when everything else changes.':
+      'خطط «بعد كذا سأفعل كذا» تضاعف تقريباً الالتزام. اختر شيئاً تفعله كل يوم — فالصلوات تبقى ثابتة حتى حين يتغيّر كل شيء.',
   '(No title)': '(بلا عنوان)',
   '+{0} kg': '+{0} كغ',
   '0 min': '0 د',
@@ -22,6 +24,20 @@ const arabicStrings = <String, String>{
   '5 minutes': '5 دقائق',
   '6 months': '6 أشهر',
   '< 1 min': 'أقل من دقيقة',
+  '[Quest] {name}': '[مهمة] {name}',
+  '[SYSTEM] ANALYSIS COMPLETE': '[النظام] اكتمل التحليل',
+  '[SYSTEM] HARD DAY MODE': '[النظام] وضع اليوم الصعب',
+  '[SYSTEM] Has anything changed in your life?':
+      '[النظام] هل تغيّر شيء في حياتك؟',
+  '[SYSTEM] Let\'s talk about "{name}". What feels hard about it right now?':
+      '[النظام] لنتحدث عن «{name}». ما الذي يبدو صعباً فيها الآن؟',
+  '[SYSTEM] NO QUESTS YET': '[النظام] لا مهام بعد',
+  '[SYSTEM] Quest "{name}" was not completed today. You said: {reason}. Tell me what really happened — what was going on in your head when it was time?':
+      '[النظام] لم تكتمل مهمة «{name}» اليوم. قلت: {reason}. أخبرني ما الذي حدث فعلاً — ماذا كان يدور في رأسك حين حان الوقت؟',
+  '[SYSTEM] STATUS': '[النظام] الحالة',
+  '[SYSTEM] WEEKLY CHECK-IN': '[النظام] المتابعة الأسبوعية',
+  '[SYSTEM] Weekly check: {name}': '[النظام] الفحص الأسبوعي: {name}',
+  '[SYSTEM] What got in the way?': '[النظام] ما الذي عطّلك؟',
   'A couple of minutes after you leave MyKit, if something changed':
       'بعد دقيقتين من مغادرة MyKit، إن تغيّر شيء',
   'A few one-time steps make everything work. Each one takes a minute, and you can do them later from Settings.':
@@ -50,6 +66,7 @@ const arabicStrings = <String, String>{
   'Add an anime repository': 'إضافة مستودع أنمي',
   'Add an exercise': 'إضافة تمرين',
   'Add an extension repository': 'إضافة مستودع إضافات',
+  'Add an if–then plan': 'إضافة خطة «إذا–فسوف»',
   'Add exercise': 'إضافة تمرين',
   'Add exercises as you go': 'أضف التمارين أثناء التمرين',
   'Add feed': 'إضافة خلاصة',
@@ -90,6 +107,9 @@ const arabicStrings = <String, String>{
   'Added {ok}, {failed} failed: {details}':
       'أُضيف {ok}، وفشل {failed}: {details}',
   'Adductors': 'المقرّبات',
+  'After {anchor}': 'بعد {anchor}',
+  'After {anchor}: {tiny}': 'بعد {anchor}: {tiny}',
+  'After…': 'بعد…',
   'AI features (Gemini)': 'ميزات الذكاء الاصطناعي (Gemini)',
   'AI features are ready. Paste a new key below to replace it.':
       'ميزات الذكاء الاصطناعي جاهزة. الصق مفتاحاً جديداً بالأسفل لاستبداله.',
@@ -105,19 +125,23 @@ const arabicStrings = <String, String>{
   'Allow access to your music': 'اسمح بالوصول إلى موسيقاك',
   'Allow notifications for MyKit to get reminders.':
       'اسمح بإشعارات MyKit لتصلك التذكيرات.',
+  'Almost automatic': 'شبه تلقائية',
   'Already in your feeds': 'موجودة في خلاصاتك',
   'Also save new articles after each refresh':
       'احفظ المقالات الجديدة أيضاً بعد كل تحديث',
   'Also used for another login. A unique password per site is safer.':
       'مستخدمة أيضاً لحساب آخر. كلمة مرور مختلفة لكل موقع أكثر أماناً.',
   'Also works (optional)': 'يشغّل أيضاً (اختياري)',
+  'Anchor: after what?': 'المرساة: بعد ماذا؟',
   'Anime': 'أنمي',
   'Anime & Manga': 'أنمي ومانغا',
   'Anime extensions come from Aniyomi repositories. MyKit only installs extensions signed with the key the repository publishes.':
       'إضافات الأنمي من مستودعات Aniyomi. لا يثبّت MyKit إلا الإضافات الموقّعة بالمفتاح الذي ينشره المستودع.',
   'Anime not found': 'لم يُعثر على الأنمي',
+  'Answer': 'أجب',
   'API key': 'مفتاح API',
   'App links forgotten.': 'نُسيت روابط التطبيقات.',
+  'Apply': 'تطبيق',
   'Arabic': 'العربية',
   'Arm day': 'يوم الذراعين',
   'Ars Technica': 'Ars Technica',
@@ -132,11 +156,15 @@ const arabicStrings = <String, String>{
   'Ask about this article': 'اسأل عن هذه المقالة',
   'Ask anything — about the article, the people in it, or the background you need to understand it.':
       'اسأل عن أي شيء — عن المقالة، أو الأشخاص فيها، أو الخلفية التي تحتاجها لفهمها.',
+  'Asr prayer': 'صلاة العصر',
   'Audio': 'الصوت',
   'Autofill': 'الملء التلقائي',
   'Autofill is on': 'الملء التلقائي مُفعّل',
+  'Automatic': 'تلقائية',
   'Automatic backup failed: {failed}': 'فشل النسخ الاحتياطي التلقائي: {failed}',
+  'Automaticity {n} / 7': 'التلقائية {n} / 7',
   'Available · {length}': 'متاحة · {length}',
+  'Awakening': 'الاستيقاظ',
   'A–Z': 'أ–ي',
   'a–z': 'أ–ي',
   'Back': 'الخلف',
@@ -170,11 +198,17 @@ const arabicStrings = <String, String>{
   'Bookmarks': 'العلامات',
   'Bookmarks · {length}': 'العلامات · {length}',
   'Books': 'الكتب',
+  'breakfast': 'الفطور',
   'Brief': 'موجز',
   'Brief view (swipe through articles)': 'العرض الموجز (اسحب بين المقالات)',
   'Bring your YouTube channels': 'أحضر قنواتك على يوتيوب',
   'Browse': 'تصفّح',
+  'brushing my teeth at night': 'تنظيف أسناني ليلاً',
   'Buffering {percent}%': 'التحميل المؤقت {percent}٪',
+  'Build habits as daily quests, with a coach that learns why you get stuck':
+      'ابنِ عاداتك كمهام يومية، مع مدرّب يتعلّم لماذا تتعثّر',
+  'Building': 'البناء',
+  'BY DAY OF THE WEEK': 'حسب أيام الأسبوع',
   'Cable': 'كابل',
   'Calves': 'السمانة',
   'Can\'t play this one here.': 'لا يمكن تشغيل هذا هنا.',
@@ -189,6 +223,8 @@ const arabicStrings = <String, String>{
   'Category': 'الفئة',
   'Change': 'تغيير',
   'Change master password': 'تغيير كلمة المرور الرئيسية',
+  'Change time': 'تغيير الوقت',
+  'Check': 'افحص',
   'Check your internet connection.\n{first}':
       'تحقق من اتصالك بالإنترنت.\n{first}',
   'Chest': 'الصدر',
@@ -213,7 +249,10 @@ const arabicStrings = <String, String>{
   'Close search': 'إغلاق البحث',
   'Comics': 'قصص مصورة',
   'Completed': 'مكتمل',
+  'Completed automatically when you finish a workout in Fitness, and the System can adjust your exercises.':
+      'تكتمل تلقائياً حين تنهي تمريناً في أداة اللياقة، ويمكن للنظام تعديل تمارينك.',
   'Condensed': 'مضغوط',
+  'Confidence {n}%': 'الثقة {n}٪',
   'Configure opens the add-on\'s page. Copy the install link it gives you and add it here with "Add-on URL" — it replaces this one.':
       '«إعداد» يفتح صفحة الإضافة. انسخ رابط التثبيت الذي تعطيك إياه وأضفه هنا عبر «رابط الإضافة» — وسيحل محل هذه.',
   'Configure…': 'إعداد…',
@@ -232,6 +271,8 @@ const arabicStrings = <String, String>{
   'Copy password': 'نسخ كلمة المرور',
   'Copy the key (it starts with "AIza"), come back here and paste it.':
       'انسخ المفتاح (يبدأ بـ "AIza")، ثم عد إلى هنا والصقه.',
+  'Correct it': 'صحّحه',
+  'Correct the System': 'صحّح النظام',
   'Could not add: {e}': 'تعذّرت الإضافة: {e}',
   'Could not connect (timed out).': 'تعذّر الاتصال (انتهت المهلة).',
   'Could not download the exercise library. Check your connection.':
@@ -264,17 +305,24 @@ const arabicStrings = <String, String>{
   'Create': 'إنشاء',
   'Create a master password to keep your logins in an encrypted vault.':
       'أنشئ كلمة مرور رئيسية لحفظ حساباتك في خزنة مشفّرة.',
+  'Create quest': 'إنشاء المهمة',
   'Create vault': 'إنشاء الخزنة',
+  'Create your first quest: one habit you want to build. Start small — the System will help you make it stick and learn what gets in your way.':
+      'أنشئ أول مهمة: عادة واحدة تريد بناءها. ابدأ صغيراً — وسيساعدك النظام على تثبيتها ويتعلّم ما يعيقك.',
   'Create your master password': 'أنشئ كلمة مرورك الرئيسية',
   'Current password': 'كلمة المرور الحالية',
   'Daily average {0}': 'المعدل اليومي {0}',
   'Daily limit: {0}': 'الحد اليومي: {0}',
   'Daily limits for Instagram, Facebook, X and YouTube':
       'حدود يومية لإنستغرام وفيسبوك وإكس ويوتيوب',
+  'DAILY QUESTS': 'المهام اليومية',
   'Dark': 'داكن',
   'Day': 'يوم',
+  'Day {days} · most habits take about 2 months, some much longer — your own pace is fine.':
+      'اليوم {days} · معظم العادات تحتاج نحو شهرين، وبعضها أطول بكثير — وتيرتك أنت مقبولة.',
   'Days': 'أيام',
   'Days from today': 'أيام من اليوم',
+  'Days: {days}': 'الأيام: {days}',
   'Decrease circle with time': 'تصغير الدائرة مع الوقت',
   'Default': 'افتراضي',
   'Delete': 'حذف',
@@ -290,16 +338,22 @@ const arabicStrings = <String, String>{
   'Delete workout': 'حذف التمرين',
   'Delete {name}?': 'حذف {name}؟',
   'Details': 'التفاصيل',
+  'Dhuhr prayer': 'صلاة الظهر',
+  'Didn\'t feel like it': 'لم تكن لدي رغبة',
   'Direct link': 'رابط مباشر',
   'Director': 'المخرج',
   'Discard': 'تجاهل',
   'Discard this workout?': 'تجاهل هذا التمرين؟',
   'Discard workout': 'تجاهل التمرين',
+  'Discipline': 'الانضباط',
   'Disconnect': 'قطع الاتصال',
   'Disconnect Google account': 'فصل حساب Google',
   'Disconnect Google account?': 'فصل حساب Google؟',
+  'Distracted (phone…)': 'تشتّت (الهاتف…)',
   'Does not repeat': 'لا يتكرر',
   'Done': 'تم',
+  'Done (30 days)': 'الإنجاز (30 يوماً)',
+  'Done (from your workout) +{xp} XP': 'تمّت (من تمرينك) +{xp} XP',
   'Download failed: {e}': 'فشل التنزيل: {e}',
   'Download for offline…': 'تنزيل للقراءة دون اتصال…',
   'Download {toSave} articles': 'تنزيل {toSave} مقالة',
@@ -310,9 +364,16 @@ const arabicStrings = <String, String>{
   'E-z curl bar': 'بار EZ',
   'e.g. 1500': 'مثلاً 1500',
   'e.g. AI, Phones, Gaming': 'مثلاً: ذكاء اصطناعي، هواتف، ألعاب',
+  'e.g. Fajr prayer': 'مثلاً: صلاة الفجر',
   'e.g. Gmail, Bank, Netflix': 'مثلاً: Gmail، البنك، Netflix',
   'e.g. Novels, Study, Manuals': 'مثلاً: روايات، دراسة، أدلة',
+  'e.g. Read 1 page': 'مثلاً: قراءة صفحة واحدة',
+  'e.g. Read 10 pages': 'مثلاً: قراءة 10 صفحات',
+  'e.g. Read Quran, Workout, Study English':
+      'مثلاً: قراءة القرآن، التمرين، دراسة الإنجليزية',
   'e.g. Tech, News, Design': 'مثلاً: تقنية، أخبار، تصميم',
+  'Each habit is a daily quest with a full and a tiny version. On bad days the tiny one is enough.':
+      'كل عادة مهمة يومية لها نسخة كاملة وأخرى صغيرة. في الأيام السيئة تكفي الصغيرة.',
   'Each side (per leg / arm)': 'لكل جهة (لكل ساق / ذراع)',
   'Each tool explains itself again the next time you open it':
       'تشرح كل أداة نفسها مجدداً عند فتحها في المرة القادمة',
@@ -320,8 +381,10 @@ const arabicStrings = <String, String>{
   'Edit': 'تعديل',
   'Edit countdown': 'تعديل العدّ التنازلي',
   'Edit note': 'تعديل الملاحظة',
+  'Edit quest': 'تعديل المهمة',
   'Edit this workout': 'تعديل هذا التمرين',
   'Encrypted password vault': 'خزنة كلمات مرور مشفّرة',
+  'End this talk': 'إنهاء هذا الحديث',
   'English': 'English',
   'Enter 0 – {_max}': 'أدخل 0 – {_max}',
   'Enter a feed or website URL.': 'أدخل رابط خلاصة أو موقع.',
@@ -337,6 +400,8 @@ const arabicStrings = <String, String>{
       'سيُستبدل كل ما في MyKit على هذا الهاتف بالنسخة الاحتياطية من {date}. ثم يُعاد تشغيل MyKit.',
   'Everything is kept on this phone. Turn on Google Drive backup and you can restore it all on a new phone, passwords included (encrypted).':
       'كل شيء محفوظ على هذا الهاتف. فعّل النسخ الاحتياطي إلى Google Drive لتستعيد كل شيء على هاتف جديد، بما في ذلك كلمات المرور (مشفّرة).',
+  'Evidence': 'الدليل',
+  'Excused: {reason}': 'معذور: {reason}',
   'Exercise': 'تمرين',
   'Exercise ball': 'كرة تمارين',
   'Exercise library error {statusCode}.': 'خطأ في مكتبة التمارين {statusCode}.',
@@ -355,8 +420,11 @@ const arabicStrings = <String, String>{
       'تعذّر تحميل المزيد · إعادة المحاولة\n{_error}',
   'Failed to load: {0}': 'تعذّر التحميل: {0}',
   'Failed: {error}': 'فشل: {error}',
+  'Fajr prayer': 'صلاة الفجر',
+  'Family needed me': 'احتاجتني العائلة',
   'Favourite': 'مفضّل',
   'Favourites': 'المفضلة',
+  'Fear, doubt or a bad feeling about it': 'خوف أو شك أو شعور سيئ تجاهه',
   'Feed': 'الخلاصة',
   'Feed or website URL': 'رابط الخلاصة أو الموقع',
   'Feeds': 'الخلاصات',
@@ -393,6 +461,9 @@ const arabicStrings = <String, String>{
   'For specific tools (optional)': 'لأدوات محددة (اختياري)',
   'Forearms': 'الساعدان',
   'Forget app links': 'انسَ روابط التطبيقات',
+  'Forgetting is a cue problem, not a willpower one. Tie it to something you never skip, like a prayer, and keep what you need in sight.':
+      'النسيان مشكلة في المحفّز لا في الإرادة. اربطها بشيء لا تفوّته أبداً، كالصلاة، وأبقِ ما تحتاجه أمام عينيك.',
+  'Forgot': 'نسيت',
   'Free workout': 'تمرين حر',
   'French': 'الفرنسية',
   'Fri': 'جمعة',
@@ -403,6 +474,9 @@ const arabicStrings = <String, String>{
       'من معرفة Gemini نفسه · اضغط للقراءة',
   'From {0}': 'من {0}',
   'Front': 'الأمام',
+  'Full and tiny versions': 'النسخة الكاملة والصغيرة',
+  'Full version': 'النسخة الكاملة',
+  'Full: {full}': 'الكاملة: {full}',
   'Gemini API key…': 'مفتاح Gemini…',
   'Gemini declined this ({_blockReason}).':
       'رفض Gemini هذا الطلب ({_blockReason}).',
@@ -412,6 +486,8 @@ const arabicStrings = <String, String>{
   'Generate': 'توليد',
   'Generate password': 'توليد كلمة مرور',
   'German': 'الألمانية',
+  'getting home': 'الوصول إلى البيت',
+  'Getting stronger': 'تزداد قوة',
   'Glutes': 'الأرداف',
   'Go': 'اذهب',
   'Go to page': 'الذهاب إلى صفحة',
@@ -424,8 +500,15 @@ const arabicStrings = <String, String>{
   'Google sign-in isn\'t set up in this build. Add the OAuth client (RSS Feeds → Import YouTube subscriptions) or build with config/google_oauth.local.json.':
       'تسجيل الدخول بـ Google غير مُعدّ في هذه النسخة. أضف عميل OAuth (خلاصات RSS ← استيراد اشتراكات يوتيوب) أو ابنِ التطبيق مع config/google_oauth.local.json.',
   'Got it': 'فهمت',
+  'Habits last longer when they\'re part of who you are, not just a task. And picturing what you\'ll gain keeps you going on hard days.':
+      'تدوم العادات أطول حين تصبح جزءاً من هويتك لا مجرد مهمة. وتخيّل ما ستكسبه يبقيك مستمراً في الأيام الصعبة.',
   'Hacker News': 'Hacker News',
   'Hamstrings': 'أوتار الركبة',
+  'Hard day (no power, travel, security…)? Turn on Hard day: misses are excused and only tiny versions count.':
+      'يوم صعب (لا كهرباء، سفر، وضع أمني…)؟ فعّل «يوم صعب»: يُعذر ما يفوتك وتُحسب النسخ الصغيرة فقط.',
+  'Hard day today?': 'يوم صعب اليوم؟',
+  'Hard day?': 'يوم صعب؟',
+  'Has anything changed in your life?': 'هل تغيّر شيء في حياتك؟',
   'Height': 'الطول',
   'Help when you need it': 'مساعدة عند الحاجة',
   'Hide': 'إخفاء',
@@ -436,14 +519,42 @@ const arabicStrings = <String, String>{
   'Home workouts, exercise library and progress':
       'تمارين منزلية ومكتبة تمارين وتتبع التقدم',
   'Horizontal': 'أفقي',
+  'How automatic is "{name}" now?': 'ما مدى تلقائية «{name}» الآن؟',
+  'HOW AUTOMATIC IT FEELS': 'مدى تلقائيتها',
+  'How do you feel today?': 'كيف تشعر اليوم؟',
   'How many articles (newest first)': 'عدد المقالات (الأحدث أولاً)',
   'How to do it': 'طريقة الأداء',
   'How to do it (one step per line, optional)':
       'طريقة الأداء (خطوة في كل سطر، اختياري)',
+  'How true is each one this week? 1 = not at all, 7 = completely. This is how your rank is measured.':
+      'إلى أي مدى ينطبق كل منها هذا الأسبوع؟ 1 = لا ينطبق، 7 = ينطبق تماماً. هكذا تُقاس رتبتك.',
+  'I do it automatically.': 'أفعلها تلقائياً.',
+  'I do it without having to consciously remember.':
+      'أفعلها دون أن أحتاج إلى تذكّرها عن قصد.',
+  'I do it without thinking.': 'أفعلها دون تفكير.',
+  'I do only the tiny version': 'أؤدي النسخة الصغيرة فقط',
+  'I do the easiest step and stop': 'أؤدي أسهل خطوة وأتوقف',
+  'I do the tiny version by phone light': 'أؤدي النسخة الصغيرة على ضوء الهاتف',
+  'I do the travel version': 'أؤدي نسخة السفر',
+  'I feel I can\'t do it': 'شعرت أنني لا أستطيع',
+  'I felt I can\'t do it': 'شعرت أنني لا أستطيع',
+  'I forgot until it was too late': 'نسيت حتى فات الوقت',
+  'I had no energy': 'لم تكن لدي طاقة',
+  'I start doing it before I realise I\'m doing it.':
+      'أبدأ بها قبل أن أنتبه أنني أفعلها.',
   'I understand that if I forget it, my passwords can\'t be recovered by anyone.':
       'أفهم أنني إن نسيتها فلن يستطيع أحد استعادة كلمات مروري.',
+  'I was afraid of failing': 'خفت من الفشل',
+  'I\'m away from home': 'كنت بعيداً عن البيت',
+  'I\'m someone who {identity}': 'أنا شخص {identity}',
+  'I\'m someone who…': 'أنا شخص…',
+  'I\'m too tired': 'كنت متعباً جداً',
   'If your fingerprints change, or on a new phone, you\'ll need the master password.':
       'إن تغيّرت بصماتك أو انتقلت إلى هاتف جديد، فستحتاج إلى كلمة المرور الرئيسية.',
+  'If {when}': 'إذا {when}',
+  'If {when}, then {then}': 'إذا {when}، فسوف {then}',
+  'If–then plan': 'خطة «إذا–فسوف»',
+  'If…': 'إذا…',
   'Image unavailable ({statusCode}).': 'الصورة غير متاحة ({statusCode}).',
   'Import & export': 'الاستيراد والتصدير',
   'Import CSV': 'استيراد CSV',
@@ -481,16 +592,25 @@ const arabicStrings = <String, String>{
   'Install failed: {message}': 'فشل التثبيت: {message}',
   'Installed {name}': 'ثُبّت {name}',
   'Installed · {length}': 'مثبّتة · {length}',
+  'Intelligence': 'الذكاء',
+  'Isha prayer': 'صلاة العشاء',
+  'It asks too much on those days. Make the tiny version even smaller, or move it to when you have more energy.':
+      'إنها تطلب الكثير في تلك الأيام. اجعل النسخة الصغيرة أصغر، أو انقلها إلى وقت تكون فيه طاقتك أكبر.',
   'It disappears from your history and records.':
       'سيختفي من سجلك وأرقامك القياسية.',
   'It encrypts every password you save here. It never leaves this phone and is never stored, so pick something long you\'ll remember, like a short sentence.':
       'تشفّر كل كلمة مرور تحفظها هنا. لا تغادر هذا الهاتف ولا تُخزَّن أبداً، فاختر شيئاً طويلاً تتذكره، مثل جملة قصيرة.',
   'It has no feeds of its own.': 'لا تحتوي على خلاصات خاصة بها.',
+  'It will ask a couple of questions, look at your history and suggest how to make this quest doable.':
+      'سيطرح سؤالاً أو اثنين، وينظر في سجلك، ويقترح كيف تجعل هذه المهمة ممكنة.',
+  'It\'s my workout': 'إنها تمريني',
   'Italian': 'الإيطالية',
   'Its 1 book will be deleted too. Move it to another shelf first to keep it.':
       'سيُحذف كتابه أيضاً. انقله إلى رف آخر أولاً للاحتفاظ به.',
   'Its 1 feed will be unsubscribed too. Move it to another folder first to keep it.':
       'سيُلغى الاشتراك في خلاصتها أيضاً. انقلها إلى مجلد آخر أولاً للاحتفاظ بها.',
+  'Its history and what the System learned about it are deleted too.':
+      'سيُحذف سجلها وما تعلّمه النظام عنها أيضاً.',
   'Its sources disappear from Browse. Library entries stay.':
       'ستختفي مصادرها من «تصفّح». تبقى عناصر المكتبة.',
   'Its sub-folder moves up a level.': 'سينتقل مجلدها الفرعي مستوى إلى الأعلى.',
@@ -503,14 +623,19 @@ const arabicStrings = <String, String>{
   'Japanese': 'اليابانية',
   'just now': 'الآن',
   'Keep it up to date': 'حافظ على تحديثه',
+  'Keep talking': 'مواصلة الحديث',
+  'Keep the insight': 'احتفظ بالاستنتاج',
   'Keeps your settings, libraries, progress and passwords (encrypted) safe if you change or reset your phone.':
       'يحفظ إعداداتك ومكتباتك وتقدّمك وكلمات مرورك (مشفّرة) إن غيّرت هاتفك أو أعدت ضبطه.',
+  'Kept on this phone and in your Drive backup. When you talk to the System, a short summary of this and your recent days is sent to Gemini.':
+      'محفوظ على هذا الهاتف وفي نسختك الاحتياطية على Drive. حين تتحدث إلى النظام يُرسل ملخص قصير لهذا ولأيامك الأخيرة إلى Gemini.',
   'Key saved and working': 'حُفظ المفتاح ويعمل',
   'Key set': 'المفتاح مُضاف',
   'Key {0}…': 'المفتاح {0}…',
   'Korean': 'الكورية',
   'Language': 'اللغة',
   'Languages': 'اللغات',
+  'LAST 5 WEEKS': 'آخر 5 أسابيع',
   'Last backup {0}': 'آخر نسخة {0}',
   'Last chapter': 'آخر فصل',
   'Last time: {sets}': 'المرة الماضية: {sets}',
@@ -525,8 +650,11 @@ const arabicStrings = <String, String>{
   'Length': 'الطول',
   'Lets backups, site checks and music keep working when MyKit is closed. Some phones (OnePlus, Xiaomi, Samsung) stop apps otherwise.':
       'يسمح للنسخ الاحتياطي وفحص المواقع والموسيقى بالعمل وMyKit مغلق. بعض الهواتف (OnePlus وXiaomi وSamsung) توقف التطبيقات بدونه.',
+  'Level {level}': 'المستوى {level}',
   'Library': 'المكتبة',
   'Licensed': 'مرخّص',
+  'Life around you got in the way. Plan a version that still works then: a no-power version, a travel version, a 2-minute version.':
+      'الحياة من حولك اعترضت الطريق. خطّط لنسخة تنجح حينها: نسخة بلا كهرباء، نسخة للسفر، نسخة الدقيقتين.',
   'Light': 'فاتح',
   'Light wallpaper preview': 'معاينة خلفية فاتحة',
   'Like': 'إعجاب',
@@ -551,9 +679,12 @@ const arabicStrings = <String, String>{
   'Looking for feed…': 'جارٍ البحث عن الخلاصة…',
   'Looking for sources…': 'جارٍ البحث عن مصادر…',
   'Lower back': 'أسفل الظهر',
+  'lunch': 'الغداء',
   'Machine': 'جهاز',
+  'Maghrib prayer': 'صلاة المغرب',
   'Magnet link copied': 'نُسخ رابط المغناطيس',
   'Main muscles': 'العضلات الرئيسية',
+  'Make it easier (optional)': 'اجعلها أسهل (اختياري)',
   'Manage add-ons': 'إدارة الإضافات',
   'Manage feeds & categories': 'إدارة الخلاصات والفئات',
   'Manage shelves': 'إدارة الرفوف',
@@ -570,6 +701,10 @@ const arabicStrings = <String, String>{
   'Mihon & Aniyomi extensions: read manga, watch anime':
       'إضافات Mihon وAniyomi: اقرأ المانغا وشاهد الأنمي',
   'Mine': 'خاصتي',
+  'Missed': 'فاتت',
+  'Missed a quest? Tell the System why. It looks at your history, finds the real reason and adjusts the quest with you.':
+      'فاتتك مهمة؟ أخبر النظام لماذا. ينظر في سجلك، ويجد السبب الحقيقي، ويعدّل المهمة معك.',
+  'Missed: {reason}': 'فاتت: {reason}',
   'Mon': 'اثنين',
   'Monospace': 'ثابت العرض',
   'Month': 'شهر',
@@ -580,6 +715,7 @@ const arabicStrings = <String, String>{
   'Move to': 'نقل إلى',
   'Move to category': 'نقل إلى فئة',
   'Move to shelf': 'نقل إلى رف',
+  'Moved / travelling / new place': 'انتقال / سفر / مكان جديد',
   'Movies': 'أفلام',
   'Movies & Series': 'أفلام ومسلسلات',
   'Multi': 'متعدد',
@@ -606,6 +742,9 @@ const arabicStrings = <String, String>{
   'Neck': 'الرقبة',
   'Needs extension lib {version}, which MyKit doesn\'t support yet.':
       'تحتاج مكتبة الإضافات {version}، ولا يدعمها MyKit بعد.',
+  'Never miss twice: the tiny version is enough today.':
+      'لا تفوّتها مرتين: النسخة الصغيرة تكفي اليوم.',
+  'New anchor: after {text}': 'مرساة جديدة: بعد {text}',
   'New category': 'فئة جديدة',
   'New category…': 'فئة جديدة…',
   'New conversation': 'محادثة جديدة',
@@ -614,19 +753,23 @@ const arabicStrings = <String, String>{
   'New exercises for all 5 days. Same muscles, same sets.':
       'تمارين جديدة للأيام الخمسة. العضلات نفسها والمجموعات نفسها.',
   'New folder in "{name}"': 'مجلد جديد في «{name}»',
+  'New full version: {text}': 'نسخة كاملة جديدة: {text}',
   'New one': 'جديدة',
   'New password': 'كلمة المرور الجديدة',
   'New password again': 'أعد كتابة كلمة المرور الجديدة',
   'New personal bests': 'أرقام قياسية جديدة',
+  'New quest': 'مهمة جديدة',
   'New shelf': 'رف جديد',
   'New shelf…': 'رف جديد…',
   'New sub-folder': 'مجلد فرعي جديد',
+  'New tiny version: {text}': 'نسخة صغيرة جديدة: {text}',
   'New · {pageCount} pages': 'جديد · {pageCount} صفحة',
   'New: 5-day home plan': 'جديد: خطة منزلية لخمسة أيام',
   'Newest first': 'الأحدث أولاً',
   'Next': 'التالي',
   'Next chapter': 'الفصل التالي',
   'Next exercise': 'التمرين التالي',
+  'Next quest': 'المهمة التالية',
   'Next set': 'المجموعة التالية',
   'Next: {name}': 'التالي: {name}',
   'No "password" column found. Export the CSV from your browser or password manager.':
@@ -645,6 +788,7 @@ const arabicStrings = <String, String>{
       'لا توجد محفوظات بعد. اسحب مقالة إلى اليمين لحفظها.',
   'No books match "{text}".': 'لا توجد كتب تطابق «{text}».',
   'No countdowns yet': 'لا توجد عدّات تنازلية بعد',
+  'No electricity': 'لا كهرباء',
   'No entries yet': 'لا توجد إدخالات بعد',
   'No episodes yet.': 'لا توجد حلقات بعد.',
   'No events match "{_query}".': 'لا توجد أحداث تطابق «{_query}».',
@@ -654,7 +798,10 @@ const arabicStrings = <String, String>{
   'No feeds yet': 'لا توجد خلاصات بعد',
   'No fingerprint is set up on this phone.':
       'لا توجد بصمة مُعدّة على هذا الهاتف.',
+  'No internet': 'لا إنترنت',
   'No internet connection.': 'لا يوجد اتصال بالإنترنت.',
+  'No judgement. Knowing the real reason is how the quest gets easier.':
+      'بلا أحكام. معرفة السبب الحقيقي هي ما يجعل المهمة أسهل.',
   'No look-alikes': 'بلا أحرف متشابهة',
   'No music found': 'لم يُعثر على موسيقى',
   'No online subtitles found': 'لم يُعثر على ترجمات عبر الإنترنت',
@@ -671,6 +818,7 @@ const arabicStrings = <String, String>{
       'لا توجد مصادر بعد.\nثبّت إضافة من تبويب الإضافات (وتحقق من عامل تصفية اللغة أيضاً).',
   'No stream add-on installed for this title.':
       'لا توجد إضافة بث مثبتة لهذا العنوان.',
+  'No time': 'لم يكن هناك وقت',
   'No upcoming events in the next two years.':
       'لا توجد أحداث قادمة في السنتين المقبلتين.',
   'No video id': 'لا يوجد معرّف فيديو',
@@ -689,6 +837,9 @@ const arabicStrings = <String, String>{
   'Not now': 'ليس الآن',
   'Not set up — tap to add a free key': 'غير مُعدّ — اضغط لإضافة مفتاح مجاني',
   'Not signed in to YouTube.': 'لم تسجّل الدخول إلى يوتيوب.',
+  'NOT TODAY': 'ليست اليوم',
+  'Not told yet. Tell the System about your situation — it uses it to understand your days.':
+      'لم تخبره بعد. أخبر النظام عن وضعك — فهو يستخدمه لفهم أيامك.',
   'Not turned on': 'غير مُفعّل',
   'Note for page {page}': 'ملاحظة للصفحة {page}',
   'Notes': 'ملاحظات',
@@ -699,7 +850,10 @@ const arabicStrings = <String, String>{
   'Nothing is playing.': 'لا شيء قيد التشغيل.',
   'Nothing liked yet. Double-tap an article in the brief view to like it.':
       'لا إعجابات بعد. انقر مرتين على مقالة في العرض الموجز للإعجاب بها.',
+  'Nothing new, or…': 'لا جديد، أو…',
   'Nothing to show here.': 'لا شيء لعرضه هنا.',
+  'Nothing yet. After a talk, the System writes down why you get stuck and what helps — and sharpens it every time.':
+      'لا شيء بعد. بعد كل حديث يكتب النظام لماذا تتعثّر وما الذي يساعدك — ويدقّق ذلك في كل مرة.',
   'Notifications': 'الإشعارات',
   'Now playing': 'قيد التشغيل',
   'Number of articles': 'عدد المقالات',
@@ -709,6 +863,10 @@ const arabicStrings = <String, String>{
   'Offline copies deleted.': 'حُذفت النسخ المحفوظة.',
   'Oldest first': 'الأقدم أولاً',
   'On hiatus': 'متوقف مؤقتاً',
+  'Once a week, rate how automatic the habit feels. That — not streaks — is your rank, from E to S.':
+      'مرة في الأسبوع، قيّم مدى تلقائية العادة. هذا — لا السلاسل — هو رتبتك، من E إلى S.',
+  'One clear action. You can add more quests later.':
+      'فعل واحد واضح. يمكنك إضافة مهام أخرى لاحقاً.',
   'One tile per tool': 'لكل أداة مربع',
   'One-time setup: create a free "Desktop app" OAuth client in Google Cloud with the YouTube Data API enabled, then paste its ID and secret here. They stay on this phone.':
       'إعداد لمرة واحدة: أنشئ عميل OAuth مجانياً من نوع «Desktop app» في Google Cloud مع تفعيل YouTube Data API، ثم الصق معرّفه وسرّه هنا. يبقيان على هذا الهاتف.',
@@ -716,6 +874,9 @@ const arabicStrings = <String, String>{
   'Online ({addonName})': 'عبر الإنترنت ({addonName})',
   'Only in encrypted form. Restoring on a new phone needs your master password.':
       'مشفّرة فقط. تحتاج الاستعادة على هاتف جديد إلى كلمة المرور الرئيسية.',
+  'Only tiny versions are asked for and nothing counts as missed.':
+      'تُطلب النسخ الصغيرة فقط ولا يُحسب شيء كفائت.',
+  'Only while doing it, I enjoy…': 'أثناء أدائها فقط، أستمتع بـ…',
   'Open': 'فتح',
   'Open a countdown to change its colours, font and how the ring fills up.':
       'افتح العدّ التنازلي لتغيير ألوانه وخطه وطريقة امتلاء الحلقة.',
@@ -738,19 +899,25 @@ const arabicStrings = <String, String>{
   'Page {_page} bookmarked': 'وُضعت علامة على الصفحة {_page}',
   'Page {_page} of {pageCount}': 'الصفحة {_page} من {pageCount}',
   'Page {page}': 'الصفحة {page}',
+  'Pair it with something you enjoy, only during the habit — like a podcast you only hear while walking.':
+      'اربطها بشيء تستمتع به أثناء العادة فقط — مثل بودكاست لا تسمعه إلا وأنت تمشي.',
   'Password': 'كلمة المرور',
   'password set {date}': 'عُيّنت كلمة المرور {date}',
   'Password settings': 'إعدادات كلمات المرور',
   'Passwords': 'كلمات المرور',
+  'PAST TALKS': 'الأحاديث السابقة',
   'Paste': 'لصق',
   'Paste a feed URL or just a website address — MyKit will find its feed.':
       'الصق رابط خلاصة أو عنوان موقع فقط — وسيجد MyKit خلاصته.',
+  'Pause quest': 'إيقاف المهمة مؤقتاً',
   'PDF library with shelves, bookmarks and dark reading':
       'مكتبة PDF برفوف وعلامات وقراءة داكنة',
   'Permissions and accounts MyKit needs':
       'الأذونات والحسابات التي يحتاجها MyKit',
   'Personal bests': 'الأرقام القياسية',
   'Pick an event': 'اختر حدثاً',
+  'Picture the real obstacle, then decide now what you\'ll do when it happens: "If …, then I will …". The System adds more as it learns.':
+      'تخيّل العائق الحقيقي، ثم قرّر الآن ماذا ستفعل حين يحدث: «إذا …، فسوف …». ويضيف النظام المزيد كلما تعلّم.',
   'Plan': 'الخطة',
   'Plan your workouts and training days in Plan; the exercise library has instructions for each move.':
       'خطّط لتمارينك وأيام تدريبك في «الخطة»؛ ومكتبة التمارين فيها طريقة أداء كل حركة.',
@@ -770,12 +937,16 @@ const arabicStrings = <String, String>{
   'Profile & goal': 'الملف الشخصي والهدف',
   'Profile, goal & reminders': 'الملف الشخصي والهدف والتذكيرات',
   'Progress': 'التقدم',
+  'Proposed changes': 'التغييرات المقترحة',
   'pt-BR': 'pt-BR',
   'Publishing finished': 'انتهى النشر',
   'Pull down to refresh.': 'اسحب للأسفل للتحديث.',
   'Quads': 'الفخذ الأمامية',
+  'Quest complete +{xp} XP': 'اكتملت المهمة +{xp} XP',
   'Queue': 'قائمة الانتظار',
   'Quick tips': 'نصائح سريعة',
+  'Rank comes from the weekly check.': 'تأتي الرتبة من الفحص الأسبوعي.',
+  'Rank {rank} · {stage}': 'الرتبة {rank} · {stage}',
   'Read': 'اقرأ',
   'Read ahead in the Library, and follow sites and channels in Sources.':
       'اقرأ المزيد في «المكتبة»، وتابع المواقع والقنوات في «المصادر».',
@@ -792,10 +963,13 @@ const arabicStrings = <String, String>{
   'Recently added': 'المضاف حديثاً',
   'Recently read': 'المقروء حديثاً',
   'Recommended': 'موصى به',
+  'Recovery quest': 'مهمة استعادة',
   'Recurrence': 'التكرار',
   'Refresh': 'تحديث',
   'Refreshing feeds…': 'جارٍ تحديث الخلاصات…',
   'Remind me at': 'ذكّرني في',
+  'Reminder': 'التذكير',
+  'Reminder at {time}': 'التذكير في {time}',
   'Reminders, the daily lesson, screen-time warnings and new articles.':
       'التذكيرات، والدرس اليومي، وتنبيهات وقت الشاشة، والمقالات الجديدة.',
   'Remove': 'إزالة',
@@ -850,11 +1024,13 @@ const arabicStrings = <String, String>{
   'Right to left': 'من اليمين إلى اليسار',
   'Ring color': 'لون الحلقة',
   'Ring track color': 'لون مسار الحلقة',
+  'Root cause': 'السبب الجذري',
   'RSS Feeds': 'خلاصات RSS',
   'Run in the background': 'العمل في الخلفية',
   'Russian': 'الروسية',
   'Sat': 'سبت',
   'Save': 'حفظ',
+  'Save +{xp} XP': 'حفظ +{xp} XP',
   'Save the full text and pictures of your articles to the phone, so you can read them with no connection — on a plane or abroad. Feeds are refreshed first.':
       'احفظ النص الكامل لمقالاتك وصورها على الهاتف لتقرأها دون اتصال — في الطائرة أو السفر. تُحدَّث الخلاصات أولاً.',
   'Saved': 'المحفوظة',
@@ -885,6 +1061,7 @@ const arabicStrings = <String, String>{
   'Season {s}': 'الموسم {s}',
   'Seconds': 'ثوانٍ',
   'Security questions, recovery codes…': 'أسئلة الأمان، رموز الاسترداد…',
+  'Security situation': 'الوضع الأمني',
   'See all': 'عرض الكل',
   'Select a date': 'اختر تاريخاً',
   'Select a time': 'اختر وقتاً',
@@ -899,6 +1076,8 @@ const arabicStrings = <String, String>{
   'Serif': 'مذيّل',
   'Set': 'مجموعة',
   'Set up': 'إعداد',
+  'Set up AI (free Gemini key) to talk':
+      'أعدّ الذكاء الاصطناعي (مفتاح Gemini مجاني) للتحدث',
   'Set up MyKit': 'إعداد MyKit',
   'Sets': 'المجموعات',
   'Sets in the last 7 days (helping muscles count half). Grey = not trained yet.':
@@ -920,6 +1099,7 @@ const arabicStrings = <String, String>{
   'Show tool tips again': 'إظهار نصائح الأدوات مجدداً',
   'Shuffle': 'تشغيل عشوائي',
   'Shuffle exercises': 'تبديل التمارين',
+  'Sick or in pain': 'مريض أو متألم',
   'Sign in': 'تسجيل الدخول',
   'Sign in with Google': 'تسجيل الدخول بـ Google',
   'Sign in with Google first.': 'سجّل الدخول بـ Google أولاً.',
@@ -929,6 +1109,8 @@ const arabicStrings = <String, String>{
   'Sign-in timed out. Please try again.':
       'انتهت مهلة تسجيل الدخول. حاول مرة أخرى.',
   'Skip': 'تخطٍّ',
+  'Something else': 'شيء آخر',
+  'Something happened around me': 'حدث شيء من حولي',
   'Something went wrong: {e}': 'حدث خطأ: {e}',
   'Song title': 'عنوان الأغنية',
   'Sort': 'الترتيب',
@@ -943,6 +1125,7 @@ const arabicStrings = <String, String>{
   'Spanish (LatAm)': 'الإسبانية (أمريكا اللاتينية)',
   'Specials': 'حلقات خاصة',
   'Specific date': 'تاريخ محدد',
+  'Spirit': 'الروح',
   'Start': 'ابدأ',
   'Start a different workout': 'ابدأ تمريناً آخر',
   'Start now anyway': 'ابدأ الآن على أي حال',
@@ -950,16 +1133,19 @@ const arabicStrings = <String, String>{
   'Start timer': 'ابدأ المؤقت',
   'Start using MyKit': 'ابدأ استخدام MyKit',
   'Start workout': 'ابدأ التمرين',
+  'Starting': 'البداية',
   'Starting weight': 'الوزن في البداية',
   'Step-by-step guide': 'دليل خطوة بخطوة',
   'Steps, pictures and muscles worked': 'الخطوات والصور والعضلات العاملة',
   'Stop': 'إيقاف',
   'Stopped. {saved} articles saved.': 'توقف. حُفظت {saved} مقالة.',
+  'Streak': 'السلسلة',
   'Streams': 'مصادر البث',
   'Streams come from Stremio add-ons. Cinemeta, Torrentio and OpenSubtitles are set up for you.':
       'يأتي البث من إضافات Stremio. Cinemeta وTorrentio وOpenSubtitles مُعدّة لك مسبقاً.',
   'Stremio add-ons: Torrentio streams, OpenSubtitles':
       'إضافات Stremio: بث Torrentio وترجمات OpenSubtitles',
+  'Strength': 'القوة',
   'stuck at {position}': 'متوقف عند {position}',
   'Subscribe': 'اشتراك',
   'Subtitles': 'الترجمة',
@@ -969,11 +1155,15 @@ const arabicStrings = <String, String>{
   'Summarize': 'تلخيص',
   'Summary': 'الملخص',
   'Sun': 'أحد',
+  'Swap an exercise in your workout → {to}': 'استبدال تمرين في تمرينك ← {to}',
   'Swap for': 'استبدال بـ',
   'Swap for a similar exercise': 'استبدال بتمرين مشابه',
   'Swipe an article right to save it. The brief view lets you swipe through articles one by one.':
       'اسحب المقالة إلى اليمين لحفظها. والعرض الموجز يتيح لك تصفح المقالات واحدة تلو الأخرى.',
   'Swipe page by page': 'اسحب صفحة صفحة',
+  'Talk': 'تحدّث',
+  'Talk to the System': 'تحدّث إلى النظام',
+  'Talk to the System?': 'تتحدث إلى النظام؟',
   'Tap "اشرح لي" (explain) under a lesson for word meanings and review questions.':
       'اضغط «اشرح لي» تحت الدرس لمعاني الكلمات وأسئلة المراجعة.',
   'Tap + to count down to a date, a number of days or an event from your calendar.':
@@ -992,6 +1182,8 @@ const arabicStrings = <String, String>{
       'اضغط Aa أثناء القراءة لصفحات داكنة أو بنية وطريقة التمرير.',
   'Target {target} · rest {restSeconds}s':
       'الهدف {target} · راحة {restSeconds} ث',
+  'Tell it something new': 'أخبره بشيء جديد',
+  'Tell the System…': 'أخبر النظام…',
   'Temporarily unavailable, will retry · {error}':
       'غير متاحة مؤقتاً، ستُعاد المحاولة · {error}',
   'Test & save': 'اختبار وحفظ',
@@ -999,6 +1191,8 @@ const arabicStrings = <String, String>{
   'Text color': 'لون النص',
   'Thai': 'التايلاندية',
   'That doesn\'t look like a valid URL.': 'لا يبدو هذا رابطاً صحيحاً.',
+  'That\'s outside your control: the day is excused, not a failure.':
+      'هذا خارج عن سيطرتك: اليوم معذور، وليس فشلاً.',
   'The address no longer returns a valid feed.':
       'لم يعد العنوان يعيد خلاصة صالحة.',
   'The connection dropped. Try again.': 'انقطع الاتصال. حاول مرة أخرى.',
@@ -1007,18 +1201,29 @@ const arabicStrings = <String, String>{
   'The CSV file will contain all your passwords in plain text. Anyone or any app that can read the file can read them. Use it only to move to another password manager, then delete it.':
       'سيحتوي ملف CSV على كل كلمات مرورك نصاً واضحاً. أي شخص أو تطبيق يقرأ الملف يمكنه قراءتها. استخدمه فقط للانتقال إلى مدير كلمات مرور آخر، ثم احذفه.',
   'The current password is wrong.': 'كلمة المرور الحالية خاطئة.',
+  'The feeling about it is the obstacle. Talk it through with the System, pair it with something you enjoy, and remember why you started.':
+      'الشعور تجاهها هو العائق. تحدّث عنه مع النظام، واربطها بشيء تستمتع به، وتذكّر لماذا بدأت.',
   'The first time you open a tool, a few tips show how it works. Settings (⚙ on the home screen) has the language, the setup checklist and backup.':
       'عند فتح أي أداة أول مرة، تظهر نصائح قصيرة تشرح طريقة عملها. وفي الإعدادات (⚙ في الشاشة الرئيسية) تجد اللغة وقائمة الإعداد والنسخ الاحتياطي.',
+  'The habit': 'العادة',
   'The key stays on this phone and in your own Drive backup. The free plan has a daily limit; MyKit uses very little of it.':
       'يبقى المفتاح على هذا الهاتف وفي نسختك الاحتياطية على Drive. للخطة المجانية حد يومي، ولا يستهلك MyKit منه إلا القليل.',
   'The new passwords don\'t match.': 'كلمتا المرور الجديدتان غير متطابقتين.',
   'The PDF, your progress and its bookmarks will be removed from MyKit.':
       'ستُزال ملف PDF وتقدّمك وعلاماته من MyKit.',
+  'THE PLAN': 'الخطة',
   'The saved vault is damaged.': 'الخزنة المحفوظة تالفة.',
   'The selected file could not be read.': 'تعذّرت قراءة الملف المحدد.',
+  'The System': 'النظام',
+  'The System updated your quest.': 'حدّث النظام مهمتك.',
+  'The tiny version takes 2 minutes and still counts. On bad days it keeps the habit alive — showing up matters more than size while it forms.':
+      'النسخة الصغيرة تأخذ دقيقتين وتُحسب. في الأيام السيئة تبقي العادة حيّة — فالحضور أهم من الحجم أثناء تكوّنها.',
   'The two passwords don\'t match.': 'كلمتا المرور غير متطابقتين.',
   'The vault is locked.': 'الخزنة مقفلة.',
   'The Verge': 'The Verge',
+  'then I will…': 'فسوف…',
+  'then {then}': 'فسوف {then}',
+  'there\'s no electricity': 'انقطعت الكهرباء',
   'These are fully blocked at this time, no extensions.':
       'تُحجب هذه تماماً في هذا الوقت، دون تمديد.',
   'Thinking…': 'جارٍ التفكير…',
@@ -1048,7 +1253,12 @@ const arabicStrings = <String, String>{
   'Thu': 'خميس',
   'Time': 'الوقت',
   'Time to train.': 'حان وقت التمرين.',
+  'Tiny': 'صغيرة',
+  'Tiny version (2 minutes)': 'النسخة الصغيرة (دقيقتان)',
+  'Tiny version done +{xp} XP': 'تمّت النسخة الصغيرة +{xp} XP',
+  'Tiny: {tiny}': 'الصغيرة: {tiny}',
   'Tips will show again': 'ستظهر النصائح مجدداً',
+  'Tired / no energy': 'متعب / بلا طاقة',
   'Title, or IMDb link / id': 'العنوان، أو رابط / معرّف IMDb',
   'To {0}': 'حتى {0}',
   'Today': 'اليوم',
@@ -1057,6 +1267,7 @@ const arabicStrings = <String, String>{
   'Today: {names}. Let\'s go!': 'اليوم: {names}. هيا بنا!',
   'Tomorrow': 'غداً',
   'Too easy to guess. Make it longer.': 'سهلة التخمين. اجعلها أطول.',
+  'Too hard / felt I can\'t': 'صعب جداً / شعرت أنني لا أستطيع',
   'Top level': 'المستوى الأعلى',
   'Torrent extensions need Aniyomi\'s torrent server, which MyKit doesn\'t include.':
       'تحتاج إضافات التورنت إلى خادم التورنت في Aniyomi، وهو غير موجود في MyKit.',
@@ -1072,6 +1283,7 @@ const arabicStrings = <String, String>{
   'Try again': 'حاول مرة أخرى',
   'Tue': 'ثلاثاء',
   'Turkish': 'التركية',
+  'Turn off': 'إيقاف',
   'Turn on': 'تفعيل',
   'Turn on "MyKit Screen time" in Accessibility first — that\'s how it counts time.':
       'فعّل «MyKit Screen time» في تسهيلات الاستخدام أولاً — فهكذا يحسب الوقت.',
@@ -1127,6 +1339,7 @@ const arabicStrings = <String, String>{
   'Vietnamese': 'الفيتنامية',
   'Waist, chest, arm, hips, thigh (cm)':
       'الخصر، الصدر، الذراع، الورك، الفخذ (سم)',
+  'waking up': 'الاستيقاظ',
   'Watch': 'شاهد',
   'Watch in YouTube': 'شاهد في يوتيوب',
   'Watch on YouTube': 'شاهد على يوتيوب',
@@ -1138,16 +1351,30 @@ const arabicStrings = <String, String>{
   'Wed': 'أربعاء',
   'Week': 'أسبوع',
   'Week streak': 'أسابيع متتالية',
+  'WEEKLY CHECK': 'الفحص الأسبوعي',
+  'Weekly check now': 'الفحص الأسبوعي الآن',
+  'Weekly checks': 'الفحوص الأسبوعية',
   'Weeks': 'أسابيع',
   'Weight': 'الوزن',
   'Weight (kg)': 'الوزن (كغ)',
   'Welcome to MyKit': 'مرحباً بك في MyKit',
   'Welcome tour': 'الجولة التعريفية',
+  'What doesn\'t': 'ما لا ينفع',
+  'WHAT GOT IN THE WAY': 'ما الذي عطّلك',
+  'What happened? (optional)': 'ماذا حدث؟ (اختياري)',
+  'What helps': 'ما يساعد',
   'What is on that day?': 'ما الذي في ذلك اليوم؟',
   'What is on this page?': 'ما الذي في هذه الصفحة؟',
+  'What the System knows': 'ما يعرفه النظام',
+  'WHAT THE SYSTEM UNDERSTANDS': 'ما يفهمه النظام',
+  'What will get in the way?': 'ما الذي سيعيقك؟',
+  'What will it bring you?': 'ماذا ستمنحك؟',
   'When a limit is reached the app or site is closed. You can take {extensionMinutes} more minutes after a {extensionWaitSeconds}-second wait, {extensionsPerDay}× a day per platform (not during focus hours). A notification warns you {warnMinutes} minutes before.':
       'عند بلوغ الحد يُغلق التطبيق أو الموقع. يمكنك أخذ {extensionMinutes} دقائق إضافية بعد انتظار {extensionWaitSeconds} ثانية، {extensionsPerDay} مرات يومياً لكل منصة (ليس في ساعات التركيز). ينبّهك إشعار قبل {warnMinutes} دقائق.',
   'When should the circle start decreasing?': 'متى تبدأ الدائرة بالتناقص؟',
+  'Where you are, your routine, power or internet, work, family, how you feel… The System uses it to understand your days.':
+      'أين أنت، روتينك، الكهرباء أو الإنترنت، العمل، العائلة، شعورك… يستخدم النظام ذلك لفهم أيامك.',
+  'Who you are becoming': 'من الذي ستصبحه',
   'Workout': 'تمرين',
   'Workout done 💪': 'انتهى التمرين 💪',
   'Workout history for it stays.': 'يبقى سجل التمارين الخاص به.',
@@ -1163,6 +1390,7 @@ const arabicStrings = <String, String>{
   'X Lite': 'إكس لايت',
   'Year': 'سنة',
   'Years': 'سنوات',
+  'YESTERDAY — NOT ANSWERED': 'الأمس — بلا إجابة',
   'You already follow this feed.': 'أنت تتابع هذه الخلاصة بالفعل.',
   'You can install it again later.': 'يمكنك تثبيتها مرة أخرى لاحقاً.',
   'Your anime library is empty.\nFind something in Browse and tap "Add to library".':
@@ -1177,8 +1405,12 @@ const arabicStrings = <String, String>{
   'Your library is empty': 'مكتبتك فارغة',
   'Your library is empty.\nFind something in Browse and tap "Add to library".':
       'مكتبتك فارغة.\nابحث عن شيء في «تصفّح» واضغط «إضافة إلى المكتبة».',
+  'YOUR LIFE': 'حياتك',
+  'Your life': 'حياتك',
   'Your master password encrypts the vault. Nobody can recover it, so remember it well.':
       'كلمة المرور الرئيسية تشفّر الخزنة. لا يستطيع أحد استعادتها، فاحفظها جيداً.',
+  'Your message is saved. The talk continues when you\'re back online.':
+      'رسالتك محفوظة. سيستمر الحديث حين تعود إلى الاتصال.',
   'Your notes': 'ملاحظاتك',
   'Your progress': 'تقدّمك',
   'Your reading and watching progress is saved automatically.':
@@ -1213,6 +1445,8 @@ const arabicStrings = <String, String>{
   '{done} of {total} done': 'أُنجز {done} من {total}',
   '{done} of {total} recommended steps done':
       'أُنجزت {done} من {total} من الخطوات الموصى بها',
+  '{done}/{total} quests today · Lv {level}':
+      '{done}/{total} مهام اليوم · المستوى {level}',
   '{host} answered {statusCode}.': 'ردّ {host} بـ {statusCode}.',
   '{host} sent an unexpected response.': 'أرسل {host} رداً غير متوقع.',
   '{h} h {m} min': '{h} س {m} د',
@@ -1238,6 +1472,8 @@ const arabicStrings = <String, String>{
   '{n} unread': '{n} غير مقروءة',
   '{n} were already in the vault.': '{n} كانت موجودة في الخزنة.',
   '{peers} peers': '{peers} قرين',
+  '{reason}. Only the tiny versions today, and misses are excused. Showing up at all counts.':
+      '{reason}. النسخ الصغيرة فقط اليوم، وما يفوتك معذور. مجرد الحضور يُحسب.',
   '{reps} reps': '{reps} تكرار',
   '{routineName} in progress': '{routineName} جارٍ',
   '{shelf} · {pages} pages · {size}': '{shelf} · {pages} صفحة · {size}',
@@ -1245,9 +1481,11 @@ const arabicStrings = <String, String>{
   '{time} today': '{time} اليوم',
   '{total} songs': '{total} أغنية',
   '{what} copied · clears in 30 s': 'نُسخ {what} · يُمسح بعد 30 ث',
+  '…keeps my body strong whatever happens': '…يحافظ على قوة جسده مهما حدث',
   '↓ {0}/s · {peers} peers': '↓ {0}/ث · {peers} قرين',
   '↓ {rate}/s · {peers} peers': '↓ {rate}/ث · {peers} قرين',
   '−{0} kg': '−{0} كغ',
+  '▸ Tiny: {tiny}': '▸ الصغيرة: {tiny}',
   '⬆ You held the full time last session — add 5–10 seconds.':
       '⬆ أكملت الوقت كاملاً في الجلسة الماضية — أضف 5–10 ثوانٍ.',
   '⬆ You hit {repsMax} reps on every set last time — add 1–2 kg today.':

@@ -154,6 +154,28 @@ const toolTips = <String, List<ToolTip>>{
           'Add focus hours to block apps completely at set times, like at night.',
     ),
   ],
+  'habits': [
+    (
+      icon: Icons.flag_outlined,
+      text:
+          'Each habit is a daily quest with a full and a tiny version. On bad days the tiny one is enough.',
+    ),
+    (
+      icon: Icons.shield_outlined,
+      text:
+          'Hard day (no power, travel, security…)? Turn on Hard day: misses are excused and only tiny versions count.',
+    ),
+    (
+      icon: Icons.forum_outlined,
+      text:
+          'Missed a quest? Tell the System why. It looks at your history, finds the real reason and adjusts the quest with you.',
+    ),
+    (
+      icon: Icons.speed,
+      text:
+          'Once a week, rate how automatic the habit feels. That — not streaks — is your rank, from E to S.',
+    ),
+  ],
   'knowledge': [
     (
       icon: Icons.menu_book_outlined,
