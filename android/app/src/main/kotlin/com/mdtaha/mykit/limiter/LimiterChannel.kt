@@ -45,6 +45,11 @@ class LimiterChannel(private val context: Context, messenger: BinaryMessenger) :
                 )
                 result.success(null)
             }
+            "setQuestLocks" -> {
+                store.saveQuestLocks(call.argument<String>("json") ?: "[]")
+                LimiterService.running?.refresh()
+                result.success(null)
+            }
             "setShortsActive" -> {
                 LimiterService.shortsActive = call.argument<Boolean>("active") == true
                 LimiterService.running?.refresh()

@@ -59,6 +59,10 @@ class LimiterNativeDataSource {
 
   Future<void> openSettings() => _channel.invokeMethod('openSettings');
 
+  /// Apps blocked until a habit quest is done today (from the System).
+  Future<void> setQuestLocks(String json) =>
+      _channel.invokeMethod('setQuestLocks', {'json': json});
+
   /// MyKit's Shorts player is open (counts toward YouTube).
   Future<void> setShortsActive(bool active) async {
     try {

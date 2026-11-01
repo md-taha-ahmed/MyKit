@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../storage/shared_preferences_provider.dart';
 import 'ar.dart';
@@ -41,6 +42,14 @@ abstract final class I18n {
     await initializeDateFormatting('en');
     await initializeDateFormatting('ar');
   }
+
+  /// The saved choice, outside the app's providers (background tasks).
+  static void applySaved(SharedPreferences prefs) => apply(
+    AppLanguage.values.firstWhere(
+      (l) => l.name == prefs.getString(AppLanguageNotifier._key),
+      orElse: () => AppLanguage.system,
+    ),
+  );
 
   static void apply(AppLanguage language) {
     _arabic = language.resolvesToArabic;

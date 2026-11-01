@@ -34,9 +34,11 @@ void main() {
   });
 
   test('reads the estimate, even wrapped in text', () {
-    final e = FoodEstimator.parse('''
+    final e = FoodEstimator.parse(
+      '''
 Here you go:
-{"items":[{"name":"سلتة","amount":"1 bowl","kcal":420},{"name":"Bread","amount":"2","kcal":360}],"note":"Assumed ghee."}''');
+{"items":[{"name":"سلتة","amount":"1 bowl","kcal":420},{"name":"Bread","amount":"2","kcal":360}],"note":"Assumed ghee."}''',
+    );
     expect(e.items, hasLength(2));
     expect(e.total, 780);
     expect(e.note, 'Assumed ghee.');

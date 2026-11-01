@@ -180,6 +180,16 @@ const toolTips = <String, List<ToolTip>>{
       text:
           'Once a week, rate how automatic the habit feels. That — not streaks — is your rank, from E to S.',
     ),
+    (
+      icon: Icons.medical_services_outlined,
+      text:
+          'Write your aid kit: for each feeling, what helps you. Tap "I feel…" when it hits.',
+    ),
+    (
+      icon: Icons.checklist,
+      text:
+          'Your to-do list lives here too. The System sees it and can add tasks for you.',
+    ),
   ],
   'knowledge': [
     (

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -8,11 +10,16 @@ import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../../fitness/domain/entities/fitness_entities.dart';
 import '../../../fitness/presentation/providers/fitness_providers.dart';
 import '../../../fitness/presentation/widgets/exercise_options.dart';
+import '../../../fitness/presentation/providers/food_providers.dart';
+import '../../../limiter/presentation/providers/limiter_providers.dart';
+import '../../data/app_signals.dart';
+import '../../data/nudges.dart';
 import '../../data/habit_coach.dart';
 import '../../data/habit_notifications.dart';
 import '../../data/habit_store.dart';
 import '../../domain/habit_analysis.dart';
 import '../../domain/habit_models.dart';
+import '../../domain/patterns.dart';
 
 /// Solo Leveling "System" blue.
 const habitsAccent = Color(0xFF4FC3F7);
@@ -35,6 +42,12 @@ class HabitsState {
     this.life = const LifeContext(),
     this.hardDays = const [],
     this.talks = const {},
+    this.tasks = const [],
+    this.aidKit = const [],
+    this.aidUses = const [],
+    this.days = const [],
+    this.reviews = const [],
+    this.flags = const {},
   });
 
   final List<Habit> habits;
@@ -45,6 +58,43 @@ class HabitsState {
   final LifeContext life;
   final List<HardDay> hardDays;
   final Map<String, List<CoachMessage>> talks;
+  final List<HabitTask> tasks;
+  final List<AidEntry> aidKit;
+  final List<AidUse> aidUses;
+
+  /// Day snapshots across the app, newest first.
+  final List<DaySnapshot> days;
+  final List<WeeklyReview> reviews;
+  final Map<String, String> flags;
+
+  List<DayPattern> get patterns => DayPatterns.find(days);
+
+  /// A week since the last review, and a week of data.
+  bool get reviewDue =>
+      days.length >= 5 &&
+      (reviews.isEmpty ||
+          DateTime.now().difference(reviews.first.date).inDays >= 7);
+
+  List<HabitTask> get openTasks =>
+      tasks.where((t) => !t.done).toList()..sort(_byDue);
+
+  static int _byDue(HabitTask a, HabitTask b) {
+    if (a.due == b.due) return a.createdAt.compareTo(b.createdAt);
+    if (a.due == null) return 1;
+    if (b.due == null) return -1;
+    return a.due!.compareTo(b.due!);
+  }
+
+  /// How often an aid-kit action helped: (helped, rated).
+  ({int helped, int rated}) aidScore(String actionId) {
+    var helped = 0, rated = 0;
+    for (final u in aidUses) {
+      if (u.actionId != actionId || u.helped == null) continue;
+      rated++;
+      if (u.helped!) helped++;
+    }
+    return (helped: helped, rated: rated);
+  }
 
   List<Habit> get active => habits.where((h) => !h.archived).toList();
 
@@ -86,6 +136,12 @@ class HabitsState {
     LifeContext? life,
     List<HardDay>? hardDays,
     Map<String, List<CoachMessage>>? talks,
+    List<HabitTask>? tasks,
+    List<AidEntry>? aidKit,
+    List<AidUse>? aidUses,
+    List<DaySnapshot>? days,
+    List<WeeklyReview>? reviews,
+    Map<String, String>? flags,
   }) => HabitsState(
     habits: habits ?? this.habits,
     checks: checks ?? this.checks,
@@ -95,8 +151,17 @@ class HabitsState {
     life: life ?? this.life,
     hardDays: hardDays ?? this.hardDays,
     talks: talks ?? this.talks,
+    tasks: tasks ?? this.tasks,
+    aidKit: aidKit ?? this.aidKit,
+    aidUses: aidUses ?? this.aidUses,
+    days: days ?? this.days,
+    reviews: reviews ?? this.reviews,
+    flags: flags ?? this.flags,
   );
 }
+
+/// The id of whole-day talks (not about one quest).
+const dayTalkId = '_day';
 
 final habitsProvider = NotifierProvider<HabitsNotifier, HabitsState>(
   HabitsNotifier.new,
@@ -113,6 +178,9 @@ class HabitsNotifier extends Notifier<HabitsState> {
     Future.microtask(() {
       _syncWorkouts(ref.read(sessionsProvider));
       _schedule();
+      Nudges.sync(enabled: Nudges.enabled(ref.read(sharedPreferencesProvider)));
+      _syncLocks();
+      recordDays();
     });
     return HabitsState(
       habits: s.habits,
@@ -123,7 +191,298 @@ class HabitsNotifier extends Notifier<HabitsState> {
       life: s.life,
       hardDays: s.hardDays,
       talks: s.talks,
+      tasks: s.tasks,
+      aidKit: s.aidKit,
+      aidUses: s.aidUses,
+      days: s.days,
+      reviews: s.reviews,
+      flags: s.flags,
     );
+  }
+
+  // Day snapshots (v2) -------------------------------------------------------
+
+  /// Records today and the last two weeks from every tool, with Screen time
+  /// minutes, so patterns have data even before you open the System.
+  Future<void> recordDays() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final now = DateTime.now();
+    Map<String, int> social = const {};
+    try {
+      final status = await ref.read(limiterNativeProvider).status();
+      final groups = ref.read(limiterSettingsProvider).groups;
+      social = {
+        for (final e in status.usage.entries)
+          e.key: groups.fold(0, (s, g) => s + (e.value[g.id] ?? 0)) ~/ 60,
+      };
+    } catch (_) {}
+    final target = ref.read(calorieTargetProvider).target;
+    final byDay = {for (final d in state.days) d.day: d};
+    final moods = <String, List<int>>{};
+    for (final c in state.checks) {
+      if (c.mood != null) moods.putIfAbsent(c.day, () => []).add(c.mood!);
+    }
+    for (var i = 0; i < 14; i++) {
+      final date = now.subtract(Duration(days: i));
+      final s = AppSignals.read(prefs, now: date);
+      final m = moods[s.day];
+      byDay[s.day] = DaySnapshot(
+        day: s.day,
+        socialMinutes: social[s.day] ?? byDay[s.day]?.socialMinutes,
+        kcal: s.kcal,
+        // Only today's target is known for sure.
+        kcalTarget: i == 0 ? target : byDay[s.day]?.kcalTarget ?? target,
+        meals: s.meals.length,
+        lessonRead: s.lessonRead,
+        workoutPlanned: s.workoutPlanned != null,
+        workoutDone: s.workoutDone,
+        questsDue: s.questsDue,
+        questsDone: state.checks
+            .where((c) => c.day == s.day && c.done)
+            .length
+            .clamp(0, s.questsDue),
+        mood: m == null || m.isEmpty
+            ? null
+            : m.reduce((a, b) => a + b) / m.length,
+        hard: state.hardDayKeys.contains(s.day),
+      );
+    }
+    final days = byDay.values.toList()..sort((a, b) => b.day.compareTo(a.day));
+    state = state.copyWith(days: days);
+    await _store.saveDays(days);
+  }
+
+  /// Today's signals that look off compared to your usual.
+  List<String> todayFlags() {
+    final today = state.days.where((d) => d.day == habitDay(DateTime.now()));
+    if (today.isEmpty) return const [];
+    final d = today.first;
+    final usual = DayPatterns.usualSocial(state.days.skip(1).toList());
+    return [
+      if (usual != null && DayPatterns.heavy(d, usual))
+        tr('{n} min of social media ({x}× your usual)', {
+          'n': d.socialMinutes,
+          'x': (d.socialMinutes! / usual).toStringAsFixed(1),
+        }),
+      if (d.kcalTarget != null && d.kcal > d.kcalTarget! * 1.15)
+        tr('Ate {n} kcal over your target', {'n': d.kcal - d.kcalTarget!}),
+      if (d.workoutPlanned && !d.workoutDone && DateTime.now().hour >= 20)
+        tr('Workout not done'),
+      if (d.mood != null && d.mood! <= 2) tr('Low mood'),
+    ];
+  }
+
+  // Flags --------------------------------------------------------------------
+
+  Future<void> setFlag(String key, String value) async {
+    final flags = {...state.flags, key: value};
+    state = state.copyWith(flags: flags);
+    await _store.saveFlags(flags);
+  }
+
+  // Weekly review (v3) -------------------------------------------------------
+
+  Future<WeeklyReview> weeklyReview() async {
+    await recordDays();
+    final coach = HabitCoach(ref.read(geminiClientProvider));
+    final r = await coach.weeklyReview(
+      context: _weekContext(),
+      arabic: I18n.isArabic,
+    );
+    final reviews = [r, ...state.reviews];
+    state = state.copyWith(reviews: reviews);
+    await _store.saveReviews(reviews);
+    return r;
+  }
+
+  String _weekContext() {
+    final b = StringBuffer()
+      ..writeln(
+        'LIFE CONTEXT: ${state.life.summary.isEmpty ? '(not told)' : state.life.summary}',
+      )
+      ..writeln('LAST 7 DAYS ACROSS THE APP (newest first):');
+    final usual = DayPatterns.usualSocial(state.days);
+    for (final d in state.days.take(7)) {
+      b.writeln(
+        '  ${d.day}: social ${d.socialMinutes ?? '?'} min'
+        '${usual == null ? '' : ' (usual $usual)'}, food ${d.kcal}'
+        '${d.kcalTarget == null ? '' : '/${d.kcalTarget}'} kcal (${d.meals} meals), '
+        'workout ${d.workoutPlanned ? (d.workoutDone ? 'done' : 'skipped') : 'rest'}, '
+        'lesson ${d.lessonRead ? 'read' : 'no'}, quests ${d.questsDone}/${d.questsDue}'
+        '${d.mood == null ? '' : ', mood ${d.mood!.toStringAsFixed(1)}'}'
+        '${d.hard ? ', HARD DAY' : ''}',
+      );
+    }
+    final since = habitDay(DateTime.now().subtract(const Duration(days: 7)));
+    for (final h in state.active) {
+      final week = state.checks.where(
+        (c) => c.habitId == h.id && c.day.compareTo(since) > 0,
+      );
+      final reasons = HabitAnalysis.reasons(week);
+      final u = state.understanding[h.id];
+      b.writeln(
+        'QUEST ${h.name}: ${week.where((c) => c.done).length} done, '
+        '${week.where((c) => c.status == CheckStatus.missed).length} missed'
+        '${reasons.isEmpty ? '' : ' (${reasons.map((r) => '${r.$1.name}×${r.$2}').join(', ')})'}'
+        '${u == null || u.rootCause.isEmpty ? '' : '; understood: ${u.rootCause}'}',
+      );
+    }
+    for (final p in state.patterns) {
+      b.writeln(
+        'PATTERN: ${p.text}: ${(p.onHeavy * 100).round()}% on heavy-scrolling days vs ${(p.onNormal * 100).round()}% otherwise (${p.heavyDays}/${p.normalDays} days)',
+      );
+    }
+    final aid = state.aidUses.where(
+      (u) => DateTime.now().difference(u.at).inDays < 7,
+    );
+    if (aid.isNotEmpty) {
+      b.writeln(
+        'AID KIT USED ${aid.length}× this week (${aid.where((u) => u.helped == true).length} helped)',
+      );
+    }
+    final day = state.understanding[dayTalkId];
+    if (day != null && day.rootCause.isNotEmpty) {
+      b.writeln('DOWN-DAY PATTERN: ${day.rootCause}; helps: ${day.helps}');
+    }
+    return b.toString();
+  }
+
+  // Quest locks (v3) ---------------------------------------------------------
+
+  /// Tells Screen time which apps stay blocked until a quest is done today.
+  Future<void> _syncLocks() async {
+    final locked = state.active.where((h) => h.lockGroups.isNotEmpty);
+    final now = DateTime.now();
+    final recent = {
+      for (var i = 0; i < 2; i++) habitDay(now.subtract(Duration(days: i))),
+    };
+    final locks = [
+      for (final h in locked)
+        {
+          'name': h.name,
+          'groups': h.lockGroups,
+          'weekdays': h.weekdays.toList(),
+          'done': [
+            for (final d in recent)
+              if (_cleared(h.id, d)) d,
+          ],
+        },
+    ];
+    try {
+      await ref.read(limiterNativeProvider).setQuestLocks(jsonEncode(locks));
+    } catch (_) {}
+  }
+
+  /// Done, excused or a hard day: the lock is off.
+  bool _cleared(String habitId, String day) {
+    final c = state.checksOf(habitId)[day];
+    return (c != null && (c.done || c.status == CheckStatus.excused)) ||
+        state.hardDayKeys.contains(day);
+  }
+
+  /// Moves a habit's reminder to when you actually do it.
+  Future<void> moveReminder(String habitId, int minutes) async {
+    final h = state.habit(habitId);
+    if (h != null) await save(h.copyWith(reminderMinutes: minutes));
+  }
+
+  // Tasks --------------------------------------------------------------------
+
+  Future<void> _saveTasks(List<HabitTask> tasks) async {
+    state = state.copyWith(tasks: tasks);
+    await _store.saveTasks(tasks);
+  }
+
+  Future<void> addTask(
+    String title, {
+    String? due,
+    String note = '',
+    bool fromSystem = false,
+  }) => _saveTasks([
+    ...state.tasks,
+    HabitTask(
+      id: newId(),
+      title: title.trim(),
+      note: note,
+      due: due,
+      createdAt: DateTime.now(),
+      fromSystem: fromSystem,
+    ),
+  ]);
+
+  Future<void> updateTask(HabitTask t) =>
+      _saveTasks([for (final x in state.tasks) x.id == t.id ? t : x]);
+
+  Future<void> toggleTask(String id) => _saveTasks([
+    for (final t in state.tasks)
+      if (t.id == id)
+        t.done
+            ? t.copyWith(clearDone: true)
+            : t.copyWith(doneAt: DateTime.now())
+      else
+        t,
+  ]);
+
+  Future<void> deleteTask(String id) =>
+      _saveTasks(state.tasks.where((t) => t.id != id).toList());
+
+  // Aid kit ------------------------------------------------------------------
+
+  Future<void> _saveAid(List<AidEntry> kit) async {
+    state = state.copyWith(aidKit: kit);
+    await _store.saveAidKit(kit);
+  }
+
+  Future<AidEntry> addAidEntry(String feeling, String emoji) async {
+    final e = AidEntry(id: newId(), feeling: feeling.trim(), emoji: emoji);
+    await _saveAid([...state.aidKit, e]);
+    return e;
+  }
+
+  Future<void> updateAidEntry(AidEntry e) =>
+      _saveAid([for (final x in state.aidKit) x.id == e.id ? e : x]);
+
+  Future<void> deleteAidEntry(String id) =>
+      _saveAid(state.aidKit.where((e) => e.id != id).toList());
+
+  Future<void> addAidAction(String entryId, String text) async {
+    final e = state.aidKit.where((x) => x.id == entryId).firstOrNull;
+    if (e == null || text.trim().isEmpty) return;
+    await updateAidEntry(
+      e.copyWith(actions: [...e.actions, AidAction(newId(), text.trim())]),
+    );
+  }
+
+  Future<void> removeAidAction(String entryId, String actionId) async {
+    final e = state.aidKit.where((x) => x.id == entryId).firstOrNull;
+    if (e == null) return;
+    await updateAidEntry(
+      e.copyWith(actions: e.actions.where((a) => a.id != actionId).toList()),
+    );
+  }
+
+  /// You did an action; returns its index in the log to rate it later.
+  Future<void> useAid(String entryId, String actionId, {bool? helped}) async {
+    final uses = [
+      AidUse(
+        entryId: entryId,
+        actionId: actionId,
+        at: DateTime.now(),
+        helped: helped,
+      ),
+      ...state.aidUses,
+    ];
+    state = state.copyWith(aidUses: uses);
+    await _store.saveAidUses(uses);
+  }
+
+  /// Rates the latest use of [actionId].
+  Future<void> rateAid(String actionId, bool helped) async {
+    final i = state.aidUses.indexWhere((u) => u.actionId == actionId);
+    if (i < 0) return;
+    final uses = [...state.aidUses]..[i] = state.aidUses[i].withHelped(helped);
+    state = state.copyWith(aidUses: uses);
+    await _store.saveAidUses(uses);
   }
 
   // Habits -------------------------------------------------------------------
@@ -136,6 +495,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
     state = state.copyWith(habits: habits);
     await _store.saveHabits(habits);
     await _schedule();
+    await _syncLocks();
     return h;
   }
 
@@ -189,6 +549,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
     ];
     state = state.copyWith(checks: checks);
     await _store.saveCheckIns(checks);
+    await _syncLocks();
   }
 
   Future<void> clearCheck(String habitId, String day) async {
@@ -197,6 +558,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
         .toList();
     state = state.copyWith(checks: checks);
     await _store.saveCheckIns(checks);
+    await _syncLocks();
   }
 
   Future<void> _syncWorkouts(List<WorkoutSession> sessions) async {
@@ -245,6 +607,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
     ]..sort((a, b) => b.day.compareTo(a.day));
     state = state.copyWith(hardDays: days);
     await _store.saveHardDays(days);
+    await _syncLocks();
   }
 
   // Weekly check & life context ----------------------------------------------
@@ -339,9 +702,47 @@ class HabitsNotifier extends Notifier<HabitsState> {
   Future<CoachReply> retry(String habitId) => _ask(habitId);
 
   Future<CoachReply> _ask(String habitId) async {
-    final habit = state.habit(habitId)!;
     final talk = state.talks[habitId] ?? const <CoachMessage>[];
     final coach = HabitCoach(ref.read(geminiClientProvider));
+    if (habitId == dayTalkId) {
+      await recordDays();
+      final reply = await coach.reply(
+        context: HabitCoach.dayContext(
+          acrossApp: await todayAcrossApp(),
+          days: state.days,
+          patterns: state.patterns,
+          understanding:
+              state.understanding[dayTalkId] ?? const HabitUnderstanding(),
+          life: state.life,
+          notes: state.notesOf(dayTalkId),
+          quests: [
+            for (final h in state.active)
+              (
+                name: h.name,
+                today: state
+                    .checksOf(h.id)[habitDay(DateTime.now())]
+                    ?.status
+                    .name,
+                rootCause: state.understanding[h.id]?.rootCause ?? '',
+              ),
+          ],
+          tasks: state.tasks,
+          aidKit: state.aidKit,
+          aidScore: state.aidScore,
+        ),
+        talk: talk,
+        arabic: I18n.isArabic,
+        aboutDay: true,
+      );
+      if (reply.text.isNotEmpty) {
+        await _setTalk(habitId, [
+          ...talk,
+          CoachMessage(fromUser: false, text: reply.text),
+        ]);
+      }
+      return reply;
+    }
+    final habit = state.habit(habitId)!;
     final reply = await coach.reply(
       context: HabitCoach.context(
         habit: habit,
@@ -353,6 +754,12 @@ class HabitsNotifier extends Notifier<HabitsState> {
         hardDays: state.hardDayKeys,
         weekly: state.weeklyOf(habitId),
         workout: habit.link == 'fitness' ? await workoutContext() : null,
+        acrossApp: await todayAcrossApp(),
+        tasks: state.tasks,
+        aidKit: state.aidKit,
+        aidScore: state.aidScore,
+        dayPattern: state.understanding[dayTalkId],
+        dayNotes: state.notesOf(dayTalkId),
       ),
       talk: talk,
       arabic: I18n.isArabic,
@@ -373,9 +780,10 @@ class HabitsNotifier extends Notifier<HabitsState> {
     List<CoachChange> accepted,
   ) async {
     var habit = state.habit(habitId);
-    if (habit == null) return;
+    if (habit == null && habitId != dayTalkId) return;
     final described = <String>[];
     for (final c in accepted) {
+      if (habit == null && !{'task', 'aid'}.contains(c.type)) continue;
       switch (c.type) {
         case 'tiny' when c.data['text'] is String:
           habit = habit!.copyWith(tiny: c.data['text'] as String);
@@ -411,9 +819,28 @@ class HabitsNotifier extends Notifier<HabitsState> {
         case 'swap_exercise':
           final ok = await _swapExercise(c.data);
           if (ok != null) described.add(ok);
+        case 'task' when c.data['title'] is String:
+          final due = c.data['due'];
+          await addTask(
+            c.data['title'] as String,
+            due: due is String && RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(due)
+                ? due
+                : null,
+            fromSystem: true,
+          );
+          described.add('task: ${c.data['title']}');
+        case 'aid'
+            when c.data['feeling'] is String && c.data['action'] is String:
+          final feeling = (c.data['feeling'] as String).trim();
+          var entry = state.aidKit
+              .where((e) => e.feeling.toLowerCase() == feeling.toLowerCase())
+              .firstOrNull;
+          entry ??= await addAidEntry(feeling, '🩹');
+          await addAidAction(entry.id, c.data['action'] as String);
+          described.add('aid kit: $feeling → ${c.data['action']}');
       }
     }
-    await save(habit!);
+    if (habit != null) await save(habit);
     final notes = [
       ...state.notes,
       CoachNote(
@@ -505,6 +932,31 @@ class HabitsNotifier extends Notifier<HabitsState> {
             ],
           ),
       ],
+    );
+  }
+
+  /// Today in the rest of the app, with the calorie target and social-media
+  /// minutes compared to your usual.
+  Future<String> todayAcrossApp() async {
+    final signals = AppSignals.read(ref.read(sharedPreferencesProvider));
+    int? minutes, usual;
+    try {
+      final status = await ref.read(limiterNativeProvider).status();
+      final groups = ref.read(limiterSettingsProvider).groups;
+      int total(Map<String, int> day) =>
+          groups.fold(0, (s, g) => s + (day[g.id] ?? 0)) ~/ 60;
+      final now = DateTime.now();
+      minutes = total(status.day(now));
+      final past = [
+        for (var i = 1; i <= 7; i++)
+          total(status.day(now.subtract(Duration(days: i)))),
+      ].where((m) => m > 0).toList();
+      if (past.isNotEmpty) usual = past.reduce((a, b) => a + b) ~/ past.length;
+    } catch (_) {}
+    return signals.describe(
+      kcalTarget: ref.read(calorieTargetProvider).target,
+      socialMinutes: minutes,
+      socialUsual: usual,
     );
   }
 

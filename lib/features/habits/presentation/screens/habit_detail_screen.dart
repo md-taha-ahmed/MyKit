@@ -6,6 +6,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/habit_analysis.dart';
 import '../../domain/habit_models.dart';
+import '../../domain/patterns.dart';
 import '../../habits_routes.dart';
 import '../providers/habit_providers.dart';
 import '../widgets/habit_widgets.dart';
@@ -122,6 +123,42 @@ class HabitDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (DayPatterns.typicalTime(checks.values) case final typical?
+              when habit.reminderMinutes != null &&
+                  (typical - habit.reminderMinutes!).abs() >= 60)
+            SystemPanel(
+              title: tr('[SYSTEM] BETTER REMINDER TIME'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    tr(
+                      'You usually do it around {typical}, but the reminder is at {reminder}. Reminders work best right before you actually do it.',
+                      {
+                        'typical': _hhmm(typical),
+                        'reminder': _hhmm(habit.reminderMinutes!),
+                      },
+                    ),
+                    style: const TextStyle(height: 1.45),
+                  ),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton(
+                      onPressed: () => notifier.moveReminder(
+                        habitId,
+                        // A little before you usually do it.
+                        (typical - 15).clamp(0, 1439),
+                      ),
+                      child: Text(
+                        tr('Move to {time}', {
+                          'time': _hhmm((typical - 15).clamp(0, 1439)),
+                        }),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Row(
             children: [
               _Number(tr('Streak'), '$streak'),
@@ -314,6 +351,9 @@ class HabitDetailScreen extends ConsumerWidget {
     );
   }
 }
+
+String _hhmm(int m) =>
+    '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
 
 class _Number extends StatelessWidget {
   const _Number(this.label, this.value);

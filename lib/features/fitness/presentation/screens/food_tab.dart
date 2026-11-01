@@ -90,32 +90,23 @@ class FoodTab extends ConsumerWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: fitnessAccent,
-                  foregroundColor: Colors.black,
-                ),
-                onPressed: () => _photo(context, ref),
-                icon: const Icon(Icons.photo_camera_outlined),
-                label: Text(tr('Photo')),
-              ),
+            _AddTile(
+              icon: Icons.photo_camera_outlined,
+              label: tr('Photo'),
+              filled: true,
+              onTap: () => _photo(context, ref),
             ),
             const SizedBox(width: 8),
-            Expanded(
-              child: FilledButton.tonalIcon(
-                onPressed: () => _describe(context, ref),
-                icon: const Icon(Icons.auto_awesome_outlined),
-                label: Text(tr('Describe')),
-              ),
+            _AddTile(
+              icon: Icons.auto_awesome_outlined,
+              label: tr('Describe'),
+              onTap: () => _describe(context, ref),
             ),
             const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _manual(context, ref),
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(tr('Manual')),
-              ),
+            _AddTile(
+              icon: Icons.edit_outlined,
+              label: tr('Manual'),
+              onTap: () => _manual(context, ref),
             ),
           ],
         ),
@@ -398,6 +389,57 @@ class FoodTab extends ConsumerWidget {
         showDragHandle: true,
         builder: (_) => const _TargetSheet(),
       );
+}
+
+/// An "add food" button: icon above a short label, so it never squeezes.
+class _AddTile extends StatelessWidget {
+  const _AddTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.filled = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = filled ? Colors.black : fitnessAccent;
+    return Expanded(
+      child: Material(
+        color: filled ? fitnessAccent : fitnessAccent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: fg),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: fg,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 typedef _Reviewed = ({List<EstimatedItem> items, Meal meal});

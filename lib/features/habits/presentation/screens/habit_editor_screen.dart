@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../limiter/presentation/providers/limiter_providers.dart';
 import '../../domain/habit_models.dart';
 import '../providers/habit_providers.dart';
 import '../widgets/habit_widgets.dart';
@@ -38,6 +39,8 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   late int? _reminder = _old == null ? 8 * 60 : _old.reminderMinutes;
   late final List<IfThen> _obstacles = [...?_old?.obstacles];
   late bool _workout = _old?.link == 'fitness';
+  late bool _breaking = _old?.breaking ?? false;
+  late Set<String> _lock = {...?_old?.lockGroups};
 
   static const _weekdays = [6, 7, 1, 2, 3, 4, 5];
 
@@ -81,6 +84,8 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       link: _workout ? 'fitness' : null,
       createdAt: _old?.createdAt ?? DateTime.now(),
       archived: _old?.archived ?? false,
+      breaking: _breaking,
+      lockGroups: _lock.toList(),
     );
     if (_reminder != null) {
       await ref.read(habitNotificationsProvider).requestPermission();
@@ -137,7 +142,18 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                     hintText: tr('e.g. Read Quran, Workout, Study English'),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(tr('It\'s a habit I want to stop')),
+                  subtitle: Text(
+                    tr(
+                      'Like scrolling at night. Check-ins become "Stayed clean" or "Slipped".',
+                    ),
+                  ),
+                  value: _breaking,
+                  onChanged: (v) => setState(() => _breaking = v),
+                ),
+                const SizedBox(height: 4),
                 Wrap(
                   spacing: 6,
                   children: [
@@ -331,6 +347,32 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                   decoration: InputDecoration(
                     labelText: tr('Only while doing it, I enjoy…'),
                   ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  tr('Quest lock: block these until this quest is done today'),
+                  style: const TextStyle(fontSize: 13.5),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    for (final g in ref.watch(limiterSettingsProvider).groups)
+                      FilterChip(
+                        label: Text(g.name),
+                        selected: _lock.contains(g.id),
+                        onSelected: (on) => setState(() {
+                          _lock = {..._lock};
+                          on ? _lock.add(g.id) : _lock.remove(g.id);
+                        }),
+                      ),
+                  ],
+                ),
+                Text(
+                  tr(
+                    'Needs Screen time turned on. Hard days and excused days unlock it.',
+                  ),
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,

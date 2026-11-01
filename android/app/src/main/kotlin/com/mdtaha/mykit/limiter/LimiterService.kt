@@ -179,6 +179,7 @@ class LimiterService : AccessibilityService() {
 
     private fun shouldBlock(group: LimitGroup): Boolean {
         if (inFocus(group)) return true
+        if (store.questLock(group.id) != null) return true
         if (store.extensionActive(group.id)) return false
         return store.secondsToday(group.id) >= group.limitMinutes * 60
     }
@@ -192,7 +193,7 @@ class LimiterService : AccessibilityService() {
     private fun block(group: LimitGroup) {
         if (overlay.showing) return
         store.flush()
-        overlay.show(group, inFocus(group))
+        overlay.show(group, inFocus(group), store.questLock(group.id))
     }
 
     private fun createChannel() {

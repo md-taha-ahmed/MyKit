@@ -1,6 +1,7 @@
 import 'package:workmanager/workmanager.dart';
 
 import '../features/backup/data/services/backup_scheduler.dart';
+import '../features/habits/data/nudges.dart';
 import '../features/knowledge/data/source_check_task.dart';
 
 /// Once, in `main()`. Android allows one WorkManager entry point per app, so
@@ -15,6 +16,7 @@ void backgroundTaskDispatcher() {
     (task, input) => switch (task) {
       BackupScheduler.task => runBackupTask(),
       SourceCheckScheduler.task => runSourceCheck(),
+      Nudges.task => Nudges.run(),
       _ => Future.value(true),
     },
   );

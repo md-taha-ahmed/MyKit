@@ -55,11 +55,19 @@ class Habit {
     this.pairing = '',
     this.link,
     this.archived = false,
+    this.breaking = false,
+    this.lockGroups = const [],
   });
 
   final String id;
   final String name;
   final HabitStat stat;
+
+  /// A habit to stop (scrolling at night…): "Clean" / "Slipped".
+  final bool breaking;
+
+  /// Screen time platforms blocked until this quest is done today.
+  final List<String> lockGroups;
 
   /// "I'm someone who …" (who this habit makes you).
   final String identity;
@@ -107,6 +115,8 @@ class Habit {
     String? link,
     bool clearLink = false,
     bool? archived,
+    bool? breaking,
+    List<String>? lockGroups,
   }) => Habit(
     id: id,
     name: name ?? this.name,
@@ -125,11 +135,15 @@ class Habit {
     link: clearLink ? null : link ?? this.link,
     createdAt: createdAt,
     archived: archived ?? this.archived,
+    breaking: breaking ?? this.breaking,
+    lockGroups: lockGroups ?? this.lockGroups,
   );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
+    if (breaking) 'breaking': true,
+    if (lockGroups.isNotEmpty) 'lock': lockGroups,
     'stat': stat.name,
     'identity': identity,
     'outcome': outcome,
@@ -169,6 +183,8 @@ class Habit {
       (j['created'] as num).toInt(),
     ),
     archived: j['archived'] == true,
+    breaking: j['breaking'] == true,
+    lockGroups: ((j['lock'] as List?) ?? const []).cast<String>(),
   );
 }
 
@@ -455,4 +471,271 @@ class HabitUnderstanding {
           _ => null,
         },
       );
+}
+
+/// A to-do. It can come from you or be suggested by the System.
+class HabitTask {
+  const HabitTask({
+    required this.id,
+    required this.title,
+    required this.createdAt,
+    this.note = '',
+    this.due,
+    this.doneAt,
+    this.fromSystem = false,
+  });
+
+  final String id;
+  final String title;
+  final String note;
+
+  /// yyyy-mm-dd, or none.
+  final String? due;
+  final DateTime createdAt;
+  final DateTime? doneAt;
+  final bool fromSystem;
+
+  bool get done => doneAt != null;
+
+  bool overdue(DateTime now) =>
+      !done && due != null && due!.compareTo(habitDay(now)) < 0;
+
+  HabitTask copyWith({
+    String? title,
+    String? note,
+    String? due,
+    bool clearDue = false,
+    DateTime? doneAt,
+    bool clearDone = false,
+  }) => HabitTask(
+    id: id,
+    title: title ?? this.title,
+    note: note ?? this.note,
+    due: clearDue ? null : due ?? this.due,
+    createdAt: createdAt,
+    doneAt: clearDone ? null : doneAt ?? this.doneAt,
+    fromSystem: fromSystem,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    't': title,
+    if (note.isNotEmpty) 'n': note,
+    'due': ?due,
+    'c': createdAt.millisecondsSinceEpoch,
+    'done': ?doneAt?.millisecondsSinceEpoch,
+    if (fromSystem) 'sys': true,
+  };
+
+  static HabitTask fromJson(Map<String, dynamic> j) => HabitTask(
+    id: j['id'] as String,
+    title: j['t'] as String,
+    note: j['n'] as String? ?? '',
+    due: j['due'] as String?,
+    createdAt: DateTime.fromMillisecondsSinceEpoch((j['c'] as num).toInt()),
+    doneAt: switch (j['done']) {
+      final num n => DateTime.fromMillisecondsSinceEpoch(n.toInt()),
+      _ => null,
+    },
+    fromSystem: j['sys'] == true,
+  );
+}
+
+/// Something that helps when a feeling hits — written by you.
+class AidAction {
+  const AidAction(this.id, this.text);
+
+  final String id;
+  final String text;
+
+  Map<String, dynamic> toJson() => {'id': id, 't': text};
+
+  static AidAction fromJson(Map<String, dynamic> j) =>
+      AidAction(j['id'] as String, j['t'] as String);
+}
+
+/// One page of your aid kit: a feeling and what helps with it.
+class AidEntry {
+  const AidEntry({
+    required this.id,
+    required this.feeling,
+    this.emoji = '🩹',
+    this.actions = const [],
+  });
+
+  final String id;
+
+  /// "Overstimulated", "Urge to scroll"…
+  final String feeling;
+  final String emoji;
+  final List<AidAction> actions;
+
+  AidEntry copyWith({
+    String? feeling,
+    String? emoji,
+    List<AidAction>? actions,
+  }) => AidEntry(
+    id: id,
+    feeling: feeling ?? this.feeling,
+    emoji: emoji ?? this.emoji,
+    actions: actions ?? this.actions,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'f': feeling,
+    'e': emoji,
+    'a': [for (final a in actions) a.toJson()],
+  };
+
+  static AidEntry fromJson(Map<String, dynamic> j) => AidEntry(
+    id: j['id'] as String,
+    feeling: j['f'] as String,
+    emoji: j['e'] as String? ?? '🩹',
+    actions: [
+      for (final a in (j['a'] as List?) ?? const [])
+        AidAction.fromJson(a as Map<String, dynamic>),
+    ],
+  );
+}
+
+/// You used the aid kit: what you felt, what you did, and if it helped.
+class AidUse {
+  const AidUse({
+    required this.entryId,
+    required this.actionId,
+    required this.at,
+    this.helped,
+  });
+
+  final String entryId;
+  final String actionId;
+  final DateTime at;
+
+  /// null until you say.
+  final bool? helped;
+
+  AidUse withHelped(bool v) =>
+      AidUse(entryId: entryId, actionId: actionId, at: at, helped: v);
+
+  Map<String, dynamic> toJson() => {
+    'e': entryId,
+    'a': actionId,
+    'at': at.millisecondsSinceEpoch,
+    'h': ?helped,
+  };
+
+  static AidUse fromJson(Map<String, dynamic> j) => AidUse(
+    entryId: j['e'] as String,
+    actionId: j['a'] as String,
+    at: DateTime.fromMillisecondsSinceEpoch((j['at'] as num).toInt()),
+    helped: j['h'] as bool?,
+  );
+}
+
+/// One day across the app, kept for patterns (about four months).
+class DaySnapshot {
+  const DaySnapshot({
+    required this.day,
+    this.socialMinutes,
+    this.kcal = 0,
+    this.kcalTarget,
+    this.meals = 0,
+    this.lessonRead = false,
+    this.workoutPlanned = false,
+    this.workoutDone = false,
+    this.questsDue = 0,
+    this.questsDone = 0,
+    this.mood,
+    this.hard = false,
+  });
+
+  final String day;
+
+  /// Social media minutes (Screen time), when known.
+  final int? socialMinutes;
+  final int kcal;
+  final int? kcalTarget;
+  final int meals;
+  final bool lessonRead;
+  final bool workoutPlanned;
+  final bool workoutDone;
+  final int questsDue;
+  final int questsDone;
+
+  /// Average mood given in check-ins (1–5).
+  final double? mood;
+  final bool hard;
+
+  DaySnapshot copyWith({int? socialMinutes, int? kcalTarget}) => DaySnapshot(
+    day: day,
+    socialMinutes: socialMinutes ?? this.socialMinutes,
+    kcal: kcal,
+    kcalTarget: kcalTarget ?? this.kcalTarget,
+    meals: meals,
+    lessonRead: lessonRead,
+    workoutPlanned: workoutPlanned,
+    workoutDone: workoutDone,
+    questsDue: questsDue,
+    questsDone: questsDone,
+    mood: mood,
+    hard: hard,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'd': day,
+    'soc': ?socialMinutes,
+    'k': kcal,
+    'kt': ?kcalTarget,
+    'm': meals,
+    if (lessonRead) 'l': true,
+    if (workoutPlanned) 'wp': true,
+    if (workoutDone) 'wd': true,
+    'qd': questsDue,
+    'qn': questsDone,
+    'mood': ?mood,
+    if (hard) 'h': true,
+  };
+
+  static DaySnapshot fromJson(Map<String, dynamic> j) => DaySnapshot(
+    day: j['d'] as String,
+    socialMinutes: (j['soc'] as num?)?.toInt(),
+    kcal: (j['k'] as num?)?.toInt() ?? 0,
+    kcalTarget: (j['kt'] as num?)?.toInt(),
+    meals: (j['m'] as num?)?.toInt() ?? 0,
+    lessonRead: j['l'] == true,
+    workoutPlanned: j['wp'] == true,
+    workoutDone: j['wd'] == true,
+    questsDue: (j['qd'] as num?)?.toInt() ?? 0,
+    questsDone: (j['qn'] as num?)?.toInt() ?? 0,
+    mood: (j['mood'] as num?)?.toDouble(),
+    hard: j['h'] == true,
+  );
+}
+
+/// The System's weekly review.
+class WeeklyReview {
+  const WeeklyReview({
+    required this.date,
+    required this.text,
+    this.experiment = '',
+  });
+
+  final DateTime date;
+  final String text;
+
+  /// One thing to try next week.
+  final String experiment;
+
+  Map<String, dynamic> toJson() => {
+    'at': date.millisecondsSinceEpoch,
+    't': text,
+    'x': experiment,
+  };
+
+  static WeeklyReview fromJson(Map<String, dynamic> j) => WeeklyReview(
+    date: DateTime.fromMillisecondsSinceEpoch((j['at'] as num).toInt()),
+    text: j['t'] as String,
+    experiment: j['x'] as String? ?? '',
+  );
 }

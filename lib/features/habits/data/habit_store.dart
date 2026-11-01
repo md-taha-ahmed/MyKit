@@ -19,6 +19,12 @@ class HabitStore {
   static const _life = 'habits.life.v1';
   static const _hardDays = 'habits.hardDays.v1';
   static const _talks = 'habits.talks.v1';
+  static const _tasks = 'habits.tasks.v1';
+  static const _aid = 'habits.aidKit.v1';
+  static const _aidUses = 'habits.aidUses.v1';
+  static const _days = 'habits.days.v1';
+  static const _reviews = 'habits.reviews.v1';
+  static const _flags = 'habits.flags.v1';
 
   /// Check-ins kept per habit (about two years of daily ones).
   static const _checksPerHabit = 730;
@@ -127,4 +133,50 @@ class HabitStore {
   Future<void> saveTalks(Map<String, List<CoachMessage>> v) => _put(_talks, {
     for (final e in v.entries) e.key: [for (final m in e.value) m.toJson()],
   });
+
+  List<HabitTask> get tasks => _list(_tasks, HabitTask.fromJson);
+
+  /// Open tasks, plus done ones from the last 60 days.
+  Future<void> saveTasks(List<HabitTask> v) {
+    final since = DateTime.now().subtract(const Duration(days: 60));
+    return _put(_tasks, [
+      for (final t in v)
+        if (!t.done || t.doneAt!.isAfter(since)) t.toJson(),
+    ]);
+  }
+
+  List<AidEntry> get aidKit => _list(_aid, AidEntry.fromJson);
+
+  Future<void> saveAidKit(List<AidEntry> v) =>
+      _put(_aid, [for (final e in v) e.toJson()]);
+
+  List<AidUse> get aidUses => _list(_aidUses, AidUse.fromJson);
+
+  Future<void> saveAidUses(List<AidUse> v) =>
+      _put(_aidUses, [for (final u in v.take(500)) u.toJson()]);
+
+  /// Day snapshots, newest first.
+  List<DaySnapshot> get days =>
+      _list(_days, DaySnapshot.fromJson)
+        ..sort((a, b) => b.day.compareTo(a.day));
+
+  Future<void> saveDays(List<DaySnapshot> v) {
+    final sorted = [...v]..sort((a, b) => b.day.compareTo(a.day));
+    return _put(_days, [for (final d in sorted.take(120)) d.toJson()]);
+  }
+
+  List<WeeklyReview> get reviews =>
+      _list(_reviews, WeeklyReview.fromJson)
+        ..sort((a, b) => b.date.compareTo(a.date));
+
+  Future<void> saveReviews(List<WeeklyReview> v) =>
+      _put(_reviews, [for (final r in v.take(20)) r.toJson()]);
+
+  /// Small one-off flags (dismissed fresh starts…).
+  Map<String, String> get flags => {
+    for (final e in ((_json(_flags) as Map?) ?? const {}).entries)
+      '${e.key}': '${e.value}',
+  };
+
+  Future<void> saveFlags(Map<String, String> v) => _put(_flags, v);
 }

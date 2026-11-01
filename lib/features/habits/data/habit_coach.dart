@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../core/ai/gemini_client.dart';
 import '../domain/habit_analysis.dart';
 import '../domain/habit_models.dart';
+import '../domain/patterns.dart';
 
 /// A change the System proposes; applied only when you accept it.
 class CoachChange {
@@ -106,7 +107,11 @@ Allowed changes:
  {"type":"days","weekdays":[1-7, Monday=1]}
  {"type":"if_then","if":"situation","then":"response"}
  {"type":"swap_exercise","routine":"routine id","index": exercise index,"to":"exercise id from its alternatives"}
+ {"type":"task","title":"a concrete to-do","due":"yyyy-mm-dd or omit"}
+ {"type":"aid","feeling":"a feeling from their aid kit (or a new one)","action":"what helps"}
 Only propose swaps using the exact ids listed as alternatives.
+
+You also see the rest of their day in the app: the daily lesson, food and calories, the workout, quests, tasks, and social-media time. For this user, heavy scrolling and eating over target usually mean a low mood — notice it gently, connect it, and ask. Their aid kit lists what they wrote helps for each feeling, with how often it actually helped: suggest the ones that work.
 ''';
 
   /// Your data, compact: the habit, recent days, reasons, what the System
@@ -120,6 +125,12 @@ Only propose swaps using the exact ids listed as alternatives.
     required Set<String> hardDays,
     List<AutomaticityCheck> weekly = const [],
     WorkoutContext? workout,
+    String acrossApp = '',
+    List<HabitTask> tasks = const [],
+    List<AidEntry> aidKit = const [],
+    ({int helped, int rated}) Function(String actionId)? aidScore,
+    HabitUnderstanding? dayPattern,
+    List<CoachNote> dayNotes = const [],
     DateTime? now,
   }) {
     final today = now ?? DateTime.now();
@@ -204,6 +215,41 @@ Only propose swaps using the exact ids listed as alternatives.
     b.writeln(
       'LIFE CONTEXT: ${life.summary.isEmpty ? '(not told yet)' : life.summary}',
     );
+    if (acrossApp.isNotEmpty) b.write(acrossApp);
+    if (dayPattern != null && !dayPattern.isEmpty) {
+      b.writeln(
+        'THEIR DOWN-DAY PATTERN (from day talks): ${dayPattern.rootCause}'
+        '${dayPattern.helps.isEmpty ? '' : '; helps: ${dayPattern.helps}'}',
+      );
+    }
+    for (final n in dayNotes.take(3)) {
+      b.writeln('RECENT DAY ${habitDay(n.date)}: ${_clip(n.insight, 140)}');
+    }
+    final open = tasks.where((t) => !t.done).take(10).toList();
+    if (open.isNotEmpty) {
+      b.writeln('OPEN TASKS:');
+      for (final t in open) {
+        b.writeln(
+          '  - ${_clip(t.title, 80)}${t.due == null ? '' : ' (due ${t.due})'}',
+        );
+      }
+    }
+    if (aidKit.isNotEmpty) {
+      b.writeln('AID KIT (their own remedies):');
+      for (final e in aidKit) {
+        final actions = [
+          for (final a in e.actions)
+            switch (aidScore?.call(a.id)) {
+              final s? when s.rated > 0 =>
+                '${_clip(a.text, 50)} (helped ${s.helped}/${s.rated})',
+              _ => _clip(a.text, 50),
+            },
+        ];
+        b.writeln(
+          '  ${e.feeling}: ${actions.isEmpty ? '(nothing yet)' : actions.join('; ')}',
+        );
+      }
+    }
 
     if (workout != null) {
       b.writeln(
@@ -224,12 +270,114 @@ Only propose swaps using the exact ids listed as alternatives.
     return b.toString();
   }
 
+  static const _dayMode = '''
+
+THIS TALK IS ABOUT THE WHOLE DAY, not one quest. Look at everything (scrolling, food, workout, lesson, quests, mood, what they tell you). Find what's behind the day — an event, a feeling, tiredness — and how the parts connect (e.g. low mood → scrolling → eating → skipping). In "understanding", describe their general down-day pattern across days (root = what usually starts it, helps = what gets them out). Allowed changes here: task and aid only.''';
+
+  /// Everything about today and recent days, for a whole-day talk.
+  static String dayContext({
+    required String acrossApp,
+    required List<DaySnapshot> days,
+    required List<DayPattern> patterns,
+    required HabitUnderstanding understanding,
+    required LifeContext life,
+    required List<CoachNote> notes,
+    required List<({String name, String? today, String rootCause})> quests,
+    List<HabitTask> tasks = const [],
+    List<AidEntry> aidKit = const [],
+    ({int helped, int rated}) Function(String actionId)? aidScore,
+  }) {
+    final b = StringBuffer()..write(acrossApp);
+    final usual = DayPatterns.usualSocial(days);
+    b.writeln('RECENT DAYS (newest first):');
+    for (final d in days.take(10)) {
+      b.writeln(
+        '  ${d.day}: social ${d.socialMinutes ?? '?'} min, food ${d.kcal}'
+        '${d.kcalTarget == null ? '' : '/${d.kcalTarget}'} kcal, workout '
+        '${d.workoutPlanned ? (d.workoutDone ? 'done' : 'skipped') : 'rest'}, '
+        'lesson ${d.lessonRead ? 'read' : 'no'}, quests ${d.questsDone}/${d.questsDue}'
+        '${d.mood == null ? '' : ', mood ${d.mood!.toStringAsFixed(1)}'}'
+        '${d.hard ? ', hard day' : ''}',
+      );
+    }
+    if (usual != null) b.writeln('USUAL SOCIAL MEDIA: ~$usual min/day');
+    for (final p in patterns) {
+      b.writeln(
+        'PATTERN: ${p.text}: ${(p.onHeavy * 100).round()}% on heavy-scrolling days vs ${(p.onNormal * 100).round()}% otherwise',
+      );
+    }
+    b.writeln('QUESTS:');
+    for (final q in quests) {
+      b.writeln(
+        '  ${q.name}: today ${q.today ?? 'not answered'}'
+        '${q.rootCause.isEmpty ? '' : '; known blocker: ${q.rootCause}'}',
+      );
+    }
+    b.writeln('DOWN-DAY PATTERN SO FAR:');
+    b.writeln(
+      understanding.isEmpty
+          ? '  (nothing yet)'
+          : '  root: ${understanding.rootCause}\n  evidence: ${understanding.evidence}\n  helps: ${understanding.helps}\n  fails: ${understanding.fails}\n  confidence: ${understanding.confidence}',
+    );
+    for (final n in notes.take(6)) {
+      b.writeln('PAST DAY ${habitDay(n.date)}: ${_clip(n.insight, 140)}');
+    }
+    b.writeln(
+      'LIFE CONTEXT: ${life.summary.isEmpty ? '(not told yet)' : life.summary}',
+    );
+    final open = tasks.where((t) => !t.done).take(8);
+    if (open.isNotEmpty) {
+      b.writeln(
+        'OPEN TASKS: ${open.map((t) => _clip(t.title, 50)).join('; ')}',
+      );
+    }
+    for (final e in aidKit) {
+      b.writeln(
+        'AID KIT ${e.feeling}: ${e.actions.map((a) {
+          final s = aidScore?.call(a.id);
+          return s == null || s.rated == 0 ? a.text : '${a.text} (helped ${s.helped}/${s.rated})';
+        }).join('; ')}',
+      );
+    }
+    return b.toString();
+  }
+
+  /// A short weekly reflection and one experiment for next week.
+  Future<WeeklyReview> weeklyReview({
+    required String context,
+    required bool arabic,
+  }) async {
+    final text = await _gemini.generate(
+      system: '''$_system
+Now write the WEEKLY REVIEW instead of a talk: in under 180 words, in Markdown with short headings: what went well (be specific), what got in the way and the pattern behind it (connect scrolling, food, mood, quests), and one small EXPERIMENT for next week that fits their real life. End with a JSON block: {"experiment": "the experiment in one sentence"}.
+${arabic ? 'Write in Arabic.' : 'Write in English.'}''',
+      messages: [(fromUser: true, text: 'THE WEEK (from the app):\n$context')],
+      temperature: 0.5,
+    );
+    final m = RegExp(r'```(?:json)?\s*(\{[\s\S]*?\})\s*```').firstMatch(text);
+    var experiment = '';
+    var visible = text;
+    if (m != null) {
+      visible = text.replaceRange(m.start, m.end, '').trim();
+      try {
+        experiment = '${(jsonDecode(m.group(1)!) as Map)['experiment'] ?? ''}'
+            .trim();
+      } catch (_) {}
+    }
+    return WeeklyReview(
+      date: DateTime.now(),
+      text: visible,
+      experiment: experiment,
+    );
+  }
+
   /// One step of the talk. [talk] is the conversation so far (the user's
-  /// latest message last).
+  /// latest message last). [aboutDay]: a whole-day talk.
   Future<CoachReply> reply({
     required String context,
     required List<CoachMessage> talk,
     required bool arabic,
+    bool aboutDay = false,
   }) async {
     final answers = talk.where((m) => m.fromUser).length;
     final conclude = answers >= maxTurns
@@ -249,7 +397,7 @@ Only propose swaps using the exact ids listed as alternatives.
       for (final m in talk) (fromUser: m.fromUser, text: m.text),
     ];
     final text = await _gemini.generate(
-      system: '$_system\n$language$conclude',
+      system: '$_system${aboutDay ? _dayMode : ''}\n$language$conclude',
       messages: messages,
       temperature: 0.5,
     );

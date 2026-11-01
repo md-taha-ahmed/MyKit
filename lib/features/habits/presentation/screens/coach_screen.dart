@@ -39,15 +39,29 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     Future.microtask(() async {
       final s = ref.read(habitsProvider);
       final habit = s.habit(widget.habitId);
-      if (habit == null) return;
+      final day = widget.habitId == dayTalkId;
+      if (habit == null && !day) return;
       final talk = s.talks[widget.habitId];
       if (talk == null || talk.isEmpty) {
-        await _notifier.openTalk(widget.habitId, _opening(s, habit));
+        await _notifier.openTalk(
+          widget.habitId,
+          day ? _dayOpening() : _opening(s, habit!),
+        );
       } else if (talk.last.fromUser) {
         // Saved while offline: carry on now.
         await _run(_notifier.retry(widget.habitId));
       }
     });
+  }
+
+  String _dayOpening() {
+    final flags = _notifier.todayFlags();
+    return flags.isEmpty
+        ? tr('[SYSTEM] Tell me about today. How was it, really?')
+        : tr(
+            '[SYSTEM] Today looked heavy: {flags}. What happened today — what was going on inside?',
+            {'flags': flags.join(', ')},
+          );
   }
 
   /// The first question is local: no request until you answer.
@@ -140,6 +154,11 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     'swap_exercise' => tr('Swap an exercise in your workout → {to}', {
       'to': '${c.data['to'] ?? ''}'.replaceAll('_', ' '),
     }),
+    'task' => tr('Add a task: {title}', {'title': c.data['title'] ?? ''}),
+    'aid' => tr('Aid kit — {feeling}: {action}', {
+      'feeling': c.data['feeling'] ?? '',
+      'action': c.data['action'] ?? '',
+    }),
     _ => c.type,
   };
 
@@ -151,13 +170,14 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     final configured = ref.watch(geminiClientProvider).isConfigured;
     final answered = talk.where((m) => m.fromUser).isNotEmpty;
 
-    if (habit == null) {
+    final day = widget.habitId == dayTalkId;
+    if (habit == null && !day) {
       return Scaffold(appBar: AppBar(), body: const SizedBox.shrink());
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr('The System')),
+        title: Text(day ? tr('About today') : tr('The System')),
         actions: [
           if (talk.isNotEmpty)
             IconButton(
@@ -185,13 +205,22 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        for (final quick in [
-                          tr('I felt I can\'t do it'),
-                          tr('I was afraid of failing'),
-                          tr('I had no energy'),
-                          tr('I forgot until it was too late'),
-                          tr('Something happened around me'),
-                        ])
+                        for (final quick
+                            in day
+                                ? [
+                                    tr('I felt down'),
+                                    tr('I was stressed'),
+                                    tr('Something happened at home'),
+                                    tr('Power or internet problems'),
+                                    tr('I was bored'),
+                                  ]
+                                : [
+                                    tr('I felt I can\'t do it'),
+                                    tr('I was afraid of failing'),
+                                    tr('I had no energy'),
+                                    tr('I forgot until it was too late'),
+                                    tr('Something happened around me'),
+                                  ])
                           ActionChip(
                             label: Text(quick),
                             onPressed: () {

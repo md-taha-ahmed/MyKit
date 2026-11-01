@@ -188,17 +188,21 @@ class QuestCard extends ConsumerWidget {
               style: const TextStyle(color: habitsAccent, fontSize: 13),
             ),
           const SizedBox(height: 4),
-          if (hard == null && !recovery)
-            Text('▸ ${habit.full}', style: const TextStyle(height: 1.4)),
-          Text(
-            tr('▸ Tiny: {tiny}', {'tiny': habit.tiny}),
-            style: TextStyle(
-              height: 1.4,
-              color: hard != null || recovery ? null : Colors.white60,
-              fontWeight: hard != null || recovery ? FontWeight.w600 : null,
+          if (habit.breaking)
+            Text('▸ ${habit.full}', style: const TextStyle(height: 1.4))
+          else ...[
+            if (hard == null && !recovery)
+              Text('▸ ${habit.full}', style: const TextStyle(height: 1.4)),
+            Text(
+              tr('▸ Tiny: {tiny}', {'tiny': habit.tiny}),
+              style: TextStyle(
+                height: 1.4,
+                color: hard != null || recovery ? null : Colors.white60,
+                fontWeight: hard != null || recovery ? FontWeight.w600 : null,
+              ),
             ),
-          ),
-          if (recovery && hard == null)
+          ],
+          if (recovery && hard == null && !habit.breaking)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
@@ -254,6 +258,25 @@ class QuestCard extends ConsumerWidget {
                   tooltip: tr('Undo'),
                   onPressed: () => notifier.clearCheck(habit.id, day),
                   icon: const Icon(Icons.undo, size: 20),
+                ),
+              ],
+            )
+          else if (habit.breaking)
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () =>
+                        notifier.checkIn(habit.id, day, CheckStatus.full),
+                    child: Text(tr('Stayed clean')),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => showMissSheet(context, ref, habit, day),
+                    child: Text(tr('Slipped')),
+                  ),
                 ),
               ],
             )
