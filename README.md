@@ -60,7 +60,7 @@ flutter test
 
 ## Language and setup
 
-- **Arabic or English**: Settings (⚙ on the dashboard) → Language (System / English / العربية). Arabic lays the
+- **Arabic or English**: Settings (⚙ on the dashboard) → Language (English / العربية; until one is picked, the phone's language). Arabic lays the
   whole app out right to left and uses Arabic dates and system dialogs. All text goes through `tr()`
   (`lib/core/i18n/i18n.dart`); the English text is the key and `lib/core/i18n/ar.dart` holds the Arabic.
   `test/core/i18n_test.dart` fails if a `tr('…')` text has no Arabic, so add new text there too.

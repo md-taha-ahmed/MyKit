@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mykit/core/i18n/ar.dart';
 import 'package:mykit/core/i18n/i18n.dart';
+import 'package:mykit/features/setup/presentation/widgets/tool_tips.dart';
 
 /// `'literal'` as Dart reads it (the escapes used in this codebase).
 String _unescape(String s) => s
@@ -37,6 +38,15 @@ void main() {
       }
     }
     expect(missing, isEmpty, reason: 'Add these to lib/core/i18n/ar.dart');
+  });
+
+  test('every tool tip has an Arabic translation', () {
+    final missing = [
+      for (final tips in toolTips.values)
+        for (final tip in tips)
+          if (!arabicStrings.containsKey(tip.text)) tip.text,
+    ];
+    expect(missing, isEmpty);
   });
 
   test('translations keep every {placeholder}', () {

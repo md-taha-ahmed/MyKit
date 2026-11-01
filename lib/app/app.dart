@@ -30,7 +30,7 @@ class _MyKitAppState extends ConsumerState<MyKitApp> {
     // A fresh install starts with the setup checklist.
     if (ref.read(freshInstallProvider) && !ref.read(setupDoneProvider)) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(appRouterProvider).go(SetupRoutes.firstRun),
+        (_) => ref.read(appRouterProvider).go(SetupRoutes.welcome),
       );
     }
     // Google Drive backup: scheduled when the app is left, cancelled on return.

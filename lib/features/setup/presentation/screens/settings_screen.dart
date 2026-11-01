@@ -8,6 +8,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../../backup/backup_routes.dart';
 import '../../setup_routes.dart';
 import '../providers/setup_providers.dart';
+import '../widgets/tool_tips.dart';
 
 /// App-wide settings: language, the setup checklist, AI key and backup.
 class SettingsScreen extends ConsumerWidget {
@@ -66,6 +67,29 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(BackupRoutes.home),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.lightbulb_outline),
+                  title: Text(tr('Show tool tips again')),
+                  subtitle: Text(
+                    tr(
+                      'Each tool explains itself again the next time you open it',
+                    ),
+                  ),
+                  onTap: () async {
+                    await ToolTipsGate.resetAll(ref);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(tr('Tips will show again'))),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.slideshow_outlined),
+                  title: Text(tr('Welcome tour')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(SetupRoutes.welcome),
+                ),
               ],
             ),
           ),
@@ -75,28 +99,22 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// System / English / العربية. Each option is written in its own language
-/// so it can be found whatever the current one is.
+/// English / العربية, each written in its own language so it can be found
+/// whatever the current one is. Until one is picked, MyKit follows the
+/// phone's language.
 class LanguagePicker extends ConsumerWidget {
   const LanguagePicker({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(appLanguageProvider);
+    final current = ref.watch(appLanguageProvider).resolvesToArabic
+        ? AppLanguage.arabic
+        : AppLanguage.english;
     return SegmentedButton<AppLanguage>(
       showSelectedIcon: false,
-      segments: [
-        ButtonSegment(
-          value: AppLanguage.system,
-          label: Text(
-            I18n.isArabic
-                ? AppLanguage.system.arabicLabel
-                : AppLanguage.system.label,
-          ),
-          icon: const Icon(Icons.phone_android, size: 18),
-        ),
-        const ButtonSegment(value: AppLanguage.english, label: Text('English')),
-        const ButtonSegment(value: AppLanguage.arabic, label: Text('العربية')),
+      segments: const [
+        ButtonSegment(value: AppLanguage.english, label: Text('English')),
+        ButtonSegment(value: AppLanguage.arabic, label: Text('العربية')),
       ],
       selected: {current},
       onSelectionChanged: (s) =>

@@ -29,6 +29,8 @@ const arabicStrings = <String, String>{
   'A healthy BMI (under 25) at {0} cm is up to {1} kg. A first goal of losing 5–10% is a great start.':
       'مؤشر كتلة الجسم الصحي (أقل من 25) لطول {0} سم يعني وزناً حتى {1} كغ. هدف أول بخسارة 5–10٪ بداية ممتازة.',
   'A key is set': 'تمت إضافة مفتاح',
+  'A new lesson every day from the original books, with its exact reference.':
+      'درس جديد كل يوم من الكتب الأصلية، مع مرجعه الدقيق.',
   'A notification on your training days': 'إشعار في أيام تمرينك',
   'Aa': 'Aa',
   'Abductors': 'الأبعدات',
@@ -37,10 +39,14 @@ const arabicStrings = <String, String>{
       'وافق على الشروط إن طُلب منك، ثم اضغط "Create API key".',
   'Access was not granted.': 'لم يُمنح الإذن.',
   'Add': 'إضافة',
+  'Add a countdown to your home screen as a widget: long-press the home screen → Widgets → MyKit.':
+      'أضف العدّ التنازلي إلى شاشتك الرئيسية كأداة: اضغط مطولاً على الشاشة الرئيسية ← الأدوات ← MyKit.',
   'Add a Gemini API key first.': 'أضف مفتاح Gemini أولاً.',
   'Add a name (or website) and a password.':
       'أضف اسماً (أو موقعاً) وكلمة مرور.',
   'Add a photo': 'إضافة صورة',
+  'Add a site by pasting its address — MyKit finds its feed. YouTube channels work too.':
+      'أضف موقعاً بلصق عنوانه — وسيجد MyKit خلاصته. قنوات يوتيوب تعمل أيضاً.',
   'Add an anime repository': 'إضافة مستودع أنمي',
   'Add an exercise': 'إضافة تمرين',
   'Add an extension repository': 'إضافة مستودع إضافات',
@@ -48,6 +54,8 @@ const arabicStrings = <String, String>{
   'Add exercises as you go': 'أضف التمارين أثناء التمرين',
   'Add feed': 'إضافة خلاصة',
   'Add feed here': 'إضافة خلاصة هنا',
+  'Add focus hours to block apps completely at set times, like at night.':
+      'أضف ساعات تركيز لحجب التطبيقات تماماً في أوقات محددة، مثل الليل.',
   'Add measurements': 'إضافة قياسات',
   'Add my photo…': 'إضافة صورتي…',
   'Add one with +, or import a CSV exported from Chrome or another password manager (Settings → Import).':
@@ -73,6 +81,8 @@ const arabicStrings = <String, String>{
   'Added 1 book.': 'أُضيف كتاب واحد.',
   'Added 1 channel. Loading its videos…':
       'أُضيفت قناة واحدة. جارٍ تحميل فيديوهاتها…',
+  'Added new songs? Tap Rescan device.':
+      'أضفت أغاني جديدة؟ اضغط «إعادة فحص الجهاز».',
   'Added to {name}': 'أُضيف إلى {name}',
   'Added {count} channels. Loading their videos…':
       'أُضيفت {count} قناة. جارٍ تحميل فيديوهاتها…',
@@ -187,6 +197,8 @@ const arabicStrings = <String, String>{
   'Choose a video': 'اختر فيديو',
   'Choose MyKit as the autofill service so your saved logins appear in apps and browsers.':
       'اختر MyKit خدمةً للملء التلقائي لتظهر حساباتك المحفوظة في التطبيقات والمتصفحات.',
+  'Choose MyKit as the autofill service to fill logins in apps and Chrome. Import a CSV from Settings.':
+      'اختر MyKit خدمةً للملء التلقائي لتملأ الحسابات في التطبيقات وChrome. استورد ملف CSV من الإعدادات.',
   'Choose MyKit as your phone\'s autofill service.':
       'اختر MyKit خدمةَ الملء التلقائي في هاتفك.',
   'Chrome': 'Chrome',
@@ -297,6 +309,8 @@ const arabicStrings = <String, String>{
   'e.g. Novels, Study, Manuals': 'مثلاً: روايات، دراسة، أدلة',
   'e.g. Tech, News, Design': 'مثلاً: تقنية، أخبار، تصميم',
   'Each side (per leg / arm)': 'لكل جهة (لكل ساق / ذراع)',
+  'Each tool explains itself again the next time you open it':
+      'تشرح كل أداة نفسها مجدداً عند فتحها في المرة القادمة',
   'Earlier': 'سابقاً',
   'Edit': 'تعديل',
   'Edit countdown': 'تعديل العدّ التنازلي',
@@ -315,6 +329,8 @@ const arabicStrings = <String, String>{
   'Every year': 'كل سنة',
   'Everything in MyKit on this phone is replaced with the backup from {date}. MyKit restarts afterwards.':
       'سيُستبدل كل ما في MyKit على هذا الهاتف بالنسخة الاحتياطية من {date}. ثم يُعاد تشغيل MyKit.',
+  'Everything is kept on this phone. Turn on Google Drive backup and you can restore it all on a new phone, passwords included (encrypted).':
+      'كل شيء محفوظ على هذا الهاتف. فعّل النسخ الاحتياطي إلى Google Drive لتستعيد كل شيء على هاتف جديد، بما في ذلك كلمات المرور (مشفّرة).',
   'Exercise': 'تمرين',
   'Exercise ball': 'كرة تمارين',
   'Exercise library error {statusCode}.': 'خطأ في مكتبة التمارين {statusCode}.',
@@ -346,6 +362,8 @@ const arabicStrings = <String, String>{
   'Filters': 'عوامل التصفية',
   'Find feed': 'ابحث عن خلاصة',
   'Find something to watch': 'ابحث عن شيء تشاهده',
+  'Find titles in Browse, then add them to your Library to follow new chapters and episodes.':
+      'ابحث عن العناوين في «تصفّح»، ثم أضفها إلى مكتبتك لتتابع الفصول والحلقات الجديدة.',
   'Finding videos…': 'جارٍ البحث عن الفيديوهات…',
   'Fingerprint unlock failed. Use your master password.':
       'فشل الفتح بالبصمة. استخدم كلمة المرور الرئيسية.',
@@ -356,6 +374,8 @@ const arabicStrings = <String, String>{
       'أنهِ تمريناً لترى أرقامك القياسية هنا.',
   'Finish workout?': 'إنهاء التمرين؟',
   'Finished': 'منتهٍ',
+  'First install a source from the Extensions tab (check the language filter).':
+      'ثبّت مصدراً أولاً من تبويب الإضافات (وتحقق من عامل تصفية اللغة).',
   'Fitness': 'اللياقة',
   'Flutter blog': 'مدونة Flutter',
   'Foam roll': 'أسطوانة فوم',
@@ -397,9 +417,11 @@ const arabicStrings = <String, String>{
       'النسخ الاحتياطي والاستعادة عبر Google Drive',
   'Google sign-in isn\'t set up in this build. Add the OAuth client (RSS Feeds → Import YouTube subscriptions) or build with config/google_oauth.local.json.':
       'تسجيل الدخول بـ Google غير مُعدّ في هذه النسخة. أضف عميل OAuth (خلاصات RSS ← استيراد اشتراكات يوتيوب) أو ابنِ التطبيق مع config/google_oauth.local.json.',
+  'Got it': 'فهمت',
   'Hacker News': 'Hacker News',
   'Hamstrings': 'أوتار الركبة',
   'Height': 'الطول',
+  'Help when you need it': 'مساعدة عند الحاجة',
   'Hide': 'إخفاء',
   'History': 'السجل',
   'Home equipment': 'معدات منزلية',
@@ -424,11 +446,15 @@ const arabicStrings = <String, String>{
   'Import PDFs here': 'استورد ملفات PDF هنا',
   'Import PDFs into shelves. MyKit remembers your page, keeps bookmarks and has a dark reading mode.':
       'استورد ملفات PDF إلى رفوف. يتذكر MyKit صفحتك ويحفظ العلامات وفيه وضع قراءة داكن.',
+  'Import PDFs with + and keep them on shelves.':
+      'استورد ملفات PDF بزر + ورتّبها على رفوف.',
   'Import YouTube subscriptions': 'استيراد اشتراكات يوتيوب',
   'Imported 1 password': 'استُوردت كلمة مرور واحدة',
   'Imported {n} passwords': 'استُوردت {n} كلمة مرور',
   'Importing 1 book…': 'جارٍ استيراد كتاب واحد…',
   'Importing {count} books…': 'جارٍ استيراد {count} كتاب…',
+  'In an article, Summarize gives the gist and Ask lets you chat about it (needs a free Gemini key).':
+      'داخل المقالة، «تلخيص» يعطيك الخلاصة و«اسأل» يتيح لك الدردشة حولها (يحتاج مفتاح Gemini مجانياً).',
   'In Chrome: Settings → Autofill services → "Autofill using another service", then restart Chrome.':
       'في Chrome: الإعدادات ← خدمات الملء التلقائي ← «الملء التلقائي باستخدام خدمة أخرى»، ثم أعد تشغيل Chrome.',
   'In library': 'في المكتبة',
@@ -509,6 +535,8 @@ const arabicStrings = <String, String>{
   'Locked': 'مقفلة',
   'Log': 'تسجيل',
   'Log body weight': 'تسجيل وزن الجسم',
+  'Log your weight in Progress to see your trend and personal bests.':
+      'سجّل وزنك في «التقدم» لترى اتجاهك وأرقامك القياسية.',
   'Log your weight once or twice a week, at the same time of day, to see the trend.':
       'سجّل وزنك مرة أو مرتين في الأسبوع، في الوقت نفسه من اليوم، لترى الاتجاه.',
   'Logins picked for apps are suggested there next time':
@@ -563,6 +591,8 @@ const arabicStrings = <String, String>{
       'يحتاج MyKit إلى إذن لقراءة الملفات الصوتية على هذا الجهاز. لا يغادر شيء هاتفك.',
   'MyKit needs permission to read your calendar to list your events. Nothing is changed or uploaded.':
       'يحتاج MyKit إلى إذن لقراءة تقويمك لعرض أحداثك. لا يُغيَّر شيء ولا يُرفع.',
+  'MyKit remembers your page. Bookmark pages while reading and add notes.':
+      'يتذكر MyKit صفحتك. ضع علامات على الصفحات أثناء القراءة وأضف ملاحظات.',
   'MyKit runs Mihon-compatible extensions. Each extension is verified against the repository\'s signing key before it loads.':
       'يشغّل MyKit إضافات متوافقة مع Mihon. يُتحقق من كل إضافة بمفتاح توقيع المستودع قبل تحميلها.',
   'Name': 'الاسم',
@@ -669,6 +699,7 @@ const arabicStrings = <String, String>{
   'Offline copies deleted.': 'حُذفت النسخ المحفوظة.',
   'Oldest first': 'الأقدم أولاً',
   'On hiatus': 'متوقف مؤقتاً',
+  'One tile per tool': 'لكل أداة مربع',
   'One-time setup: create a free "Desktop app" OAuth client in Google Cloud with the YouTube Data API enabled, then paste its ID and secret here. They stay on this phone.':
       'إعداد لمرة واحدة: أنشئ عميل OAuth مجانياً من نوع «Desktop app» في Google Cloud مع تفعيل YouTube Data API، ثم الصق معرّفه وسرّه هنا. يبقيان على هذا الهاتف.',
   'Ongoing': 'مستمر',
@@ -676,6 +707,8 @@ const arabicStrings = <String, String>{
   'Only in encrypted form. Restoring on a new phone needs your master password.':
       'مشفّرة فقط. تحتاج الاستعادة على هاتف جديد إلى كلمة المرور الرئيسية.',
   'Open': 'فتح',
+  'Open a countdown to change its colours, font and how the ring fills up.':
+      'افتح العدّ التنازلي لتغيير ألوانه وخطه وطريقة امتلاء الحلقة.',
   'Open Accessibility settings': 'فتح إعدادات تسهيلات الاستخدام',
   'Open AI Studio': 'فتح AI Studio',
   'Open Google AI Studio and sign in with your Google account.':
@@ -709,6 +742,8 @@ const arabicStrings = <String, String>{
   'Personal bests': 'الأرقام القياسية',
   'Pick an event': 'اختر حدثاً',
   'Plan': 'الخطة',
+  'Plan your workouts and training days in Plan; the exercise library has instructions for each move.':
+      'خطّط لتمارينك وأيام تدريبك في «الخطة»؛ ومكتبة التمارين فيها طريقة أداء كل حركة.',
   'Play': 'تشغيل',
   'Play your songs folder by folder, even in the background':
       'شغّل أغانيك مجلداً مجلداً، حتى في الخلفية',
@@ -730,7 +765,10 @@ const arabicStrings = <String, String>{
   'Pull down to refresh.': 'اسحب للأسفل للتحديث.',
   'Quads': 'الفخذ الأمامية',
   'Queue': 'قائمة الانتظار',
+  'Quick tips': 'نصائح سريعة',
   'Read': 'اقرأ',
+  'Read ahead in the Library, and follow sites and channels in Sources.':
+      'اقرأ المزيد في «المكتبة»، وتابع المواقع والقنوات في «المصادر».',
   'Read full article': 'اقرأ المقالة كاملة',
   'Read offline': 'القراءة دون اتصال',
   'Reading settings': 'إعدادات القراءة',
@@ -825,6 +863,8 @@ const arabicStrings = <String, String>{
   'Search events': 'البحث في الأحداث',
   'Search exercises': 'البحث في التمارين',
   'Search extensions': 'البحث في الإضافات',
+  'Search for a title, pick an episode, then choose a stream — the ones with more 👤 start faster.':
+      'ابحث عن عنوان، واختر حلقة، ثم اختر مصدر بث — ما فيه 👤 أكثر يبدأ أسرع.',
   'Search in this book': 'البحث في هذا الكتاب',
   'Search your subscriptions': 'البحث في اشتراكاتك',
   'Search {length} passwords': 'البحث في {length} كلمة مرور',
@@ -848,6 +888,7 @@ const arabicStrings = <String, String>{
   'Serif': 'مذيّل',
   'Set': 'مجموعة',
   'Set up': 'إعداد',
+  'Set up MyKit': 'إعداد MyKit',
   'Sets': 'المجموعات',
   'Sets in the last 7 days (helping muscles count half). Grey = not trained yet.':
       'المجموعات في آخر 7 أيام (العضلات المساعدة تُحسب بالنصف). الرمادي = لم تُمرَّن بعد.',
@@ -863,6 +904,7 @@ const arabicStrings = <String, String>{
   'Show and sort by': 'العرض والترتيب حسب',
   'Show label': 'إظهار التسمية',
   'Show title in widget': 'إظهار العنوان في الأداة',
+  'Show tool tips again': 'إظهار نصائح الأدوات مجدداً',
   'Shuffle': 'تشغيل عشوائي',
   'Sign in': 'تسجيل الدخول',
   'Sign in with Google': 'تسجيل الدخول بـ Google',
@@ -877,6 +919,8 @@ const arabicStrings = <String, String>{
   'Song title': 'عنوان الأغنية',
   'Sort': 'الترتيب',
   'Sort books': 'ترتيب الكتب',
+  'Sort feeds into categories and folders from the menu (☰).':
+      'رتّب الخلاصات في فئات ومجلدات من القائمة (☰).',
   'Sort songs by': 'ترتيب الأغاني حسب',
   'Sound': 'الصوت',
   'Source': 'المصدر',
@@ -897,6 +941,8 @@ const arabicStrings = <String, String>{
   'Stop': 'إيقاف',
   'Stopped. {saved} articles saved.': 'توقف. حُفظت {saved} مقالة.',
   'Streams': 'مصادر البث',
+  'Streams come from Stremio add-ons. Cinemeta, Torrentio and OpenSubtitles are set up for you.':
+      'يأتي البث من إضافات Stremio. Cinemeta وTorrentio وOpenSubtitles مُعدّة لك مسبقاً.',
   'Stremio add-ons: Torrentio streams, OpenSubtitles':
       'إضافات Stremio: بث Torrentio وترجمات OpenSubtitles',
   'stuck at {position}': 'متوقف عند {position}',
@@ -908,11 +954,25 @@ const arabicStrings = <String, String>{
   'Summarize': 'تلخيص',
   'Summary': 'الملخص',
   'Sun': 'أحد',
+  'Swipe an article right to save it. The brief view lets you swipe through articles one by one.':
+      'اسحب المقالة إلى اليمين لحفظها. والعرض الموجز يتيح لك تصفح المقالات واحدة تلو الأخرى.',
   'Swipe page by page': 'اسحب صفحة صفحة',
+  'Tap "اشرح لي" (explain) under a lesson for word meanings and review questions.':
+      'اضغط «اشرح لي» تحت الدرس لمعاني الكلمات وأسئلة المراجعة.',
+  'Tap + to count down to a date, a number of days or an event from your calendar.':
+      'اضغط + لتعدّ تنازلياً إلى تاريخ، أو عدد من الأيام، أو حدث من تقويمك.',
   'Tap + to create one, then add it to your home screen as a widget.':
       'اضغط + لإنشاء واحد، ثم أضفه إلى شاشتك الرئيسية كأداة.',
   'Tap a login field, then "Unlock MyKit to fill".':
       'اضغط حقل تسجيل الدخول، ثم «Unlock MyKit to fill».',
+  'Tap a platform to change its daily limit. Apps, Lite apps and websites share one limit.':
+      'اضغط على منصة لتغيير حدّها اليومي. التطبيق ونسخة لايت والموقع تشترك في حد واحد.',
+  'Tap a song to play, or shuffle a whole folder. Music keeps playing with the screen off.':
+      'اضغط أغنية لتشغيلها، أو شغّل مجلداً كاملاً عشوائياً. تستمر الموسيقى والشاشة مطفأة.',
+  'Tap a tile on the home screen to open its tool. The line under its name tells you what\'s new: unread articles, today\'s workout, time used…':
+      'اضغط مربعاً في الشاشة الرئيسية لفتح أداته. والسطر تحت اسمه يخبرك بالجديد: مقالات غير مقروءة، تمرين اليوم، الوقت المستخدم…',
+  'Tap Aa while reading for dark or sepia pages and scrolling style.':
+      'اضغط Aa أثناء القراءة لصفحات داكنة أو بنية وطريقة التمرير.',
   'Target {target} · rest {restSeconds}s':
       'الهدف {target} · راحة {restSeconds} ث',
   'Temporarily unavailable, will retry · {error}':
@@ -930,6 +990,8 @@ const arabicStrings = <String, String>{
   'The CSV file will contain all your passwords in plain text. Anyone or any app that can read the file can read them. Use it only to move to another password manager, then delete it.':
       'سيحتوي ملف CSV على كل كلمات مرورك نصاً واضحاً. أي شخص أو تطبيق يقرأ الملف يمكنه قراءتها. استخدمه فقط للانتقال إلى مدير كلمات مرور آخر، ثم احذفه.',
   'The current password is wrong.': 'كلمة المرور الحالية خاطئة.',
+  'The first time you open a tool, a few tips show how it works. Settings (⚙ on the home screen) has the language, the setup checklist and backup.':
+      'عند فتح أي أداة أول مرة، تظهر نصائح قصيرة تشرح طريقة عملها. وفي الإعدادات (⚙ في الشاشة الرئيسية) تجد اللغة وقائمة الإعداد والنسخ الاحتياطي.',
   'The key stays on this phone and in your own Drive backup. The free plan has a daily limit; MyKit uses very little of it.':
       'يبقى المفتاح على هذا الهاتف وفي نسختك الاحتياطية على Drive. للخطة المجانية حد يومي، ولا يستهلك MyKit منه إلا القليل.',
   'The new passwords don\'t match.': 'كلمتا المرور الجديدتان غير متطابقتين.',
@@ -969,9 +1031,12 @@ const arabicStrings = <String, String>{
   'Thu': 'خميس',
   'Time': 'الوقت',
   'Time to train.': 'حان وقت التمرين.',
+  'Tips will show again': 'ستظهر النصائح مجدداً',
   'Title, or IMDb link / id': 'العنوان، أو رابط / معرّف IMDb',
   'To {0}': 'حتى {0}',
   'Today': 'اليوم',
+  'Today shows the workout planned for today. Tap Workout to start it.':
+      '«اليوم» يعرض التمرين المخطط له اليوم. اضغط «تمرين» لبدئه.',
   'Today: {names}. Let\'s go!': 'اليوم: {names}. هيا بنا!',
   'Tomorrow': 'غداً',
   'Too easy to guess. Make it longer.': 'سهلة التخمين. اجعلها أطول.',
@@ -981,6 +1046,8 @@ const arabicStrings = <String, String>{
   'Torrent failed.': 'فشل التورنت.',
   'Torrent streams for movies, series and anime':
       'بث تورنت للأفلام والمسلسلات والأنمي',
+  'Torrent streams need a good connection; mobile data or battery saving can make them slow.':
+      'بث التورنت يحتاج اتصالاً جيداً؛ بيانات الجوال أو توفير البطارية قد تجعله بطيئاً.',
   'Track {id}': 'المسار {id}',
   'Training days': 'أيام التمرين',
   'Traps': 'الترابيس',
@@ -989,10 +1056,14 @@ const arabicStrings = <String, String>{
   'Tue': 'ثلاثاء',
   'Turkish': 'التركية',
   'Turn on': 'تفعيل',
+  'Turn on "MyKit Screen time" in Accessibility first — that\'s how it counts time.':
+      'فعّل «MyKit Screen time» في تسهيلات الاستخدام أولاً — فهكذا يحسب الوقت.',
   'Turn on "MyKit Screen time" in Accessibility so daily limits can count and block apps and sites.':
       'فعّل «MyKit Screen time» في تسهيلات الاستخدام لتحسب الحدود اليومية الوقت وتحجب التطبيقات والمواقع.',
   'Turn on fingerprint unlock first: autofill opens the vault with your fingerprint.':
       'فعّل الفتح بالبصمة أولاً: الملء التلقائي يفتح الخزنة ببصمتك.',
+  'Turn on fingerprint unlock so you don\'t type the master password every time.':
+      'فعّل الفتح بالبصمة حتى لا تكتب كلمة المرور الرئيسية في كل مرة.',
   'Turn on Screen time': 'تفعيل وقت الشاشة',
   'Type a title and press search.': 'اكتب عنواناً واضغط بحث.',
   'Type a title and press search. You can also paste an IMDb link.':
@@ -1051,6 +1122,7 @@ const arabicStrings = <String, String>{
   'Weight': 'الوزن',
   'Weight (kg)': 'الوزن (كغ)',
   'Welcome to MyKit': 'مرحباً بك في MyKit',
+  'Welcome tour': 'الجولة التعريفية',
   'What is on that day?': 'ما الذي في ذلك اليوم؟',
   'What is on this page?': 'ما الذي في هذه الصفحة؟',
   'When a limit is reached the app or site is closed. You can take {extensionMinutes} more minutes after a {extensionWaitSeconds}-second wait, {extensionsPerDay}× a day per platform (not during focus hours). A notification warns you {warnMinutes} minutes before.':
@@ -1075,6 +1147,9 @@ const arabicStrings = <String, String>{
   'You can install it again later.': 'يمكنك تثبيتها مرة أخرى لاحقاً.',
   'Your anime library is empty.\nFind something in Browse and tap "Add to library".':
       'مكتبة الأنمي فارغة.\nابحث عن شيء في «تصفّح» واضغط «إضافة إلى المكتبة».',
+  'Your data stays yours': 'بياناتك ملكك',
+  'Your everyday tools in one app: news feeds, music, books, passwords, workouts, screen time and more.':
+      'أدواتك اليومية في تطبيق واحد: الأخبار، والموسيقى، والكتب، وكلمات المرور، والتمارين، ووقت الشاشة، وغيرها.',
   'Your fingerprints changed, so fingerprint unlock was turned off. Use your master password.':
       'تغيّرت بصماتك، فأُوقف الفتح بالبصمة. استخدم كلمة المرور الرئيسية.',
   'Your launcher can\'t add widgets from apps. Long-press the home screen → Widgets → MyKit instead.':
@@ -1082,10 +1157,16 @@ const arabicStrings = <String, String>{
   'Your library is empty': 'مكتبتك فارغة',
   'Your library is empty.\nFind something in Browse and tap "Add to library".':
       'مكتبتك فارغة.\nابحث عن شيء في «تصفّح» واضغط «إضافة إلى المكتبة».',
+  'Your master password encrypts the vault. Nobody can recover it, so remember it well.':
+      'كلمة المرور الرئيسية تشفّر الخزنة. لا يستطيع أحد استعادتها، فاحفظها جيداً.',
   'Your notes': 'ملاحظاتك',
   'Your progress': 'تقدّمك',
+  'Your reading and watching progress is saved automatically.':
+      'يُحفظ تقدّمك في القراءة والمشاهدة تلقائياً.',
   'Your routines are replaced by the 4-day starter plan. Workout history stays.':
       'ستُستبدل خططك بخطة البداية ذات الأيام الأربعة. يبقى سجل التمارين.',
+  'Your songs are grouped by the folders they\'re in on the phone.':
+      'أغانيك مجمّعة حسب المجلدات الموجودة فيها على الهاتف.',
   'Your stream add-ons have nothing for this yet.':
       'لا تملك إضافات البث شيئاً لهذا بعد.',
   'Your workout history stays.': 'يبقى سجل تمارينك.',

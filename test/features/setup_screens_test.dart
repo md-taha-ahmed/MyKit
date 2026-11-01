@@ -8,6 +8,7 @@ import 'package:mykit/core/storage/shared_preferences_provider.dart';
 import 'package:mykit/features/setup/presentation/providers/setup_providers.dart';
 import 'package:mykit/features/setup/presentation/screens/settings_screen.dart';
 import 'package:mykit/features/setup/presentation/screens/setup_screen.dart';
+import 'package:mykit/features/setup/presentation/screens/welcome_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FixedStatus extends SetupStatusNotifier {
@@ -66,6 +67,20 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -2000));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('welcome tour pages lay out in ${lang.name}', (tester) async {
+      await _pump(tester, const WelcomeScreen(), lang);
+      expect(tester.takeException(), isNull);
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(find.byType(FilledButton));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+      expect(
+        find.text(lang == AppLanguage.arabic ? 'إعداد MyKit' : 'Set up MyKit'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('settings and Gemini key screens lay out in ${lang.name}', (
