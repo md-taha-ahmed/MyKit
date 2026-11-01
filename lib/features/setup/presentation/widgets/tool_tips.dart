@@ -119,6 +119,11 @@ const toolTips = <String, List<ToolTip>>{
       icon: Icons.show_chart,
       text: 'Log your weight in Progress to see your trend and personal bests.',
     ),
+    (
+      icon: Icons.restaurant_outlined,
+      text:
+          'Log food in the Food tab: by photo, by describing it, or by hand. Your target comes from your weight and height.',
+    ),
   ],
   'passwords': [
     (

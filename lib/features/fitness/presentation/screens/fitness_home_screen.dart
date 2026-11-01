@@ -14,6 +14,7 @@ import '../widgets/fitness_sheets.dart';
 import '../widgets/line_chart.dart';
 import '../widgets/exercise_options.dart';
 import 'exercise_list_screen.dart';
+import 'food_tab.dart';
 
 /// Today · Plan · Exercises · Progress.
 class FitnessHomeScreen extends ConsumerStatefulWidget {
@@ -28,7 +29,13 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final titles = [tr('Today'), tr('Plan'), tr('Exercises'), tr('Progress')];
+    final titles = [
+      tr('Today'),
+      tr('Plan'),
+      tr('Exercises'),
+      tr('Food'),
+      tr('Progress'),
+    ];
     return Scaffold(
       appBar: _tab == 2
           ? null
@@ -70,6 +77,7 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
         0 => const _TodayTab(),
         1 => const _PlanTab(),
         2 => const ExerciseListScreen(embedded: true),
+        3 => const FoodTab(),
         _ => const _ProgressTab(),
       },
       floatingActionButton: _tab == 1
@@ -105,6 +113,11 @@ class _FitnessHomeScreenState extends ConsumerState<FitnessHomeScreen> {
             icon: Icon(Icons.fitness_center_outlined),
             selectedIcon: Icon(Icons.fitness_center),
             label: tr('Exercises'),
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.restaurant_outlined),
+            selectedIcon: Icon(Icons.restaurant),
+            label: tr('Food'),
           ),
           NavigationDestination(
             icon: Icon(Icons.show_chart),

@@ -50,10 +50,13 @@ const arabicStrings = <String, String>{
   'A notification on your training days': 'إشعار في أيام تمرينك',
   'Aa': 'Aa',
   'Abductors': 'الأبعدات',
+  'About ½ kg a week. Never below a safe minimum.':
+      'نحو نصف كيلو أسبوعياً. ولا ينزل أبداً عن الحد الآمن.',
   'Abs': 'البطن',
   'Accept the terms if asked, then tap "Create API key".':
       'وافق على الشروط إن طُلب منك، ثم اضغط "Create API key".',
   'Access was not granted.': 'لم يُمنح الإذن.',
+  'Activity': 'النشاط',
   'Add': 'إضافة',
   'Add a countdown to your home screen as a widget: long-press the home screen → Widgets → MyKit.':
       'أضف العدّ التنازلي إلى شاشتك الرئيسية كأداة: اضغط مطولاً على الشاشة الرئيسية ← الأدوات ← MyKit.',
@@ -73,6 +76,7 @@ const arabicStrings = <String, String>{
   'Add feed here': 'إضافة خلاصة هنا',
   'Add focus hours to block apps completely at set times, like at night.':
       'أضف ساعات تركيز لحجب التطبيقات تماماً في أوقات محددة، مثل الليل.',
+  'Add food': 'إضافة طعام',
   'Add measurements': 'إضافة قياسات',
   'Add my photo…': 'إضافة صورتي…',
   'Add one with +, or import a CSV exported from Chrome or another password manager (Settings → Import).':
@@ -110,6 +114,8 @@ const arabicStrings = <String, String>{
   'After {anchor}': 'بعد {anchor}',
   'After {anchor}: {tiny}': 'بعد {anchor}: {tiny}',
   'After…': 'بعد…',
+  'Again': 'مرة أخرى',
+  'Age': 'العمر',
   'AI features (Gemini)': 'ميزات الذكاء الاصطناعي (Gemini)',
   'AI features are ready. Paste a new key below to replace it.':
       'ميزات الذكاء الاصطناعي جاهزة. الصق مفتاحاً جديداً بالأسفل لاستبداله.',
@@ -139,6 +145,7 @@ const arabicStrings = <String, String>{
       'إضافات الأنمي من مستودعات Aniyomi. لا يثبّت MyKit إلا الإضافات الموقّعة بالمفتاح الذي ينشره المستودع.',
   'Anime not found': 'لم يُعثر على الأنمي',
   'Answer': 'أجب',
+  'Anything to add?': 'هل تضيف شيئاً؟',
   'API key': 'مفتاح API',
   'App links forgotten.': 'نُسيت روابط التطبيقات.',
   'Apply': 'تطبيق',
@@ -199,6 +206,7 @@ const arabicStrings = <String, String>{
   'Bookmarks · {length}': 'العلامات · {length}',
   'Books': 'الكتب',
   'breakfast': 'الفطور',
+  'Breakfast': 'الفطور',
   'Brief': 'موجز',
   'Brief view (swipe through articles)': 'العرض الموجز (اسحب بين المقالات)',
   'Bring your YouTube channels': 'أحضر قنواتك على يوتيوب',
@@ -210,6 +218,7 @@ const arabicStrings = <String, String>{
   'Building': 'البناء',
   'BY DAY OF THE WEEK': 'حسب أيام الأسبوع',
   'Cable': 'كابل',
+  'Calories (kcal)': 'السعرات',
   'Calves': 'السمانة',
   'Can\'t play this one here.': 'لا يمكن تشغيل هذا هنا.',
   'Cancel': 'إلغاء',
@@ -236,6 +245,7 @@ const arabicStrings = <String, String>{
   'Chinese (Traditional)': 'الصينية (التقليدية)',
   'Choose': 'اختيار',
   'Choose a video': 'اختر فيديو',
+  'Choose from gallery': 'اختيار من المعرض',
   'Choose MyKit as the autofill service so your saved logins appear in apps and browsers.':
       'اختر MyKit خدمةً للملء التلقائي لتظهر حساباتك المحفوظة في التطبيقات والمتصفحات.',
   'Choose MyKit as the autofill service to fill logins in apps and Chrome. Import a CSV from Settings.':
@@ -293,6 +303,8 @@ const arabicStrings = <String, String>{
   'Could not reach the add-ons': 'تعذّر الوصول إلى الإضافات',
   'Could not reach {host}.': 'تعذّر الوصول إلى {host}.',
   'Could not reach {url}': 'تعذّر الوصول إلى {url}',
+  'Could not read the estimate. Try again.':
+      'تعذّرت قراءة التقدير. حاول مرة أخرى.',
   'Could not read your calendar.\n{error}': 'تعذّرت قراءة تقويمك.\n{error}',
   'Could not read your music': 'تعذّرت قراءة موسيقاك',
   'Could not turn on fingerprint unlock.': 'تعذّر تفعيل الفتح بالبصمة.',
@@ -316,6 +328,7 @@ const arabicStrings = <String, String>{
   'Daily limits for Instagram, Facebook, X and YouTube':
       'حدود يومية لإنستغرام وفيسبوك وإكس ويوتيوب',
   'DAILY QUESTS': 'المهام اليومية',
+  'Daily target': 'الهدف اليومي',
   'Dark': 'داكن',
   'Day': 'يوم',
   'Day {days} · most habits take about 2 months, some much longer — your own pace is fine.':
@@ -337,9 +350,11 @@ const arabicStrings = <String, String>{
   'Delete vault': 'حذف الخزنة',
   'Delete workout': 'حذف التمرين',
   'Delete {name}?': 'حذف {name}؟',
+  'Describe': 'وصف',
   'Details': 'التفاصيل',
   'Dhuhr prayer': 'صلاة الظهر',
   'Didn\'t feel like it': 'لم تكن لدي رغبة',
+  'Dinner': 'العشاء',
   'Direct link': 'رابط مباشر',
   'Director': 'المخرج',
   'Discard': 'تجاهل',
@@ -363,6 +378,8 @@ const arabicStrings = <String, String>{
   'Dumbbell / kettlebell': 'دمبل / كيتل بيل',
   'E-z curl bar': 'بار EZ',
   'e.g. 1500': 'مثلاً 1500',
+  'e.g. a plate of saltah with two breads and tea':
+      'مثلاً: صحن سلتة مع خبزتين وشاي',
   'e.g. AI, Phones, Gaming': 'مثلاً: ذكاء اصطناعي، هواتف، ألعاب',
   'e.g. Fajr prayer': 'مثلاً: صلاة الفجر',
   'e.g. Gmail, Bank, Netflix': 'مثلاً: Gmail، البنك، Netflix',
@@ -389,6 +406,7 @@ const arabicStrings = <String, String>{
   'Enter 0 – {_max}': 'أدخل 0 – {_max}',
   'Enter a feed or website URL.': 'أدخل رابط خلاصة أو موقع.',
   'Enter a page between 1 and {pageCount}': 'أدخل صفحة بين 1 و{pageCount}',
+  'Estimate': 'تقدير',
   'Event from your calendar': 'حدث من تقويمك',
   'Every day': 'كل يوم',
   'Every month': 'كل شهر',
@@ -429,6 +447,7 @@ const arabicStrings = <String, String>{
   'Feed or website URL': 'رابط الخلاصة أو الموقع',
   'Feeds': 'الخلاصات',
   'Feeds & categories': 'الخلاصات والفئات',
+  'Female': 'أنثى',
   'File name': 'اسم الملف',
   'Fill passwords in apps': 'ملء كلمات المرور في التطبيقات',
   'Fill passwords in apps & Chrome': 'ملء كلمات المرور في التطبيقات وChrome',
@@ -458,6 +477,7 @@ const arabicStrings = <String, String>{
   'Folders are always listed A–Z.': 'تُرتب المجلدات دائماً أبجدياً.',
   'Follow your favourite sites, sorted into categories':
       'تابع مواقعك المفضلة مرتبةً في فئات',
+  'Food': 'الطعام',
   'For specific tools (optional)': 'لأدوات محددة (اختياري)',
   'Forearms': 'الساعدان',
   'Forget app links': 'انسَ روابط التطبيقات',
@@ -472,11 +492,14 @@ const arabicStrings = <String, String>{
   'From free-exercise-db (public domain).': 'من free-exercise-db (ملكية عامة).',
   'From Gemini\'s own knowledge · tap to read':
       'من معرفة Gemini نفسه · اضغط للقراءة',
+  'From your weight ({w} kg, your latest log) and height ({h} cm, in your profile).':
+      'من وزنك ({w} كغ، آخر تسجيل) وطولك ({h} سم، في ملفك).',
   'From {0}': 'من {0}',
   'Front': 'الأمام',
   'Full and tiny versions': 'النسخة الكاملة والصغيرة',
   'Full version': 'النسخة الكاملة',
   'Full: {full}': 'الكاملة: {full}',
+  'Gain weight': 'زيادة الوزن',
   'Gemini API key…': 'مفتاح Gemini…',
   'Gemini declined this ({_blockReason}).':
       'رفض Gemini هذا الطلب ({_blockReason}).',
@@ -491,6 +514,7 @@ const arabicStrings = <String, String>{
   'Glutes': 'الأرداف',
   'Go': 'اذهب',
   'Go to page': 'الذهاب إلى صفحة',
+  'Goal': 'الهدف',
   'Goal reached! 🎉 BMI {0}': 'تحقق الهدف! 🎉 مؤشر كتلة الجسم {0}',
   'Goal weight': 'الوزن المستهدف',
   'Goal {0}{unit}': 'الهدف {0}{unit}',
@@ -623,6 +647,7 @@ const arabicStrings = <String, String>{
   'Japanese': 'اليابانية',
   'just now': 'الآن',
   'Keep it up to date': 'حافظ على تحديثه',
+  'Keep my weight': 'الحفاظ على وزني',
   'Keep talking': 'مواصلة الحديث',
   'Keep the insight': 'احتفظ بالاستنتاج',
   'Keeps your settings, libraries, progress and passwords (encrypted) safe if you change or reset your phone.':
@@ -636,6 +661,7 @@ const arabicStrings = <String, String>{
   'Language': 'اللغة',
   'Languages': 'اللغات',
   'LAST 5 WEEKS': 'آخر 5 أسابيع',
+  'Last 7 days': 'آخر 7 أيام',
   'Last backup {0}': 'آخر نسخة {0}',
   'Last chapter': 'آخر فصل',
   'Last time: {sets}': 'المرة الماضية: {sets}',
@@ -656,6 +682,7 @@ const arabicStrings = <String, String>{
   'Life around you got in the way. Plan a version that still works then: a no-power version, a travel version, a 2-minute version.':
       'الحياة من حولك اعترضت الطريق. خطّط لنسخة تنجح حينها: نسخة بلا كهرباء، نسخة للسفر، نسخة الدقيقتين.',
   'Light': 'فاتح',
+  'Light (walks, 1–3 workouts a week)': 'خفيف (مشي، 1–3 تمارين أسبوعياً)',
   'Light wallpaper preview': 'معاينة خلفية فاتحة',
   'Like': 'إعجاب',
   'Liked': 'أعجبني',
@@ -670,6 +697,8 @@ const arabicStrings = <String, String>{
   'Locked': 'مقفلة',
   'Log': 'تسجيل',
   'Log body weight': 'تسجيل وزن الجسم',
+  'Log food in the Food tab: by photo, by describing it, or by hand. Your target comes from your weight and height.':
+      'سجّل طعامك في تبويب «الطعام»: بالصورة، أو بالوصف، أو يدوياً. هدفك محسوب من وزنك وطولك.',
   'Log your weight in Progress to see your trend and personal bests.':
       'سجّل وزنك في «التقدم» لترى اتجاهك وأرقامك القياسية.',
   'Log your weight once or twice a week, at the same time of day, to see the trend.':
@@ -678,18 +707,22 @@ const arabicStrings = <String, String>{
       'الحسابات التي تختارها لتطبيق تُقترح فيه في المرة القادمة',
   'Looking for feed…': 'جارٍ البحث عن الخلاصة…',
   'Looking for sources…': 'جارٍ البحث عن مصادر…',
+  'Lose weight': 'خسارة الوزن',
   'Lower back': 'أسفل الظهر',
   'lunch': 'الغداء',
+  'Lunch': 'الغداء',
   'Machine': 'جهاز',
   'Maghrib prayer': 'صلاة المغرب',
   'Magnet link copied': 'نُسخ رابط المغناطيس',
   'Main muscles': 'العضلات الرئيسية',
   'Make it easier (optional)': 'اجعلها أسهل (اختياري)',
+  'Male': 'ذكر',
   'Manage add-ons': 'إدارة الإضافات',
   'Manage feeds & categories': 'إدارة الخلاصات والفئات',
   'Manage shelves': 'إدارة الرفوف',
   'Manga': 'مانغا',
   'Manga not found': 'لم يُعثر على المانغا',
+  'Manual': 'يدوي',
   'Mark all as read': 'تعليم الكل كمقروء',
   'Mark all as unread': 'تعليم الكل كغير مقروء',
   'Mark as read': 'تعليم كمقروء',
@@ -705,11 +738,13 @@ const arabicStrings = <String, String>{
   'Missed a quest? Tell the System why. It looks at your history, finds the real reason and adjusts the quest with you.':
       'فاتتك مهمة؟ أخبر النظام لماذا. ينظر في سجلك، ويجد السبب الحقيقي، ويعدّل المهمة معك.',
   'Missed: {reason}': 'فاتت: {reason}',
+  'Moderate (3–5 workouts a week)': 'متوسط (3–5 تمارين أسبوعياً)',
   'Mon': 'اثنين',
   'Monospace': 'ثابت العرض',
   'Month': 'شهر',
   'Months': 'أشهر',
   'More': 'المزيد',
+  'Mostly sitting': 'جلوس معظم الوقت',
   'Move "{name}" into': 'نقل «{name}» إلى',
   'Move into…': 'نقل إلى…',
   'Move to': 'نقل إلى',
@@ -798,6 +833,8 @@ const arabicStrings = <String, String>{
   'No feeds yet': 'لا توجد خلاصات بعد',
   'No fingerprint is set up on this phone.':
       'لا توجد بصمة مُعدّة على هذا الهاتف.',
+  'No food found. Describe it a little more.':
+      'لم يُعثر على طعام. صِفه أكثر قليلاً.',
   'No internet': 'لا إنترنت',
   'No internet connection.': 'لا يوجد اتصال بالإنترنت.',
   'No judgement. Knowing the real reason is how the quest gets easier.':
@@ -850,6 +887,7 @@ const arabicStrings = <String, String>{
   'Nothing is playing.': 'لا شيء قيد التشغيل.',
   'Nothing liked yet. Double-tap an article in the brief view to like it.':
       'لا إعجابات بعد. انقر مرتين على مقالة في العرض الموجز للإعجاب بها.',
+  'Nothing logged today.': 'لم تسجّل شيئاً اليوم.',
   'Nothing new, or…': 'لا جديد، أو…',
   'Nothing to show here.': 'لا شيء لعرضه هنا.',
   'Nothing yet. After a talk, the System writes down why you get stuck and what helps — and sharpens it every time.':
@@ -858,6 +896,7 @@ const arabicStrings = <String, String>{
   'Now playing': 'قيد التشغيل',
   'Number of articles': 'عدد المقالات',
   'Number of days from today': 'عدد الأيام من اليوم',
+  'of {target} kcal': 'من {target} سعرة',
   'Off': 'إيقاف',
   'Offline': 'دون اتصال',
   'Offline copies deleted.': 'حُذفت النسخ المحفوظة.',
@@ -892,6 +931,8 @@ const arabicStrings = <String, String>{
   'Open website': 'فتح الموقع',
   'Open your passwords with your fingerprint instead of typing the master password each time. You can change this in settings.':
       'افتح كلمات مرورك ببصمتك بدلاً من كتابة كلمة المرور الرئيسية في كل مرة. يمكنك تغيير ذلك من الإعدادات.',
+  'Optional: "I ate half", "with 2 breads"…':
+      'اختياري: «أكلت النصف»، «مع خبزتين»…',
   'Other': 'أخرى',
   'Other…': 'أخرى…',
   'Page colour': 'لون الصفحة',
@@ -915,6 +956,9 @@ const arabicStrings = <String, String>{
   'Permissions and accounts MyKit needs':
       'الأذونات والحسابات التي يحتاجها MyKit',
   'Personal bests': 'الأرقام القياسية',
+  'Photo': 'صورة',
+  'Photo and Describe ask Gemini for an estimate — check the numbers before saving.':
+      '«صورة» و«وصف» تطلب تقديراً من Gemini — راجع الأرقام قبل الحفظ.',
   'Pick an event': 'اختر حدثاً',
   'Picture the real obstacle, then decide now what you\'ll do when it happens: "If …, then I will …". The System adds more as it learns.':
       'تخيّل العائق الحقيقي، ثم قرّر الآن ماذا ستفعل حين يحدث: «إذا …، فسوف …». ويضيف النظام المزيد كلما تعلّم.',
@@ -1012,6 +1056,8 @@ const arabicStrings = <String, String>{
   'Reset to starter plan': 'العودة إلى خطة البداية',
   'Reset to the starter plan?': 'العودة إلى خطة البداية؟',
   'Rest': 'راحة',
+  'Resting {bmr} kcal · with activity {m} kcal (keeps your weight).':
+      'في الراحة {bmr} سعرة · مع النشاط {m} سعرة (للحفاظ على وزنك).',
   'Restore': 'استعادة',
   'Restore this backup?': 'استعادة هذه النسخة؟',
   'Restored. Restarting…': 'تمت الاستعادة. جارٍ إعادة التشغيل…',
@@ -1109,6 +1155,7 @@ const arabicStrings = <String, String>{
   'Sign-in timed out. Please try again.':
       'انتهت مهلة تسجيل الدخول. حاول مرة أخرى.',
   'Skip': 'تخطٍّ',
+  'Snack': 'وجبة خفيفة',
   'Something else': 'شيء آخر',
   'Something happened around me': 'حدث شيء من حولي',
   'Something went wrong: {e}': 'حدث خطأ: {e}',
@@ -1161,6 +1208,7 @@ const arabicStrings = <String, String>{
   'Swipe an article right to save it. The brief view lets you swipe through articles one by one.':
       'اسحب المقالة إلى اليمين لحفظها. والعرض الموجز يتيح لك تصفح المقالات واحدة تلو الأخرى.',
   'Swipe page by page': 'اسحب صفحة صفحة',
+  'Take a photo': 'التقاط صورة',
   'Talk': 'تحدّث',
   'Talk to the System': 'تحدّث إلى النظام',
   'Talk to the System?': 'تتحدث إلى النظام؟',
@@ -1276,6 +1324,7 @@ const arabicStrings = <String, String>{
       'بث تورنت للأفلام والمسلسلات والأنمي',
   'Torrent streams need a good connection; mobile data or battery saving can make them slow.':
       'بث التورنت يحتاج اتصالاً جيداً؛ بيانات الجوال أو توفير البطارية قد تجعله بطيئاً.',
+  'Total: {n} kcal': 'المجموع: {n} سعرة',
   'Track {id}': 'المسار {id}',
   'Training days': 'أيام التمرين',
   'Traps': 'الترابيس',
@@ -1326,6 +1375,7 @@ const arabicStrings = <String, String>{
   'Use at least 8 characters.': 'استخدم 8 أحرف على الأقل.',
   'Use fingerprint': 'استخدام البصمة',
   'Use it': 'استخدمها',
+  'Use my own number': 'استخدم رقمي الخاص',
   'Use the 5-day plan': 'استخدام خطة الأيام الخمسة',
   'Use the 5-day plan?': 'استخدام خطة الأيام الخمسة؟',
   'Use this password': 'استخدم كلمة المرور هذه',
@@ -1335,6 +1385,8 @@ const arabicStrings = <String, String>{
   'Using the article only': 'من المقالة فقط',
   'Vault locked': 'الخزنة مقفلة',
   'Vertical': 'عمودي',
+  'Very active (hard work or daily training)':
+      'نشيط جداً (عمل شاق أو تمرين يومي)',
   'Video': 'الفيديو',
   'Vietnamese': 'الفيتنامية',
   'Waist, chest, arm, hips, thigh (cm)':
@@ -1359,6 +1411,7 @@ const arabicStrings = <String, String>{
   'Weight (kg)': 'الوزن (كغ)',
   'Welcome to MyKit': 'مرحباً بك في MyKit',
   'Welcome tour': 'الجولة التعريفية',
+  'What did you eat?': 'ماذا أكلت؟',
   'What doesn\'t': 'ما لا ينفع',
   'WHAT GOT IN THE WAY': 'ما الذي عطّلك',
   'What happened? (optional)': 'ماذا حدث؟ (اختياري)',
@@ -1466,6 +1519,9 @@ const arabicStrings = <String, String>{
   '{n} books': '{n} كتاب',
   '{n} countdowns': '{n} عدّات تنازلية',
   '{n} in progress': '{n} قيد المشاهدة',
+  '{n} kcal a day': '{n} سعرة يومياً',
+  '{n} kcal left today': 'تبقّى {n} سعرة اليوم',
+  '{n} kcal over today': 'تجاوزت اليوم بـ {n} سعرة',
   '{n} manga': '{n} مانغا',
   '{n} options for the same muscles': '{n} بدائل للعضلات نفسها',
   '{n} passwords': '{n} كلمة مرور',
