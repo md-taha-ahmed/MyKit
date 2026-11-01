@@ -93,7 +93,7 @@ android {
 // Runtime that Mihon/Tachiyomi extensions (lib 1.4 / 1.6) are compiled against.
 // Versions follow keiyoushi/extensions-source; extensions get these from the host app.
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.4.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.4.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     // Passwords: fingerprint unlock (BiometricPrompt + Keystore).
     implementation("androidx.biometric:biometric:1.1.0")
