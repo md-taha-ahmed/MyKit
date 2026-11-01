@@ -1,37 +1,109 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MyKit — Privacy policy</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#121317;color:#e6e6e9;max-width:720px;margin:0 auto;padding:48px 20px;line-height:1.6}h1{margin-top:0}h2{margin-top:2em;font-size:1.2em}a{color:#4c8df6}code{background:#252831;padding:1px 6px;border-radius:6px}.muted{color:#9a9ca5}</style></head><body>
-<h1>Privacy policy</h1>
-<p class="muted">Last updated: 30 October 2026</p>
-<p>MyKit is a personal, non-commercial Android app. It has no servers of its own, no accounts, no ads and no
-analytics. The developer never receives any of your data.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyKit — Privacy Policy</title>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; line-height: 1.6; color: #1d1d1f; }
+  h2 { margin-top: 2rem; }
+  li { margin: 6px 0; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f6f9; }
+  a { color: #0b63c4; }
+</style>
+</head>
+<body>
 
-<h2>Data stored on your phone</h2>
-<p>Your settings, libraries, reading and watching progress, feeds, countdowns, workouts and installed extensions
-are stored only in MyKit's private storage on your device. Uninstalling the app deletes them.</p>
+<p><a href="./">← MyKit home</a></p>
+<h1>MyKit Privacy Policy</h1>
+<p>Last updated: 1 November 2026</p>
 
-<h2>Google sign-in (optional)</h2>
-<p>If you choose to sign in with Google, MyKit asks only for what a feature needs:</p>
+<p>MyKit is a personal toolkit app for Android, made by an independent developer
+(<a href="https://github.com/md-taha-ahmed">md-taha-ahmed</a>). This policy explains what data MyKit uses, where the data goes, and the choices you have.</p>
+
+<h2>1. The short version</h2>
 <ul>
-<li><strong>YouTube (read-only)</strong> — <code>youtube.readonly</code>, to import the list of channels you're
-subscribed to so they can be added as feeds. MyKit never posts, subscribes or changes anything on YouTube.</li>
-<li><strong>Google Drive app data</strong> — <code>drive.appdata</code>, to save MyKit backups in a hidden folder of
-your own Google Drive that only MyKit can use. MyKit cannot see, read or change any other files in your Drive.</li>
+  <li>MyKit has <b>no server and no accounts</b>. Your data is stored <b>on your phone</b>.</li>
+  <li>The developer <b>does not collect, receive, sell or share</b> any of your data.</li>
+  <li>There are no ads, no analytics and no tracking.</li>
+  <li>Google sign-in is optional. Your Google data travels only between your phone and Google.</li>
 </ul>
-<p>The sign-in token is stored only on your device. Data from Google APIs goes straight between your phone and
-Google, is used only for these features, and is never sold, shared with anyone else or used for advertising.
-MyKit's use of information received from Google APIs adheres to the
-<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
-including the Limited Use requirements.</p>
-<p>You can remove MyKit's access at any time at
-<a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>. Deleting MyKit's backups:
-Google Drive → Settings → Manage apps → MyKit → Delete hidden app data.</p>
 
-<h2>Services you choose to use</h2>
-<p>Some features talk to third-party services directly from your phone, only when you use them: the RSS feeds,
-add-ons, extensions and sources you add yourself, and — if you enter your own API key — Google Gemini for article
-summaries (the article text is sent to Google for that). Those services have their own privacy policies.</p>
+<h2>2. Data stored on your phone</h2>
+<p>What you enter in MyKit stays on your device, in the app's private storage. This includes:</p>
+<ul>
+  <li>feeds and articles</li>
+  <li>habits and check-ins</li>
+  <li>to-do tasks</li>
+  <li>workouts</li>
+  <li>food entries and the weight and height you enter</li>
+  <li>notes</li>
+  <li>screen-time settings</li>
+</ul>
+<p>Uninstalling the app or clearing its data deletes all of it.</p>
 
-<h2>Contact</h2>
-<p>Questions: open an issue at <a href="https://github.com/md-taha-ahmed/MyKit/issues">github.com/md-taha-ahmed/MyKit</a>.</p>
-</body></html>
+<h2>3. Google user data</h2>
+<p>If you choose to sign in with Google, MyKit asks for these permissions. It asks for each one only when you turn on the feature that needs it:</p>
+<table>
+  <tr><th>Permission (scope)</th><th>What MyKit does with it</th></tr>
+  <tr><td>Google Drive, app data folder only<br><code>drive.appdata</code></td>
+      <td>It saves your MyKit backup file to a hidden folder that only MyKit can access, and lists, restores and deletes those backups when you ask. MyKit cannot see or change any other files in your Drive.</td></tr>
+  <tr><td>YouTube, read-only<br><code>youtube.readonly</code></td>
+      <td>It reads the list of channels you subscribe to, so you can add them to your feeds. It does not post, comment, subscribe or change anything on your account.</td></tr>
+  <tr><td>Google Tasks<br><code>tasks</code></td>
+      <td>It reads your task lists and tasks so they show up in MyKit's to-do. It also creates, edits, completes and deletes tasks and lists, but only when you do so in MyKit, to keep both sides in sync.</td></tr>
+</table>
+<ul>
+  <li>Google data goes <b>directly between your phone and Google's servers</b>. It is never sent to the developer or to any third party.</li>
+  <li>A copy is kept on your phone (for example, your synced tasks) so the app works offline.</li>
+  <li>Google data is <b>not</b> used for advertising and is <b>not</b> sold. It is <b>not</b> used to train AI models, and it is <b>not</b> sent to the AI feature described below.</li>
+  <li>MyKit's use and transfer of information received from Google APIs follows the
+      <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+      including its <b>Limited Use</b> requirements.</li>
+  <li>You can disconnect at any time. Use "Stop syncing" in the to-do, or sign out in MyKit. You can also remove MyKit's access at
+      <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+      To delete MyKit's backups, open Google Drive and go to Settings → Manage apps → MyKit → Delete hidden app data.</li>
+</ul>
+
+<h2>4. Optional AI features (Google Gemini)</h2>
+<p>Some features use Google's Gemini API with an API key that <b>you</b> add in the app. These are:</p>
+<ul>
+  <li>article summaries</li>
+  <li>lesson explanations</li>
+  <li>the habit coach</li>
+  <li>food calorie estimates from text or a photo you choose</li>
+</ul>
+<p>When you use one of these features, the text or photo it needs is sent from your phone straight to Google's Gemini API under your own key, and
+Google's <a href="https://ai.google.dev/gemini-api/terms">Gemini API terms</a> apply.
+Nothing is sent unless you use the feature.</p>
+
+<h2>5. Other internet connections</h2>
+<p>To show content you ask for, MyKit downloads it directly from public sources. These are:</p>
+<ul>
+  <li>the feeds and websites you add</li>
+  <li>Wikipedia</li>
+  <li>open book collections for lessons</li>
+</ul>
+<p>Those sites see an ordinary request from your phone. Nothing about you is sent to them.</p>
+
+<h2>6. Permissions on your phone</h2>
+<ul>
+  <li><b>Accessibility service</b> (only if you turn on Screen time): this detects which app is open, so it can apply the limits you set. It does not read or collect what is on the screen, and nothing leaves your phone.</li>
+  <li><b>Notifications</b>: for reminders you set.</li>
+  <li><b>Camera / photos</b>: only when you choose a food photo to estimate.</li>
+</ul>
+
+<h2>7. Children</h2>
+<p>MyKit is not directed at children under 13 and does not knowingly collect their data.</p>
+
+<h2>8. Changes</h2>
+<p>If this policy changes, the new version is posted on this page with a new date.</p>
+
+<h2>9. Contact</h2>
+<p>For questions or requests, open an issue at
+<a href="https://github.com/md-taha-ahmed/MyKit/issues">github.com/md-taha-ahmed/MyKit/issues</a>.</p>
+
+</body>
+</html>

@@ -1,10 +1,64 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MyKit</title><style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#121317;color:#e6e6e9;max-width:720px;margin:0 auto;padding:48px 20px;line-height:1.6}h1{margin-top:0}h2{margin-top:2em;font-size:1.2em}a{color:#4c8df6}code{background:#252831;padding:1px 6px;border-radius:6px}.muted{color:#9a9ca5}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyKit — a personal toolkit app for Android</title>
+<meta name="description" content="MyKit is a free, offline-first Android app that brings everyday tools together: feeds, habits, to-do, fitness, learning, screen-time limits and backup.">
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; line-height: 1.6; color: #1d1d1f; }
+  h1 { font-size: 2.2rem; margin-bottom: 0; }
+  .tag { color: #555; margin-top: 4px; font-size: 1.1rem; }
+  h2 { margin-top: 2.2rem; }
+  li { margin: 6px 0; }
+  .box { background: #f3f6f9; border-radius: 12px; padding: 16px 20px; }
+  footer { margin-top: 3rem; padding-top: 16px; border-top: 1px solid #ddd; color: #555; }
+  a { color: #0b63c4; }
+</style>
+</head>
+<body>
+
 <h1>MyKit</h1>
-<p>MyKit is a personal Android toolkit: countdowns, RSS feeds, a music player, a PDF reader, manga &amp; anime,
-movies &amp; series, and home workouts — all in one app.</p>
-<p>It is a personal, non-commercial project. Everything you do in MyKit is stored on your own phone; you can
-optionally back it up to your own Google Drive.</p>
-<p><a href="privacy.html">Privacy policy</a> · <a href="https://github.com/md-taha-ahmed/MyKit">Source code</a></p>
-</body></html>
+<p class="tag">A free personal toolkit app for Android. It works offline.</p>
+
+<h2>What MyKit is for</h2>
+<p>MyKit is an Android app that puts the everyday tools one person needs in one place.
+It is built for unstable situations: everything is stored on your phone, works without
+internet, and uses as little mobile data as possible. There is no MyKit account and no
+MyKit server.</p>
+
+<h2>What it does</h2>
+<ul>
+  <li><b>Feeds</b>: read RSS feeds and YouTube channels, and import your YouTube subscriptions.</li>
+  <li><b>The System (habits)</b>: build habits as small daily quests, with an optional AI coach.</li>
+  <li><b>To-do</b>: tasks in categories, with optional two-way sync with Google Tasks.</li>
+  <li><b>Fitness</b>: a home workout plan and a calorie counter.</li>
+  <li><b>Knowledge</b>: daily lessons in history and Islamic studies, in Arabic.</li>
+  <li><b>Screen time</b>: daily limits and focus hours for distracting apps.</li>
+  <li><b>Backup</b>: an optional backup of your MyKit data to your own Google Drive.</li>
+  <li>The app is available in English and Arabic.</li>
+</ul>
+
+<h2>How MyKit uses your Google account</h2>
+<div class="box">
+<p>Signing in with Google is optional. MyKit asks for each permission only when you turn on the feature that needs it:</p>
+<ul>
+  <li><b>Google Drive (app data folder only)</b>, to save and restore your MyKit backup. MyKit cannot see your other Drive files.</li>
+  <li><b>YouTube (read-only)</b>, to import the channels you subscribe to into your feeds.</li>
+  <li><b>Google Tasks</b>, to show your task lists in MyKit's to-do and keep them in sync.</li>
+</ul>
+<p>Your Google data goes only between your phone and Google. It is never sent to the developer or anyone else.
+Details are in the <a href="privacy.html">Privacy Policy</a>.</p>
+</div>
+
+<h2>Get the app</h2>
+<p>MyKit is open source. The code and releases are on
+<a href="https://github.com/md-taha-ahmed/MyKit">GitHub</a>.</p>
+
+<footer>
+  <a href="privacy.html">Privacy Policy</a> ·
+  <a href="https://github.com/md-taha-ahmed/MyKit/issues">Contact / support</a>
+</footer>
+
+</body>
+</html>
