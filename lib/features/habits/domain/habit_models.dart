@@ -483,6 +483,11 @@ class HabitTask {
     this.due,
     this.doneAt,
     this.fromSystem = false,
+    this.listId = TaskList.defaultId,
+    this.gid,
+    this.gList,
+    this.updatedAt,
+    this.dirty = true,
   });
 
   final String id;
@@ -495,11 +500,25 @@ class HabitTask {
   final DateTime? doneAt;
   final bool fromSystem;
 
+  /// The [TaskList] (category) it's in.
+  final String listId;
+
+  /// Its id in Google Tasks, once synced, and the Google list it's in there.
+  final String? gid;
+  final String? gList;
+  final DateTime? updatedAt;
+
+  /// Changed here since the last sync.
+  final bool dirty;
+
   bool get done => doneAt != null;
+
+  DateTime get changed => updatedAt ?? createdAt;
 
   bool overdue(DateTime now) =>
       !done && due != null && due!.compareTo(habitDay(now)) < 0;
 
+  /// An edit made here: marked for the next sync.
   HabitTask copyWith({
     String? title,
     String? note,
@@ -507,6 +526,7 @@ class HabitTask {
     bool clearDue = false,
     DateTime? doneAt,
     bool clearDone = false,
+    String? listId,
   }) => HabitTask(
     id: id,
     title: title ?? this.title,
@@ -515,6 +535,51 @@ class HabitTask {
     createdAt: createdAt,
     doneAt: clearDone ? null : doneAt ?? this.doneAt,
     fromSystem: fromSystem,
+    listId: listId ?? this.listId,
+    gid: gid,
+    gList: gList,
+    updatedAt: DateTime.now(),
+  );
+
+  /// The same task as [gid] in Google, with local changes still to push.
+  HabitTask linked(String gid, String gList) => HabitTask(
+    id: id,
+    title: title,
+    note: note,
+    due: due,
+    createdAt: createdAt,
+    doneAt: doneAt,
+    fromSystem: fromSystem,
+    listId: listId,
+    gid: gid,
+    gList: gList,
+    updatedAt: updatedAt,
+  );
+
+  /// The state Google has, after a sync.
+  HabitTask synced({
+    required String gid,
+    required String gList,
+    String? title,
+    String? note,
+    String? due,
+    DateTime? doneAt,
+    String? listId,
+    DateTime? updatedAt,
+    bool fromRemote = false,
+  }) => HabitTask(
+    id: id,
+    title: title ?? this.title,
+    note: fromRemote ? note ?? '' : note ?? this.note,
+    due: fromRemote ? due : due ?? this.due,
+    createdAt: createdAt,
+    doneAt: fromRemote ? doneAt : doneAt ?? this.doneAt,
+    fromSystem: fromSystem,
+    listId: listId ?? this.listId,
+    gid: gid,
+    gList: gList,
+    updatedAt: updatedAt ?? this.updatedAt,
+    dirty: false,
   );
 
   Map<String, dynamic> toJson() => {
@@ -525,6 +590,11 @@ class HabitTask {
     'c': createdAt.millisecondsSinceEpoch,
     'done': ?doneAt?.millisecondsSinceEpoch,
     if (fromSystem) 'sys': true,
+    if (listId != TaskList.defaultId) 'l': listId,
+    'g': ?gid,
+    'gl': ?gList,
+    'u': ?updatedAt?.millisecondsSinceEpoch,
+    if (!dirty) 'clean': true,
   };
 
   static HabitTask fromJson(Map<String, dynamic> j) => HabitTask(
@@ -538,6 +608,52 @@ class HabitTask {
       _ => null,
     },
     fromSystem: j['sys'] == true,
+    listId: j['l'] as String? ?? TaskList.defaultId,
+    gid: j['g'] as String?,
+    gList: j['gl'] as String?,
+    updatedAt: switch (j['u']) {
+      final num n => DateTime.fromMillisecondsSinceEpoch(n.toInt()),
+      _ => null,
+    },
+    dirty: j['clean'] != true,
+  );
+}
+
+/// A to-do category — a task list in Google Tasks.
+class TaskList {
+  const TaskList({
+    required this.id,
+    required this.title,
+    this.gid,
+    this.dirty = true,
+  });
+
+  /// The list every task starts in; on the first sync it becomes your
+  /// default Google list ("My Tasks") rather than a new one.
+  static const defaultId = 'local-default';
+
+  final String id;
+  final String title;
+  final String? gid;
+  final bool dirty;
+
+  TaskList rename(String title) => TaskList(id: id, title: title, gid: gid);
+
+  TaskList synced(String gid, {String? title}) =>
+      TaskList(id: id, title: title ?? this.title, gid: gid, dirty: false);
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    't': title,
+    'g': ?gid,
+    if (!dirty) 'clean': true,
+  };
+
+  static TaskList fromJson(Map<String, dynamic> j) => TaskList(
+    id: j['id'] as String,
+    title: j['t'] as String,
+    gid: j['g'] as String?,
+    dirty: j['clean'] != true,
   );
 }
 

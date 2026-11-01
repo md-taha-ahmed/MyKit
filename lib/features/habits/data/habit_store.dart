@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/habit_models.dart';
+import 'tasks_sync.dart';
 
 /// Habits, check-ins and what the System knows, in SharedPreferences (so the
 /// Drive backup includes them). Works fully offline.
@@ -20,6 +21,9 @@ class HabitStore {
   static const _hardDays = 'habits.hardDays.v1';
   static const _talks = 'habits.talks.v1';
   static const _tasks = 'habits.tasks.v1';
+  static const _taskLists = 'habits.taskLists.v1';
+  static const _tasksGone = 'habits.tasks.gone.v1';
+  static const _tasksSynced = 'habits.tasks.synced.v1';
   static const _aid = 'habits.aidKit.v1';
   static const _aidUses = 'habits.aidUses.v1';
   static const _days = 'habits.days.v1';
@@ -143,6 +147,76 @@ class HabitStore {
       for (final t in v)
         if (!t.done || t.doneAt!.isAfter(since)) t.toJson(),
     ]);
+  }
+
+  /// Your to-do categories; there's always the default one.
+  List<TaskList> get taskLists {
+    final lists = _list(_taskLists, TaskList.fromJson);
+    if (lists.any((l) => l.id == TaskList.defaultId)) return lists;
+    return [
+      const TaskList(id: TaskList.defaultId, title: 'My Tasks'),
+      ...lists,
+    ];
+  }
+
+  Future<void> saveTaskLists(List<TaskList> v) =>
+      _put(_taskLists, [for (final l in v) l.toJson()]);
+
+  /// The to-do with what's needed to sync it.
+  TasksData get tasksData {
+    final gone = _json(_tasksGone) as Map? ?? const {};
+    final synced = _json(_tasksSynced) as Map? ?? const {};
+    return TasksData(
+      lists: taskLists,
+      tasks: tasks,
+      goneTasks: [
+        for (final g in (gone['tasks'] as List? ?? const []))
+          (gid: g['g'] as String, list: g['l'] as String),
+      ],
+      goneLists: [for (final g in (gone['lists'] as List? ?? const [])) '$g'],
+      syncedAt: {
+        for (final e in synced.entries)
+          if (DateTime.tryParse('${e.value}') case final DateTime t)
+            '${e.key}': t,
+      },
+    );
+  }
+
+  Future<void> saveTasksData(TasksData d) async {
+    await saveTasks(d.tasks);
+    await saveTaskLists(d.lists);
+    await _put(_tasksGone, {
+      'tasks': [
+        for (final g in d.goneTasks) {'g': g.gid, 'l': g.list},
+      ],
+      'lists': d.goneLists,
+    });
+    await _put(_tasksSynced, {
+      for (final e in d.syncedAt.entries) e.key: e.value.toIso8601String(),
+    });
+  }
+
+  /// Forgets the Google side (after disconnecting): tasks stay, as local.
+  Future<void> forgetTasksSync() async {
+    await saveTasksData(
+      TasksData(
+        lists: [for (final l in taskLists) TaskList(id: l.id, title: l.title)],
+        tasks: [
+          for (final t in tasks)
+            HabitTask(
+              id: t.id,
+              title: t.title,
+              note: t.note,
+              due: t.due,
+              doneAt: t.doneAt,
+              createdAt: t.createdAt,
+              fromSystem: t.fromSystem,
+              listId: t.listId,
+              updatedAt: t.updatedAt,
+            ),
+        ],
+      ),
+    );
   }
 
   List<AidEntry> get aidKit => _list(_aid, AidEntry.fromJson);

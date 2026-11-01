@@ -300,7 +300,9 @@ const arabicStrings = <String, String>{
   'Configure opens the add-on\'s page. Copy the install link it gives you and add it here with "Add-on URL" — it replaces this one.':
       '«إعداد» يفتح صفحة الإضافة. انسخ رابط التثبيت الذي تعطيك إياه وأضفه هنا عبر «رابط الإضافة» — وسيحل محل هذه.',
   'Configure…': 'إعداد…',
+  'Connect': 'ربط',
   'Connect a Google API client': 'ربط عميل Google API',
+  'Connected to Google Tasks.': 'تم الربط بمهام Google.',
   'Connecting to peers…': 'جارٍ الاتصال بالأقران…',
   'Contents': 'المحتويات',
   'Continue': 'متابعة',
@@ -377,6 +379,7 @@ const arabicStrings = <String, String>{
   'Delete "{name}"?': 'حذف «{name}»؟',
   'Delete "{title}"?': 'حذف «{title}»؟',
   'Delete all': 'حذف الكل',
+  'Delete category': 'حذف الفئة',
   'Delete countdown?': 'حذف العدّ التنازلي؟',
   'Delete everything': 'حذف كل شيء',
   'Delete exercise': 'حذف التمرين',
@@ -571,6 +574,7 @@ const arabicStrings = <String, String>{
       'النسخ الاحتياطي والاستعادة عبر Google Drive',
   'Google sign-in isn\'t set up in this build. Add the OAuth client (RSS Feeds → Import YouTube subscriptions) or build with config/google_oauth.local.json.':
       'تسجيل الدخول بـ Google غير مُعدّ في هذه النسخة. أضف عميل OAuth (خلاصات RSS ← استيراد اشتراكات يوتيوب) أو ابنِ التطبيق مع config/google_oauth.local.json.',
+  'Google Tasks error ({code}).': 'خطأ في مهام Google ({code}).',
   'Got it': 'فهمت',
   'Habits last longer when they\'re part of who you are, not just a task. And picturing what you\'ll gain keeps you going on hard days.':
       'تدوم العادات أطول حين تصبح جزءاً من هويتك لا مجرد مهمة. وتخيّل ما ستكسبه يبقيك مستمراً في الأيام الصعبة.',
@@ -701,6 +705,8 @@ const arabicStrings = <String, String>{
       'سيُلغى الاشتراك في خلاصاتها ({count}) أيضاً. انقل الخلاصات إلى مجلد آخر أولاً للاحتفاظ بها.',
   'Its {folders} sub-folders move up a level.':
       'ستنتقل مجلداتها الفرعية ({folders}) مستوى إلى الأعلى.',
+  'Its {n} tasks are deleted too, here and in Google Tasks.':
+      'ستُحذف مهامها ({n}) أيضاً، هنا وفي مهام Google.',
   'Japanese': 'اليابانية',
   'Jumada al-Akhirah': 'جمادى الآخرة',
   'Jumada al-Ula': 'جمادى الأولى',
@@ -828,6 +834,7 @@ const arabicStrings = <String, String>{
   'Muted': 'مكتوم',
   'My books': 'كتبي',
   'My exercise': 'تمريني',
+  'My Tasks': 'مهامي',
   'MyKit': 'MyKit',
   'MyKit loses access to your YouTube subscriptions. Channels you already added stay in your feeds.':
       'سيفقد MyKit الوصول إلى اشتراكاتك في يوتيوب. القنوات التي أضفتها تبقى في خلاصاتك.',
@@ -895,6 +902,8 @@ const arabicStrings = <String, String>{
   'No books match "{text}".': 'لا توجد كتب تطابق «{text}».',
   'No clear differences yet. That can be good news.':
       'لا فروق واضحة بعد. وقد يكون هذا خبراً جيداً.',
+  'No connection — your changes will sync later.':
+      'لا يوجد اتصال — ستُزامَن تغييراتك لاحقاً.',
   'No countdowns yet': 'لا توجد عدّات تنازلية بعد',
   'No electricity': 'لا كهرباء',
   'No entries yet': 'لا توجد إدخالات بعد',
@@ -1207,6 +1216,8 @@ const arabicStrings = <String, String>{
   'Security questions, recovery codes…': 'أسئلة الأمان، رموز الاسترداد…',
   'Security situation': 'الوضع الأمني',
   'See all': 'عرض الكل',
+  'See and edit the same tasks and lists in Google Tasks, Gmail and Calendar. Works offline; syncs when there is internet.':
+      'اعرض المهام والقوائم نفسها وعدّلها في مهام Google وGmail والتقويم. يعمل دون إنترنت ويُزامن عند توفره.',
   'Select a date': 'اختر تاريخاً',
   'Select a time': 'اختر وقتاً',
   'Select all': 'تحديد الكل',
@@ -1222,6 +1233,8 @@ const arabicStrings = <String, String>{
   'Set up': 'إعداد',
   'Set up AI (free Gemini key) to talk':
       'أعدّ الذكاء الاصطناعي (مفتاح Gemini مجاني) للتحدث',
+  'Set up Google sign-in first (Backup or YouTube import), then connect.':
+      'أعدّ تسجيل الدخول بـ Google أولاً (من النسخ الاحتياطي أو استيراد YouTube)، ثم اربط.',
   'Set up MyKit': 'إعداد MyKit',
   'Sets': 'المجموعات',
   'Sets in the last 7 days (helping muscles count half). Grey = not trained yet.':
@@ -1291,6 +1304,8 @@ const arabicStrings = <String, String>{
   'Steps, pictures and muscles worked': 'الخطوات والصور والعضلات العاملة',
   'Still to do:': 'ما زال:',
   'Stop': 'إيقاف',
+  'Stop syncing with Google Tasks': 'إيقاف المزامنة مع مهام Google',
+  'Stopped syncing. Your tasks stay here.': 'توقفت المزامنة. مهامك باقية هنا.',
   'Stopped. {saved} articles saved.': 'توقف. حُفظت {saved} مقالة.',
   'Streak': 'السلسلة',
   'Streams': 'مصادر البث',
@@ -1314,6 +1329,9 @@ const arabicStrings = <String, String>{
   'Swipe an article right to save it. The brief view lets you swipe through articles one by one.':
       'اسحب المقالة إلى اليمين لحفظها. والعرض الموجز يتيح لك تصفح المقالات واحدة تلو الأخرى.',
   'Swipe page by page': 'اسحب صفحة صفحة',
+  'Sync now': 'زامِن الآن',
+  'Sync with Google Tasks': 'المزامنة مع مهام Google',
+  'Synced.': 'تمت المزامنة.',
   'Take a photo': 'التقاط صورة',
   'Talk': 'تحدّث',
   'Talk about today': 'تحدّث عن اليوم',
@@ -1458,6 +1476,8 @@ const arabicStrings = <String, String>{
   'Turn on fingerprint unlock so you don\'t type the master password every time.':
       'فعّل الفتح بالبصمة حتى لا تكتب كلمة المرور الرئيسية في كل مرة.',
   'Turn on Screen time': 'تفعيل وقت الشاشة',
+  'Turn on the Google Tasks API in your Google Cloud project, then try again.':
+      'فعّل Google Tasks API في مشروعك على Google Cloud، ثم حاول مجدداً.',
   'Type a title and press search.': 'اكتب عنواناً واضغط بحث.',
   'Type a title and press search. You can also paste an IMDb link.':
       'اكتب عنواناً واضغط بحث. يمكنك أيضاً لصق رابط IMDb.',

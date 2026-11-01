@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/ai/gemini_client.dart';
+import '../../../../core/google/google_oauth.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../../fitness/domain/entities/fitness_entities.dart';
@@ -13,6 +16,8 @@ import '../../../fitness/presentation/widgets/exercise_options.dart';
 import '../../../fitness/presentation/providers/food_providers.dart';
 import '../../../limiter/presentation/providers/limiter_providers.dart';
 import '../../data/app_signals.dart';
+import '../../data/google_tasks_api.dart';
+import '../../data/tasks_sync.dart';
 import '../../data/nudges.dart';
 import '../../data/habit_coach.dart';
 import '../../data/habit_notifications.dart';
@@ -27,6 +32,26 @@ const habitsAccent = Color(0xFF4FC3F7);
 final habitStoreProvider = Provider<HabitStore>(
   (ref) => HabitStore(ref.watch(sharedPreferencesProvider)),
 );
+
+final googleTasksApiProvider = Provider<GoogleTasksApi>((ref) {
+  final client = http.Client();
+  ref.onDispose(client.close);
+  return GoogleTasksApi(ref.watch(googleOAuthProvider), client);
+});
+
+/// How the to-do's Google Tasks sync is going.
+typedef TasksSyncStatus = ({bool busy, String? error, DateTime? at});
+
+final tasksSyncProvider = NotifierProvider<TasksSyncNotifier, TasksSyncStatus>(
+  TasksSyncNotifier.new,
+);
+
+class TasksSyncNotifier extends Notifier<TasksSyncStatus> {
+  @override
+  TasksSyncStatus build() => (busy: false, error: null, at: null);
+
+  void set(TasksSyncStatus v) => state = v;
+}
 
 final habitNotificationsProvider = Provider<HabitNotifications>(
   (ref) => HabitNotifications(),
@@ -43,6 +68,7 @@ class HabitsState {
     this.hardDays = const [],
     this.talks = const {},
     this.tasks = const [],
+    this.taskLists = const [],
     this.aidKit = const [],
     this.aidUses = const [],
     this.days = const [],
@@ -59,6 +85,9 @@ class HabitsState {
   final List<HardDay> hardDays;
   final Map<String, List<CoachMessage>> talks;
   final List<HabitTask> tasks;
+
+  /// To-do categories (Google Tasks lists).
+  final List<TaskList> taskLists;
   final List<AidEntry> aidKit;
   final List<AidUse> aidUses;
 
@@ -137,6 +166,7 @@ class HabitsState {
     List<HardDay>? hardDays,
     Map<String, List<CoachMessage>>? talks,
     List<HabitTask>? tasks,
+    List<TaskList>? taskLists,
     List<AidEntry>? aidKit,
     List<AidUse>? aidUses,
     List<DaySnapshot>? days,
@@ -152,6 +182,7 @@ class HabitsState {
     hardDays: hardDays ?? this.hardDays,
     talks: talks ?? this.talks,
     tasks: tasks ?? this.tasks,
+    taskLists: taskLists ?? this.taskLists,
     aidKit: aidKit ?? this.aidKit,
     aidUses: aidUses ?? this.aidUses,
     days: days ?? this.days,
@@ -181,6 +212,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
       Nudges.sync(enabled: Nudges.enabled(ref.read(sharedPreferencesProvider)));
       _syncLocks();
       recordDays();
+      syncTasks();
     });
     return HabitsState(
       habits: s.habits,
@@ -192,6 +224,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
       hardDays: s.hardDays,
       talks: s.talks,
       tasks: s.tasks,
+      taskLists: s.taskLists,
       aidKit: s.aidKit,
       aidUses: s.aidUses,
       days: s.days,
@@ -388,9 +421,114 @@ class HabitsNotifier extends Notifier<HabitsState> {
 
   // Tasks --------------------------------------------------------------------
 
-  Future<void> _saveTasks(List<HabitTask> tasks) async {
+  static const _tasksGoogleKey = 'habits.tasks.google';
+
+  GoogleTasksApi get _tasksApi => ref.read(googleTasksApiProvider);
+
+  /// The to-do syncs with Google Tasks.
+  bool get tasksConnected =>
+      ref.read(sharedPreferencesProvider).getBool(_tasksGoogleKey) == true &&
+      _tasksApi.isConnected;
+
+  bool get tasksConfigured => _tasksApi.isConfigured;
+
+  bool _syncing = false;
+  final _touchedTasks = <String>{};
+  Timer? _syncTimer;
+
+  /// Signs in to Google (browser) and syncs. Returns an error, if any.
+  Future<String?> connectTasks() async {
+    try {
+      await _tasksApi.connect();
+    } on TasksSyncException catch (e) {
+      return e.message;
+    }
+    await ref.read(sharedPreferencesProvider).setBool(_tasksGoogleKey, true);
+    return syncTasks();
+  }
+
+  /// Stops syncing; your tasks stay here.
+  Future<void> disconnectTasks() async {
+    _syncTimer?.cancel();
+    await ref.read(sharedPreferencesProvider).setBool(_tasksGoogleKey, false);
+    await _store.forgetTasksSync();
+    state = state.copyWith(tasks: _store.tasks, taskLists: _store.taskLists);
+    ref.read(tasksSyncProvider.notifier).set((
+      busy: false,
+      error: null,
+      at: null,
+    ));
+  }
+
+  void _syncSoon() {
+    if (!tasksConnected) return;
+    _syncTimer?.cancel();
+    _syncTimer = Timer(const Duration(seconds: 3), syncTasks);
+  }
+
+  /// Two-way sync with Google Tasks, when connected. Returns an error, if
+  /// any (offline is fine: changes wait for the next sync).
+  Future<String?> syncTasks() async {
+    if (!tasksConnected || _syncing) return null;
+    _syncing = true;
+    _touchedTasks.clear();
+    final status = ref.read(tasksSyncProvider.notifier);
+    final before = ref.read(tasksSyncProvider);
+    status.set((busy: true, error: null, at: before.at));
+    final result = await TasksSync(_tasksApi).run(_store.tasksData);
+
+    // Edits made while syncing win; they go up with the next sync.
+    final current = {for (final t in state.tasks) t.id: t};
+    final synced = {for (final t in result.data.tasks) t.id};
+    final gone = [...result.data.goneTasks];
+    final tasks = <HabitTask>[];
+    for (final t in result.data.tasks) {
+      if (!_touchedTasks.contains(t.id)) {
+        tasks.add(t);
+      } else if (current[t.id] case final c?) {
+        tasks.add(
+          t.gid != null && c.gid == null ? c.linked(t.gid!, t.gList!) : c,
+        );
+      } else if (t.gid != null) {
+        gone.add((gid: t.gid!, list: t.gList!));
+      }
+    }
+    tasks.addAll(
+      state.tasks.where(
+        (t) => _touchedTasks.contains(t.id) && !synced.contains(t.id),
+      ),
+    );
+    final data = TasksData(
+      lists: result.data.lists,
+      tasks: tasks,
+      goneTasks: gone,
+      goneLists: result.data.goneLists,
+      syncedAt: result.data.syncedAt,
+    );
+    await _store.saveTasksData(data);
+    state = state.copyWith(tasks: _store.tasks, taskLists: _store.taskLists);
+    _syncing = false;
+
+    final error = switch (result.error) {
+      null => null,
+      final TasksSyncException e => e.message,
+      final GoogleOAuthException e => e.message,
+      _ => tr('No connection — your changes will sync later.'),
+    };
+    status.set((
+      busy: false,
+      error: error,
+      at: error == null ? DateTime.now() : before.at,
+    ));
+    if (_touchedTasks.isNotEmpty) _syncSoon();
+    return error;
+  }
+
+  Future<void> _saveTasks(List<HabitTask> tasks, {String? touched}) async {
+    if (touched != null && _syncing) _touchedTasks.add(touched);
     state = state.copyWith(tasks: tasks);
     await _store.saveTasks(tasks);
+    _syncSoon();
   }
 
   Future<void> addTask(
@@ -398,20 +536,28 @@ class HabitsNotifier extends Notifier<HabitsState> {
     String? due,
     String note = '',
     bool fromSystem = false,
-  }) => _saveTasks([
-    ...state.tasks,
-    HabitTask(
-      id: newId(),
-      title: title.trim(),
-      note: note,
-      due: due,
-      createdAt: DateTime.now(),
-      fromSystem: fromSystem,
-    ),
-  ]);
+    String listId = TaskList.defaultId,
+  }) {
+    final id = newId();
+    return _saveTasks([
+      ...state.tasks,
+      HabitTask(
+        id: id,
+        title: title.trim(),
+        note: note,
+        due: due,
+        createdAt: DateTime.now(),
+        fromSystem: fromSystem,
+        listId: state.taskLists.any((l) => l.id == listId)
+            ? listId
+            : TaskList.defaultId,
+      ),
+    ], touched: id);
+  }
 
-  Future<void> updateTask(HabitTask t) =>
-      _saveTasks([for (final x in state.tasks) x.id == t.id ? t : x]);
+  Future<void> updateTask(HabitTask t) => _saveTasks([
+    for (final x in state.tasks) x.id == t.id ? t : x,
+  ], touched: t.id);
 
   Future<void> toggleTask(String id) => _saveTasks([
     for (final t in state.tasks)
@@ -421,10 +567,69 @@ class HabitsNotifier extends Notifier<HabitsState> {
             : t.copyWith(doneAt: DateTime.now())
       else
         t,
+  ], touched: id);
+
+  Future<void> deleteTask(String id) async {
+    final t = state.tasks.where((t) => t.id == id).firstOrNull;
+    if (t?.gid != null && !_syncing) {
+      final d = _store.tasksData;
+      await _store.saveTasksData(
+        TasksData(
+          lists: d.lists,
+          tasks: d.tasks,
+          goneTasks: [...d.goneTasks, (gid: t!.gid!, list: t.gList!)],
+          goneLists: d.goneLists,
+          syncedAt: d.syncedAt,
+        ),
+      );
+    }
+    await _saveTasks(
+      state.tasks.where((t) => t.id != id).toList(),
+      touched: id,
+    );
+  }
+
+  // Task lists (categories) ---------------------------------------------------
+
+  Future<void> _saveLists(List<TaskList> lists) async {
+    state = state.copyWith(taskLists: lists);
+    await _store.saveTaskLists(lists);
+    _syncSoon();
+  }
+
+  Future<String> addTaskList(String title) async {
+    final id = newId();
+    await _saveLists([
+      ...state.taskLists,
+      TaskList(id: id, title: title.trim()),
+    ]);
+    return id;
+  }
+
+  Future<void> renameTaskList(String id, String title) => _saveLists([
+    for (final l in state.taskLists) l.id == id ? l.rename(title.trim()) : l,
   ]);
 
-  Future<void> deleteTask(String id) =>
-      _saveTasks(state.tasks.where((t) => t.id != id).toList());
+  /// Deletes a category and its tasks (here and in Google). The default one
+  /// stays.
+  Future<void> deleteTaskList(String id) async {
+    if (id == TaskList.defaultId) return;
+    final list = state.taskLists.where((l) => l.id == id).firstOrNull;
+    final d = _store.tasksData;
+    final tasks = state.tasks.where((t) => t.listId != id).toList();
+    final lists = state.taskLists.where((l) => l.id != id).toList();
+    await _store.saveTasksData(
+      TasksData(
+        lists: lists,
+        tasks: tasks,
+        goneTasks: d.goneTasks,
+        goneLists: [...d.goneLists, ?list?.gid],
+        syncedAt: d.syncedAt,
+      ),
+    );
+    state = state.copyWith(tasks: tasks, taskLists: lists);
+    _syncSoon();
+  }
 
   // Aid kit ------------------------------------------------------------------
 

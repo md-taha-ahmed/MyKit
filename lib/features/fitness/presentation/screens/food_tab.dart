@@ -122,17 +122,20 @@ class FoodTab extends ConsumerWidget {
           const SizedBox(height: 14),
           Text(tr('Again'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final r in recent)
-                ActionChip(
-                  label: Text('${r.name} · ${r.kcal}'),
-                  onPressed: () =>
-                      ref.read(foodLogProvider.notifier).add(r.name, r.kcal),
-                ),
-            ],
+          // One scrolling row, so a long history doesn't push the day down.
+          SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: recent.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 6),
+              itemBuilder: (_, i) => ActionChip(
+                label: Text('${recent[i].name} · ${recent[i].kcal}'),
+                onPressed: () => ref
+                    .read(foodLogProvider.notifier)
+                    .add(recent[i].name, recent[i].kcal),
+              ),
+            ),
           ),
         ],
         const SizedBox(height: 16),
@@ -538,15 +541,24 @@ class _EstimateDialogState extends State<_EstimateDialog> {
                               ],
                             ),
                           ),
+                          const SizedBox(width: 8),
                           SizedBox(
-                            width: 72,
+                            width: 112,
                             child: TextField(
                               controller: _kcal[i],
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.end,
                               onChanged: (_) => setState(() {}),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              ),
                               decoration: const InputDecoration(
-                                suffixText: 'kcal',
+                                suffixText: ' kcal',
+                                suffixStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white60,
+                                ),
                                 isDense: true,
                               ),
                             ),
@@ -556,7 +568,10 @@ class _EstimateDialogState extends State<_EstimateDialog> {
                     const SizedBox(height: 8),
                     Text(
                       tr('Total: {n} kcal', {'n': _total}),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     if (e.note.isNotEmpty) ...[
                       const SizedBox(height: 6),
