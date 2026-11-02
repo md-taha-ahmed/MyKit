@@ -45,6 +45,16 @@ class FoodEntry {
   final int kcal;
   final FoodSource source;
 
+  FoodEntry copyWith({String? name, int? kcal, Meal? meal}) => FoodEntry(
+    id: id,
+    day: day,
+    at: at,
+    meal: meal ?? this.meal,
+    name: name ?? this.name,
+    kcal: kcal ?? this.kcal,
+    source: source,
+  );
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'd': day,
@@ -69,6 +79,37 @@ class FoodEntry {
       (s) => s.name == j['s'],
       orElse: () => FoodSource.manual,
     ),
+  );
+}
+
+typedef FoodItem = ({String name, int kcal});
+
+/// A meal you eat often, saved as its foods so one tap logs them all
+/// (e.g. "My breakfast": ful, two breads, tea).
+class SavedMeal {
+  const SavedMeal({required this.id, required this.name, required this.items});
+
+  final String id;
+  final String name;
+  final List<FoodItem> items;
+
+  int get kcal => items.fold(0, (s, i) => s + i.kcal);
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'n': name,
+    'i': [
+      for (final i in items) {'n': i.name, 'k': i.kcal},
+    ],
+  };
+
+  static SavedMeal fromJson(Map<String, dynamic> j) => SavedMeal(
+    id: j['id'] as String,
+    name: j['n'] as String,
+    items: [
+      for (final i in (j['i'] as List? ?? const []))
+        (name: i['n'] as String, kcal: (i['k'] as num).toInt()),
+    ],
   );
 }
 

@@ -51,4 +51,33 @@ Here you go:
     expect(Meal.forTime(DateTime(2026, 1, 1, 19)), Meal.dinner);
     expect(Meal.forTime(DateTime(2026, 1, 1, 23)), Meal.snack);
   });
+
+  test('saved meals keep their foods and total', () {
+    const m = SavedMeal(
+      id: 'm',
+      name: 'Breakfast',
+      items: [(name: 'Ful', kcal: 350), (name: 'Bread', kcal: 250)],
+    );
+    final back = SavedMeal.fromJson(m.toJson());
+    expect(back.items.length, 2);
+    expect(back.kcal, 600);
+    expect(back.items.first.name, 'Ful');
+  });
+
+  test('editing a food keeps its day and source', () {
+    final e = FoodEntry(
+      id: '1',
+      day: '2026-11-02',
+      at: DateTime(2026, 11, 2, 8),
+      meal: Meal.breakfast,
+      name: 'Tea',
+      kcal: 40,
+      source: FoodSource.photo,
+    );
+    final edited = e.copyWith(kcal: 90, meal: Meal.snack);
+    expect(edited.kcal, 90);
+    expect(edited.meal, Meal.snack);
+    expect(edited.day, e.day);
+    expect(edited.source, FoodSource.photo);
+  });
 }

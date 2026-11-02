@@ -9,6 +9,7 @@ import '../../data/food_estimator.dart';
 import '../../domain/food.dart';
 import '../providers/fitness_providers.dart';
 import '../providers/food_providers.dart';
+import '../widgets/food_widgets.dart';
 
 /// Calories today against a target worked out from your weight and height;
 /// add food by hand, by describing it, or with a photo.
@@ -28,6 +29,7 @@ class FoodTab extends ConsumerWidget {
     final target = ref.watch(calorieTargetProvider);
     final byDay = ref.watch(caloriesByDayProvider);
     final left = target.target - eaten;
+    final saved = ref.watch(savedMealsProvider);
     final over = left < 0;
 
     return ListView(
@@ -117,39 +119,83 @@ class FoodTab extends ConsumerWidget {
           ),
           style: theme.textTheme.bodySmall?.copyWith(color: Colors.white54),
         ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Text(tr('My meals'), style: theme.textTheme.titleSmall),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => editSavedMeal(context, ref),
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(tr('New meal')),
+            ),
+          ],
+        ),
+        if (saved.isEmpty)
+          Text(
+            tr(
+              'Save the meals you repeat (e.g. ful, two breads and tea) and log them with one tap.',
+            ),
+            style: theme.textTheme.bodySmall?.copyWith(color: Colors.white54),
+          )
+        else
+          FoldingChips(
+            chips: [
+              for (final m in saved)
+                GestureDetector(
+                  onLongPress: () => editSavedMeal(context, ref, meal: m),
+                  child: ActionChip(
+                    avatar: const Icon(Icons.restaurant_menu, size: 16),
+                    label: Text('${m.name} · ${m.kcal}'),
+                    onPressed: () => _logMeal(context, ref, m),
+                  ),
+                ),
+            ],
+          ),
         if (ref.read(foodLogProvider.notifier).recent case final recent
             when recent.isNotEmpty) ...[
           const SizedBox(height: 14),
           Text(tr('Again'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 6),
-          // One scrolling row, so a long history doesn't push the day down.
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: recent.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 6),
-              itemBuilder: (_, i) => ActionChip(
-                label: Text('${recent[i].name} · ${recent[i].kcal}'),
-                onPressed: () => ref
-                    .read(foodLogProvider.notifier)
-                    .add(recent[i].name, recent[i].kcal),
-              ),
-            ),
+          FoldingChips(
+            chips: [
+              for (final r in recent)
+                ActionChip(
+                  label: Text('${r.name} · ${r.kcal}'),
+                  onPressed: () =>
+                      ref.read(foodLogProvider.notifier).add(r.name, r.kcal),
+                ),
+            ],
           ),
         ],
         const SizedBox(height: 16),
         for (final meal in Meal.values)
           if (entries.where((e) => e.meal == meal).toList() case final list
               when list.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 6, bottom: 2),
-              child: Text(
-                '${tr(meal.label)} · ${list.fold<int>(0, (s, e) => s + e.kcal)} kcal',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: fitnessAccent,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${tr(meal.label)} · ${list.fold<int>(0, (s, e) => s + e.kcal)} kcal',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: fitnessAccent,
+                    ),
+                  ),
                 ),
-              ),
+                if (list.length > 1)
+                  TextButton.icon(
+                    onPressed: () => editSavedMeal(
+                      context,
+                      ref,
+                      items: [
+                        for (final e in list.reversed)
+                          (name: e.name, kcal: e.kcal),
+                      ],
+                    ),
+                    icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+                    label: Text(tr('Save as meal')),
+                  ),
+              ],
             ),
             for (final e in list)
               Dismissible(
@@ -172,7 +218,19 @@ class FoodTab extends ConsumerWidget {
                     FoodSource.manual => Icons.restaurant,
                   }, size: 20),
                   title: Text(e.name),
-                  trailing: Text('${e.kcal} kcal'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${e.kcal} kcal'),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.edit_outlined,
+                        size: 16,
+                        color: Colors.white38,
+                      ),
+                    ],
+                  ),
+                  onTap: () => editFoodEntry(context, ref, e),
                 ),
               ),
           ],
@@ -194,6 +252,69 @@ class FoodTab extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
+
+  /// Logs a saved meal, asking which meal of the day it is.
+  Future<void> _logMeal(
+    BuildContext context,
+    WidgetRef ref,
+    SavedMeal saved,
+  ) async {
+    var meal = Meal.forTime(DateTime.now());
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (d) => StatefulBuilder(
+        builder: (d, set) => AlertDialog(
+          title: Text(saved.name),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final i in saved.items)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(i.name)),
+                      Text('${i.kcal} kcal'),
+                    ],
+                  ),
+                ),
+              const Divider(),
+              Text(
+                tr('Total: {n} kcal', {'n': saved.kcal}),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              MealPicker(value: meal, onChanged: (m) => set(() => meal = m)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(d, false);
+                editSavedMeal(context, ref, meal: saved);
+              },
+              child: Text(tr('Edit')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(d, false),
+              child: Text(tr('Cancel')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(d, true),
+              child: Text(tr('Add')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok == true) {
+      await ref.read(foodLogProvider.notifier).addMeal(saved, meal: meal);
+    }
+  }
 
   Future<void> _manual(BuildContext context, WidgetRef ref) async {
     final name = TextEditingController();
@@ -218,7 +339,7 @@ class FoodTab extends ConsumerWidget {
                 decoration: InputDecoration(labelText: tr('Calories (kcal)')),
               ),
               const SizedBox(height: 10),
-              _MealPicker(value: meal, onChanged: (m) => set(() => meal = m)),
+              MealPicker(value: meal, onChanged: (m) => set(() => meal = m)),
             ],
           ),
           actions: [
@@ -584,7 +705,7 @@ class _EstimateDialogState extends State<_EstimateDialog> {
                       ),
                     ],
                     const SizedBox(height: 10),
-                    _MealPicker(
+                    MealPicker(
                       value: _meal,
                       onChanged: (m) => setState(() => _meal = m),
                     ),
@@ -616,26 +737,6 @@ class _EstimateDialogState extends State<_EstimateDialog> {
       ],
     );
   }
-}
-
-class _MealPicker extends StatelessWidget {
-  const _MealPicker({required this.value, required this.onChanged});
-
-  final Meal value;
-  final ValueChanged<Meal> onChanged;
-
-  @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: 6,
-    children: [
-      for (final m in Meal.values)
-        ChoiceChip(
-          label: Text(tr(m.label)),
-          selected: value == m,
-          onSelected: (_) => onChanged(m),
-        ),
-    ],
-  );
 }
 
 class _Week extends StatelessWidget {

@@ -67,17 +67,78 @@ class FoodLogNotifier extends Notifier<List<FoodEntry>> {
     ]);
   }
 
+  Future<void> update(FoodEntry entry) =>
+      _save([for (final e in state) e.id == entry.id ? entry : e]);
+
   Future<void> remove(String id) =>
       _save(state.where((e) => e.id != id).toList());
 
+  /// Logs every food of a saved meal.
+  Future<void> addMeal(SavedMeal saved, {Meal? meal}) {
+    final when = DateTime.now();
+    return _save([
+      for (final (n, i) in saved.items.indexed)
+        FoodEntry(
+          id: const Uuid().v4(),
+          day: foodDay(when),
+          // Keeps the meal's order in the list (newest first).
+          at: when.add(Duration(milliseconds: saved.items.length - n)),
+          meal: meal ?? Meal.forTime(when),
+          name: i.name,
+          kcal: i.kcal,
+        ),
+      ...state,
+    ]);
+  }
+
   /// Foods logged before, most recent first, for one-tap re-adding.
-  List<({String name, int kcal})> get recent {
+  List<FoodItem> get recent {
     final seen = <String>{};
     return [
       for (final e in state)
         if (seen.add(e.name.toLowerCase())) (name: e.name, kcal: e.kcal),
-    ].take(12).toList();
+    ].take(24).toList();
   }
+}
+
+/// Meals you saved (several foods logged with one tap). In the Drive backup.
+final savedMealsProvider =
+    NotifierProvider<SavedMealsNotifier, List<SavedMeal>>(
+      SavedMealsNotifier.new,
+    );
+
+class SavedMealsNotifier extends Notifier<List<SavedMeal>> {
+  static const _key = 'fitness.food.meals.v1';
+
+  @override
+  List<SavedMeal> build() {
+    final raw = ref.read(sharedPreferencesProvider).getString(_key);
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final j in jsonDecode(raw) as List)
+          SavedMeal.fromJson(j as Map<String, dynamic>),
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> _save(List<SavedMeal> v) async {
+    state = v;
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(_key, jsonEncode([for (final m in v) m.toJson()]));
+  }
+
+  /// Adds [meal], or replaces the one with its id.
+  Future<void> save(SavedMeal meal) => _save([
+    if (!state.any((m) => m.id == meal.id)) meal,
+    for (final m in state) m.id == meal.id ? meal : m,
+  ]);
+
+  Future<void> remove(String id) =>
+      _save(state.where((m) => m.id != id).toList());
 }
 
 /// Calories eaten per day.

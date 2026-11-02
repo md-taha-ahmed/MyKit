@@ -77,6 +77,7 @@ const arabicStrings = <String, String>{
   'Add': 'إضافة',
   'Add a countdown to your home screen as a widget: long-press the home screen → Widgets → MyKit.':
       'أضف العدّ التنازلي إلى شاشتك الرئيسية كأداة: اضغط مطولاً على الشاشة الرئيسية ← الأدوات ← MyKit.',
+  'Add a food': 'أضف طعاماً',
   'Add a Gemini API key first.': 'أضف مفتاح Gemini أولاً.',
   'Add a name (or website) and a password.':
       'أضف اسماً (أو موقعاً) وكلمة مرور.',
@@ -429,6 +430,7 @@ const arabicStrings = <String, String>{
       'مثلاً: أنجز عملاً منزلياً، توضأ، اخرج قليلاً',
   'e.g. Fajr prayer': 'مثلاً: صلاة الفجر',
   'e.g. Gmail, Bank, Netflix': 'مثلاً: Gmail، البنك، Netflix',
+  'e.g. My usual breakfast': 'مثلاً: فطوري المعتاد',
   'e.g. Novels, Study, Manuals': 'مثلاً: روايات، دراسة، أدلة',
   'e.g. Read 1 page': 'مثلاً: قراءة صفحة واحدة',
   'e.g. Read 10 pages': 'مثلاً: قراءة 10 صفحات',
@@ -443,6 +445,8 @@ const arabicStrings = <String, String>{
   'Earlier': 'سابقاً',
   'Edit': 'تعديل',
   'Edit countdown': 'تعديل العدّ التنازلي',
+  'Edit food': 'تعديل الطعام',
+  'Edit meal': 'تعديل الوجبة',
   'Edit note': 'تعديل الملاحظة',
   'Edit quest': 'تعديل المهمة',
   'Edit this workout': 'تعديل هذا التمرين',
@@ -560,6 +564,8 @@ const arabicStrings = <String, String>{
   'Get my weekly review': 'أعطني مراجعتي الأسبوعية',
   'getting home': 'الوصول إلى البيت',
   'Getting stronger': 'تزداد قوة',
+  'Give it a name and at least one food.':
+      'أعطها اسماً وطعاماً واحداً على الأقل.',
   'Glutes': 'الأرداف',
   'Go': 'اذهب',
   'Go do it. When you\'re done, come back: did it help?':
@@ -740,6 +746,7 @@ const arabicStrings = <String, String>{
   'Legacy repositories must end with /index.min.json':
       'يجب أن تنتهي المستودعات القديمة بـ /index.min.json',
   'Length': 'الطول',
+  'Less': 'أقل',
   'Lesson read': 'قراءة الدرس',
   'Lets backups, site checks and music keep working when MyKit is closed. Some phones (OnePlus, Xiaomi, Samsung) stop apps otherwise.':
       'يسمح للنسخ الاحتياطي وفحص المواقع والموسيقى بالعمل وMyKit مغلق. بعض الهواتف (OnePlus وXiaomi وSamsung) توقف التطبيقات بدونه.',
@@ -816,6 +823,7 @@ const arabicStrings = <String, String>{
   'Month': 'شهر',
   'Months': 'أشهر',
   'More': 'المزيد',
+  'More ({n})': 'المزيد ({n})',
   'Mostly sitting': 'جلوس معظم الوقت',
   'Move "{name}" into': 'نقل «{name}» إلى',
   'Move into…': 'نقل إلى…',
@@ -834,6 +842,7 @@ const arabicStrings = <String, String>{
   'Muted': 'مكتوم',
   'My books': 'كتبي',
   'My exercise': 'تمريني',
+  'My meals': 'وجباتي',
   'My Tasks': 'مهامي',
   'MyKit': 'MyKit',
   'MyKit loses access to your YouTube subscriptions. Channels you already added stay in your feeds.':
@@ -867,6 +876,7 @@ const arabicStrings = <String, String>{
   'New feeling': 'شعور جديد',
   'New folder in "{name}"': 'مجلد جديد في «{name}»',
   'New full version: {text}': 'نسخة كاملة جديدة: {text}',
+  'New meal': 'وجبة جديدة',
   'New one': 'جديدة',
   'New password': 'كلمة المرور الجديدة',
   'New password again': 'أعد كتابة كلمة المرور الجديدة',
@@ -1021,6 +1031,7 @@ const arabicStrings = <String, String>{
       'افتح كلمات مرورك ببصمتك بدلاً من كتابة كلمة المرور الرئيسية في كل مرة. يمكنك تغيير ذلك من الإعدادات.',
   'Optional: "I ate half", "with 2 breads"…':
       'اختياري: «أكلت النصف»، «مع خبزتين»…',
+  'Or tap one you ate before:': 'أو اختر شيئاً أكلته من قبل:',
   'Other': 'أخرى',
   'Other days': 'الأيام الأخرى',
   'Other…': 'أخرى…',
@@ -1184,8 +1195,11 @@ const arabicStrings = <String, String>{
   'Sat': 'سبت',
   'Save': 'حفظ',
   'Save +{xp} XP': 'حفظ +{xp} XP',
+  'Save as meal': 'احفظ كوجبة',
   'Save the full text and pictures of your articles to the phone, so you can read them with no connection — on a plane or abroad. Feeds are refreshed first.':
       'احفظ النص الكامل لمقالاتك وصورها على الهاتف لتقرأها دون اتصال — في الطائرة أو السفر. تُحدَّث الخلاصات أولاً.',
+  'Save the meals you repeat (e.g. ful, two breads and tea) and log them with one tap.':
+      'احفظ الوجبات التي تكررها (مثل فول وخبزتين وشاي) وسجّلها بلمسة واحدة.',
   'Saved': 'المحفوظة',
   'Saved to bookmarks': 'حُفظت في المحفوظات',
   'Saved {saved} articles for offline reading.':
