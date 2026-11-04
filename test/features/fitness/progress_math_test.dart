@@ -88,11 +88,11 @@ void main() {
 
   test('plan, sessions and body entries survive JSON', () {
     final plan = defaultPlan();
-    expect(plan, hasLength(4));
-    expect({for (final r in plan) ...r.weekdays}, hasLength(4));
+    expect(plan, hasLength(5));
+    expect({for (final r in plan) ...r.weekdays}, hasLength(5));
     final back = Routine.fromJson(plan.first.toJson());
     expect(back.items.length, plan.first.items.length);
-    expect(back.items.last.seconds, 30);
+    expect(back.items.last.seconds, plan.first.items.last.seconds);
 
     final s = _session(DateTime(2026, 10, 1), const [
       LoggedSet(reps: 10, weightKg: 12.5),

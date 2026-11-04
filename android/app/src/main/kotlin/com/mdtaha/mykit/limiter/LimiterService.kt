@@ -23,7 +23,7 @@ import java.time.LocalDateTime
  *
  * Watches which app is in front and, in browsers, which site the address
  * bar shows; counts seconds per platform while the screen is on; warns
- * before the daily limit and opens [BlockActivity] when it's reached or
+ * before the daily limit and shows [BlockOverlay] when it's reached or
  * during focus hours. Nothing leaves the phone, and nothing but the app
  * name and the browser's address is read.
  */
@@ -69,7 +69,10 @@ class LimiterService : AccessibilityService() {
         main.post(tick)
     }
 
+    private val overlay by lazy { BlockOverlay(this) }
+
     override fun onDestroy() {
+        overlay.dismiss()
         running = null
         main.removeCallbacks(tick)
         try {
@@ -89,8 +92,9 @@ class LimiterService : AccessibilityService() {
                 // The app in front (the keyboard or a dialog of another app
                 // don't count: use the active window's app).
                 val front = rootInActiveWindow?.packageName?.toString() ?: pkg
+                // While the block screen is up, our own overlay is in front.
                 if (front in IGNORED || front in keyboards() ||
-                    front == packageName && BlockActivity.showing
+                    front == packageName && overlay.showing
                 ) {
                     return
                 }
@@ -152,12 +156,14 @@ class LimiterService : AccessibilityService() {
                     (g.id == "youtube" && pkg == packageName && shortsActive)
                 )
         }
+        // Left the blocked app some other way (home gesture…): drop the screen.
+        if (overlay.showing && currentGroup?.id != overlay.groupId) overlay.dismiss()
         currentGroup?.let { if (shouldBlock(it)) block(it) }
     }
 
     private fun onTick() {
         val group = currentGroup ?: return
-        if (!screenOn || BlockActivity.showing) return
+        if (!screenOn || overlay.showing) return
         store.addSecond(group.id)
         if (++ticks % 10 == 0) store.flush()
         val remaining = group.limitMinutes * 60 - store.secondsToday(group.id)
@@ -182,19 +188,11 @@ class LimiterService : AccessibilityService() {
         return store.config.focus.any { it.isActive(now, group.id) }
     }
 
+    /** Covers the app with the "Time's up" screen ([BlockOverlay]). */
     private fun block(group: LimitGroup) {
-        if (BlockActivity.showing) return
+        if (overlay.showing) return
         store.flush()
-        // Leave the app / page, then explain why.
-        performGlobalAction(GLOBAL_ACTION_HOME)
-        startActivity(
-            Intent(this, BlockActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                .putExtra(BlockActivity.EXTRA_GROUP, group.id)
-                .putExtra(BlockActivity.EXTRA_FOCUS, inFocus(group)),
-        )
-        currentGroup = null
-        foregroundPackage = null
+        overlay.show(group, inFocus(group))
     }
 
     private fun createChannel() {

@@ -8,6 +8,7 @@ import '../../domain/entities/fitness_entities.dart';
 import '../../fitness_routes.dart';
 import '../providers/fitness_providers.dart';
 import '../widgets/exercise_media.dart';
+import '../widgets/exercise_options.dart';
 import '../widgets/fitness_sheets.dart';
 
 /// Edit a workout: name, training days, exercises and their targets.
@@ -158,6 +159,22 @@ class RoutineEditScreen extends ConsumerWidget {
                         ),
                         trailing: const Icon(Icons.drag_handle),
                         onTap: () async {
+                          final action = await showExerciseOptions(
+                            context,
+                            ref,
+                            routine: routine,
+                            index: i,
+                            canEdit: true,
+                          );
+                          if (action == null || !context.mounted) return;
+                          if (action == ExerciseAction.remove) {
+                            save(
+                              routine.copyWith(
+                                items: [...routine.items]..removeAt(i),
+                              ),
+                            );
+                            return;
+                          }
                           final updated = await _editItem(context, item, e);
                           if (updated == null) return;
                           final items = [...routine.items];

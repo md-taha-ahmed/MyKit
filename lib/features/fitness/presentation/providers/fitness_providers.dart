@@ -168,6 +168,31 @@ class RoutinesNotifier extends Notifier<List<Routine>> {
       _save(state.where((r) => r.id != id).toList());
 
   Future<void> resetToDefault() => _save(defaultPlan());
+
+  /// Every plan exercise swapped for a similar one. Returns the routines
+  /// before, for Undo.
+  Future<List<Routine>> shuffle() async {
+    final before = state;
+    await _save(shufflePlan(state));
+    return before;
+  }
+
+  Future<void> restore(List<Routine> routines) => _save(routines);
+
+  /// Replaces the exercise at [index] of [routineId] with [exerciseId].
+  Future<void> swap(String routineId, int index, String exerciseId) async {
+    final r = byId(routineId);
+    if (r == null || index >= r.items.length) return;
+    final items = [...r.items];
+    items[index] = swapExercise(items[index], exerciseId);
+    await update(r.copyWith(items: items));
+  }
+
+  /// Whether the routines include the 5-day plan's days.
+  bool get usesFiveDayPlan {
+    final ids = {for (final d in fiveDayPlan) d.id};
+    return state.any((r) => ids.contains(r.id));
+  }
 }
 
 /// Today's routine, or else the next scheduled one (with its weekday).

@@ -144,13 +144,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/limiter_accessibility" />
         </service>
-        <activity
-            android:name=".limiter.BlockActivity"
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:taskAffinity="com.mdtaha.mykit.block"
-            android:theme="@android:style/Theme.Black.NoTitleBar" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
