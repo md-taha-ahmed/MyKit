@@ -38,10 +38,11 @@ class BlockOverlay(private val service: AccessibilityService) {
 
     val showing get() = root != null
 
-    fun show(group: LimitGroup, focus: Boolean) {
+    /** [lockedBy]: the habit that must be done first (a quest lock). */
+    fun show(group: LimitGroup, focus: Boolean, lockedBy: String? = null) {
         if (showing) return
         val store = LimiterStore.get(service)
-        val view = build(store, group, focus)
+        val view = build(store, group, focus, lockedBy)
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -78,19 +79,38 @@ class BlockOverlay(private val service: AccessibilityService) {
         dismiss()
     }
 
-    private fun build(store: LimiterStore, group: LimitGroup, focus: Boolean): View {
+    private fun openMyKit() {
+        service.packageManager.getLaunchIntentForPackage(service.packageName)?.let {
+            service.startActivity(it.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+        dismiss()
+    }
+
+    private fun build(
+        store: LimiterStore,
+        group: LimitGroup,
+        focus: Boolean,
+        lockedBy: String?,
+    ): View {
         val ctx = service
         val dp = ctx.resources.displayMetrics.density
         val ar = AppLanguage.isArabic(ctx)
         fun t(en: String, arabic: String) = if (ar) arabic else en
 
         val used = store.secondsToday(group.id) / 60
-        val title = if (focus) {
+        val title = if (lockedBy != null) {
+            t("${group.name} is locked", "${group.name} مقفل")
+        } else if (focus) {
             t("${group.name} is paused", "${group.name} متوقف الآن")
         } else {
             t("Time's up for ${group.name}", "انتهى وقت ${group.name}")
         }
-        val message = if (focus) {
+        val message = if (lockedBy != null) {
+            t(
+                "Finish your quest first: $lockedBy.\nCheck it off in MyKit and it opens again.",
+                "أنهِ مهمتك أولاً: $lockedBy.\nسجّلها في MyKit وسيُفتح مجدداً.",
+            )
+        } else if (focus) {
             val end = store.config.focus
                 .firstOrNull { it.isActive(LocalDateTime.now(), group.id) }
                 ?.end?.format(DateTimeFormatter.ofPattern("HH:mm"))
@@ -147,8 +167,15 @@ class BlockOverlay(private val service: AccessibilityService) {
             button(t("Close", "إغلاق"), filled = true).apply { setOnClickListener { goHome() } },
         )
 
+        if (lockedBy != null) {
+            column.addView(
+                button(t("Open MyKit", "فتح MyKit"), filled = false).apply {
+                    setOnClickListener { openMyKit() }
+                },
+            )
+        }
         val left = store.extensionsLeft(group.id)
-        if (!focus && left > 0) {
+        if (lockedBy == null && !focus && left > 0) {
             val extra = store.config.extensionMinutes
             val wait = store.config.extensionWaitSeconds
             val more = button(
@@ -178,7 +205,7 @@ class BlockOverlay(private val service: AccessibilityService) {
                 store.grantExtension(group.id)
                 dismiss() // back to the app, for the extra minutes
             }
-        } else if (!focus) {
+        } else if (lockedBy == null && !focus) {
             column.addView(
                 text(t("No more extensions today.", "لا مزيد من التمديد اليوم."), 14f, alpha = 0.5f),
             )

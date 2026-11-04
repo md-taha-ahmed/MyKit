@@ -174,6 +174,31 @@ class LimiterStore private constructor(context: Context) {
         prefs.edit().putString("$KEY_WARNED$groupId", today()).apply()
     }
 
+    // --- Quest locks: apps blocked until a habit is done today --------------
+
+    /** The habit blocking [groupId] today, if one isn't done yet. */
+    fun questLock(groupId: String): String? {
+        val raw = prefs.getString(KEY_LOCKS, null) ?: return null
+        return try {
+            val today = LocalDate.now()
+            val locks = JSONArray(raw)
+            (0 until locks.length()).map { locks.getJSONObject(it) }.firstOrNull { l ->
+                val groups = l.optJSONArray("groups") ?: JSONArray()
+                val days = l.optJSONArray("weekdays") ?: JSONArray()
+                val done = l.optJSONArray("done") ?: JSONArray()
+                (0 until groups.length()).any { groups.getString(it) == groupId } &&
+                    (0 until days.length()).any { days.getInt(it) == today.dayOfWeek.value } &&
+                    (0 until done.length()).none { done.getString(it) == today.toString() }
+            }?.optString("name")
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun saveQuestLocks(raw: String) {
+        prefs.edit().putString(KEY_LOCKS, raw).apply()
+    }
+
     private fun load(key: String) = try {
         JSONObject(prefs.getString(key, null) ?: "{}")
     } catch (_: Exception) {
@@ -193,6 +218,7 @@ class LimiterStore private constructor(context: Context) {
         private const val KEY_USAGE = "usage"
         private const val KEY_EXTENSIONS = "extensions"
         private const val KEY_WARNED = "warned_"
+        private const val KEY_LOCKS = "questLocks"
 
         fun today(): String = LocalDate.now().toString()
     }

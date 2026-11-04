@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'presentation/screens/sections_screen.dart';
 import 'presentation/screens/settings_screen.dart';
 import 'presentation/screens/setup_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
@@ -8,6 +9,7 @@ import 'presentation/screens/welcome_screen.dart';
 abstract final class SetupRoutes {
   static const settings = '/settings';
   static const setup = '/setup';
+  static const sections = '/sections';
 
   /// The checklist after the welcome tour of a fresh install.
   static const firstRun = '/setup?first=1';
@@ -21,6 +23,10 @@ abstract final class SetupRoutes {
     GoRoute(
       path: settings,
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: sections,
+      builder: (context, state) => const SectionsScreen(),
     ),
     GoRoute(path: welcome, builder: (context, state) => const WelcomeScreen()),
     GoRoute(

@@ -17,6 +17,7 @@ class ToolDefinition {
     required this.rootPath,
     required this.routes,
     this.status,
+    this.onToggle,
   });
 
   final String id;
@@ -34,4 +35,8 @@ class ToolDefinition {
   /// Optional one-line live status for the dashboard card ("12 unread",
   /// "Upper A today"…). Null or empty hides it.
   final String? Function(WidgetRef ref)? status;
+
+  /// Turned on or off in Settings: stop or restart this tool's notifications
+  /// and background work. Also called with false at startup while it's off.
+  final Future<void> Function(Ref ref, bool on)? onToggle;
 }

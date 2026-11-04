@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/app_directories.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
+import '../../../../core/tools/tool_switch.dart';
 import '../../data/exercise_library_source.dart';
 import '../../data/fitness_notifications.dart';
 import '../../data/fitness_store.dart';
@@ -311,7 +312,11 @@ class FitnessProfileNotifier extends Notifier<FitnessProfile> {
   /// Re-schedules reminders for the plan's training days.
   Future<void> syncReminders() async {
     final routines = ref.read(routinesProvider);
-    final days = state.remindersOn
+    final on = ToolSwitch.isOn(
+      ref.read(sharedPreferencesProvider),
+      ToolIds.fitness,
+    );
+    final days = on && state.remindersOn
         ? {for (final r in routines) ...r.weekdays}
         : <int>{};
     await ref

@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/ai/gemini_client.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
+import '../../../../core/tools/tool_switch.dart';
 import '../../../rss/data/datasources/rss_remote_data_source.dart';
 import '../../data/knowledge_catalog.dart';
 import '../../data/knowledge_notifications.dart';
@@ -60,9 +61,16 @@ class KnowledgeSettingsNotifier extends Notifier<KnowledgeSettings> {
     await _schedule(s);
   }
 
+  /// Restores reminders and checks when the section is turned back on.
+  Future<void> resume() => _schedule(state);
+
   Future<void> _schedule(KnowledgeSettings s) async {
+    final on = ToolSwitch.isOn(
+      ref.read(sharedPreferencesProvider),
+      ToolIds.knowledge,
+    );
     final topics = <int, String>{};
-    if (s.notify) {
+    if (on && s.notify) {
       for (final MapEntry(key: day, value: id) in s.schedule.entries) {
         final track = KnowledgeCatalog.byId(id);
         if (track != null) topics[day] = '${track.topic}: ${track.title}';
@@ -75,7 +83,9 @@ class KnowledgeSettingsNotifier extends Notifier<KnowledgeSettings> {
     } catch (_) {}
     await SourceCheckScheduler.sync(
       enabled:
-          s.sourceAlerts && ref.read(knowledgeStoreProvider).sources.isNotEmpty,
+          on &&
+          s.sourceAlerts &&
+          ref.read(knowledgeStoreProvider).sources.isNotEmpty,
     );
   }
 }
@@ -395,7 +405,12 @@ class KnowledgeSourcesNotifier extends Notifier<List<KnowledgeSource>> {
   /// The background check runs only while there's something to follow.
   Future<void> _syncSchedule() => SourceCheckScheduler.sync(
     enabled:
-        ref.read(knowledgeSettingsProvider).sourceAlerts && state.isNotEmpty,
+        ToolSwitch.isOn(
+          ref.read(sharedPreferencesProvider),
+          ToolIds.knowledge,
+        ) &&
+        ref.read(knowledgeSettingsProvider).sourceAlerts &&
+        state.isNotEmpty,
   );
 
   Future<void> rename(String id, String name) async {

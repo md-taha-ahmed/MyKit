@@ -1,3 +1,4 @@
+import '../../../core/tools/tool_switch.dart';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -46,7 +47,11 @@ Future<bool> runSourceCheck() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.reload();
   final store = KnowledgeStore(prefs);
-  if (!store.settings.sourceAlerts || store.sources.isEmpty) return true;
+  if (!ToolSwitch.isOn(prefs, ToolIds.knowledge) ||
+      !store.settings.sourceAlerts ||
+      store.sources.isEmpty) {
+    return true;
+  }
 
   final client = http.Client();
   try {

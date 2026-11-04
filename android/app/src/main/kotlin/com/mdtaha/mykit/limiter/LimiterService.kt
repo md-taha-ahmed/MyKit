@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.mdtaha.mykit.AppLanguage
 import com.mdtaha.mykit.R
+import com.mdtaha.mykit.ToolSwitch
 import java.time.LocalDateTime
 
 /**
@@ -162,6 +163,11 @@ class LimiterService : AccessibilityService() {
     }
 
     private fun onTick() {
+        // Turned off in MyKit's Settings: no counting, warnings or blocking.
+        if (ToolSwitch.isOff(this, ToolSwitch.SCREEN_TIME)) {
+            if (overlay.showing) overlay.dismiss()
+            return
+        }
         val group = currentGroup ?: return
         if (!screenOn || overlay.showing) return
         store.addSecond(group.id)
@@ -178,7 +184,9 @@ class LimiterService : AccessibilityService() {
     }
 
     private fun shouldBlock(group: LimitGroup): Boolean {
+        if (ToolSwitch.isOff(this, ToolSwitch.SCREEN_TIME)) return false
         if (inFocus(group)) return true
+        if (store.questLock(group.id) != null) return true
         if (store.extensionActive(group.id)) return false
         return store.secondsToday(group.id) >= group.limitMinutes * 60
     }
@@ -192,7 +200,7 @@ class LimiterService : AccessibilityService() {
     private fun block(group: LimitGroup) {
         if (overlay.showing) return
         store.flush()
-        overlay.show(group, inFocus(group))
+        overlay.show(group, inFocus(group), store.questLock(group.id))
     }
 
     private fun createChannel() {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/tools/tool_switch.dart';
 import '../../../../core/tools/tools_provider.dart';
 import '../../../backup/backup_routes.dart';
 import '../../../setup/setup_routes.dart';
@@ -14,7 +15,11 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tools = ref.watch(toolsProvider);
+    final off = ref.watch(disabledToolsProvider);
+    final tools = ref
+        .watch(toolsProvider)
+        .where((t) => !off.contains(t.id))
+        .toList();
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
@@ -60,6 +65,17 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            if (tools.isEmpty)
+              SliverPadding(
+                padding: const EdgeInsets.all(32),
+                sliver: SliverToBoxAdapter(
+                  child: Text(
+                    tr('All sections are off. Turn them on in Settings.'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white60),
+                  ),
+                ),
+              ),
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               sliver: SliverGrid(

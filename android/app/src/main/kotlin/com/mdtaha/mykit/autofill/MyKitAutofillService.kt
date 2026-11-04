@@ -14,6 +14,7 @@ import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import com.mdtaha.mykit.AppLanguage
 import com.mdtaha.mykit.R
+import com.mdtaha.mykit.ToolSwitch
 import com.mdtaha.mykit.vault.VaultKeyStore
 
 /**
@@ -31,7 +32,7 @@ class MyKitAutofillService : AutofillService() {
         callback: FillCallback,
     ) {
         val structure = request.fillContexts.lastOrNull()?.structure
-        if (structure == null) {
+        if (structure == null || ToolSwitch.isOff(this, ToolSwitch.PASSWORDS)) {
             callback.onSuccess(null)
             return
         }

@@ -19,6 +19,9 @@ class AiException implements Exception {
 /// One turn of a conversation.
 typedef AiMessage = ({bool fromUser, String text});
 
+/// A picture sent with the last message (JPEG/PNG bytes).
+typedef AiImage = ({List<int> bytes, String mimeType});
+
 /// A web page Gemini used when it searched (Google Search grounding).
 class AiSource {
   const AiSource({required this.title, required this.url});
@@ -73,10 +76,12 @@ class GeminiClient {
     String? system,
     required List<AiMessage> messages,
     double temperature = 0.4,
+    AiImage? image,
   }) async => (await reply(
     system: system,
     messages: messages,
     temperature: temperature,
+    image: image,
   )).text;
 
   /// The whole answer at once.
@@ -85,6 +90,7 @@ class GeminiClient {
     required List<AiMessage> messages,
     double temperature = 0.4,
     bool webSearch = false,
+    AiImage? image,
   }) async {
     final key = _key();
     return _withFallback(webSearch, (model, search) async {
@@ -94,7 +100,7 @@ class GeminiClient {
             .post(
               _uri(model, 'generateContent'),
               headers: _headers(key),
-              body: _body(system, messages, temperature, search),
+              body: _body(system, messages, temperature, search, image),
             )
             .timeout(_timeout);
       } catch (_) {
@@ -240,8 +246,9 @@ class GeminiClient {
     String? system,
     List<AiMessage> messages,
     double temperature,
-    bool search,
-  ) => jsonEncode({
+    bool search, [
+    AiImage? image,
+  ]) => jsonEncode({
     if (system != null)
       'systemInstruction': {
         'parts': [
@@ -249,10 +256,18 @@ class GeminiClient {
         ],
       },
     'contents': [
-      for (final m in messages)
+      for (final (i, m) in messages.indexed)
         {
           'role': m.fromUser ? 'user' : 'model',
           'parts': [
+            // The picture goes with the last message.
+            if (image != null && i == messages.length - 1)
+              {
+                'inline_data': {
+                  'mime_type': image.mimeType,
+                  'data': base64Encode(image.bytes),
+                },
+              },
             {'text': m.text},
           ],
         },

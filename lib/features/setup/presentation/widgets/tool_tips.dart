@@ -119,6 +119,11 @@ const toolTips = <String, List<ToolTip>>{
       icon: Icons.show_chart,
       text: 'Log your weight in Progress to see your trend and personal bests.',
     ),
+    (
+      icon: Icons.restaurant_outlined,
+      text:
+          'Log food in the Food tab: by photo, by describing it, or by hand. Your target comes from your weight and height.',
+    ),
   ],
   'passwords': [
     (
@@ -154,6 +159,38 @@ const toolTips = <String, List<ToolTip>>{
           'Add focus hours to block apps completely at set times, like at night.',
     ),
   ],
+  'habits': [
+    (
+      icon: Icons.flag_outlined,
+      text:
+          'Each habit is a daily quest with a full and a tiny version. On bad days the tiny one is enough.',
+    ),
+    (
+      icon: Icons.shield_outlined,
+      text:
+          'Hard day (no power, travel, security…)? Turn on Hard day: misses are excused and only tiny versions count.',
+    ),
+    (
+      icon: Icons.forum_outlined,
+      text:
+          'Missed a quest? Tell the System why. It looks at your history, finds the real reason and adjusts the quest with you.',
+    ),
+    (
+      icon: Icons.speed,
+      text:
+          'Once a week, rate how automatic the habit feels. That — not streaks — is your rank, from E to S.',
+    ),
+    (
+      icon: Icons.medical_services_outlined,
+      text:
+          'Write your aid kit: for each feeling, what helps you. Tap "I feel…" when it hits.',
+    ),
+    (
+      icon: Icons.checklist,
+      text:
+          'Your to-do list lives here too. The System sees it and can add tasks for you.',
+    ),
+  ],
   'knowledge': [
     (
       icon: Icons.menu_book_outlined,
@@ -169,6 +206,23 @@ const toolTips = <String, List<ToolTip>>{
       icon: Icons.library_books_outlined,
       text:
           'Read ahead in the Library, and follow sites and channels in Sources.',
+    ),
+  ],
+  'rise-fall': [
+    (
+      icon: Icons.timeline,
+      text:
+          'Each country is a long story in parts: red is a fall, green is a rise.',
+    ),
+    (
+      icon: Icons.hub_outlined,
+      text:
+          'Patterns shows one problem across countries. Compare puts two countries side by side.',
+    ),
+    (
+      icon: Icons.help_outline,
+      text:
+          'Written by AI from general knowledge, so it can contain mistakes. Each country lists books to check it against.',
     ),
   ],
 };

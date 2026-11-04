@@ -14,6 +14,7 @@ final knowledgeTool = ToolDefinition(
   color: knowledgeAccent,
   rootPath: KnowledgeRoutes.home,
   routes: KnowledgeRoutes.routes,
+  onToggle: (ref, _) => ref.read(knowledgeSettingsProvider.notifier).resume(),
   status: (ref) {
     final today = dayKey(DateTime.now());
     final done = ref.watch(lessonHistoryProvider).any((l) => l.day == today);
