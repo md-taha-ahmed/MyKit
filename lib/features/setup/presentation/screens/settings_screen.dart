@@ -34,6 +34,14 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
+                  leading: const Icon(Icons.dashboard_customize_outlined),
+                  title: Text(tr('App sections')),
+                  subtitle: Text(tr('Turn parts of MyKit on or off')),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(SetupRoutes.sections),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.checklist),
                   title: Text(tr('Setup checklist')),
                   subtitle: Text(

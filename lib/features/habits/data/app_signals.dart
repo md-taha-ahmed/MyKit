@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/tools/tool_switch.dart';
 import '../../fitness/data/fitness_store.dart';
 import '../../fitness/domain/food.dart';
 import '../../knowledge/data/knowledge_store.dart';
@@ -23,6 +24,8 @@ class AppSignals {
     required this.questsAnswered,
     required this.tasksDue,
     required this.tasksOverdue,
+    this.foodOn = true,
+    this.lessonOn = true,
   });
 
   final String day;
@@ -39,6 +42,10 @@ class AppSignals {
   final int questsAnswered;
   final int tasksDue;
   final int tasksOverdue;
+
+  /// False when that section is off in Settings: don't ask about it.
+  final bool foodOn;
+  final bool lessonOn;
 
   static AppSignals read(SharedPreferences prefs, {DateTime? now}) {
     final today = now ?? DateTime.now();
@@ -58,10 +65,13 @@ class AppSignals {
       }
     } catch (_) {}
 
+    final fitnessOn = ToolSwitch.isOn(prefs, ToolIds.fitness);
     final fitness = FitnessStore(prefs);
-    final routine = (fitness.readRoutines() ?? const [])
-        .where((r) => r.weekdays.contains(today.weekday))
-        .firstOrNull;
+    final routine = fitnessOn
+        ? (fitness.readRoutines() ?? const [])
+              .where((r) => r.weekdays.contains(today.weekday))
+              .firstOrNull
+        : null;
     final workoutDone = fitness.readSessions().any(
       (s) => habitDay(s.startedAt) == day,
     );
@@ -85,22 +95,29 @@ class AppSignals {
       questsAnswered: due.where((h) => checks.contains(h.id)).length,
       tasksDue: tasks.where((t) => t.due == day).length,
       tasksOverdue: tasks.where((t) => t.overdue(today)).length,
+      foodOn: fitnessOn,
+      lessonOn: ToolSwitch.isOn(prefs, ToolIds.knowledge),
     );
   }
 
   /// For the System: one line per part of the app.
   String describe({int? kcalTarget, int? socialMinutes, int? socialUsual}) {
-    final b = StringBuffer()
-      ..writeln('TODAY ACROSS THE APP ($day):')
-      ..writeln(
+    final b = StringBuffer()..writeln('TODAY ACROSS THE APP ($day):');
+    if (lessonOn) {
+      b.writeln(
         '  daily lesson (history/deen): ${lessonRead ? 'read' : 'not read yet'}',
-      )
-      ..writeln(
-        '  food: $kcal kcal${kcalTarget == null ? '' : ' of $kcalTarget target'}; meals logged: ${meals.isEmpty ? 'none' : meals.map((m) => m.name).join(', ')}',
-      )
-      ..writeln(
-        '  workout: ${workoutPlanned == null ? 'rest day' : '$workoutPlanned ${workoutDone ? 'done' : 'not done'}'}',
-      )
+      );
+    }
+    if (foodOn) {
+      b
+        ..writeln(
+          '  food: $kcal kcal${kcalTarget == null ? '' : ' of $kcalTarget target'}; meals logged: ${meals.isEmpty ? 'none' : meals.map((m) => m.name).join(', ')}',
+        )
+        ..writeln(
+          '  workout: ${workoutPlanned == null ? 'rest day' : '$workoutPlanned ${workoutDone ? 'done' : 'not done'}'}',
+        );
+    }
+    b
       ..writeln('  quests answered: $questsAnswered of $questsDue')
       ..writeln('  tasks: $tasksDue due today, $tasksOverdue overdue');
     if (socialMinutes != null) {

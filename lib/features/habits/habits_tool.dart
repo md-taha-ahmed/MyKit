@@ -15,6 +15,8 @@ final habitsTool = ToolDefinition(
   color: habitsAccent,
   rootPath: HabitsRoutes.home,
   routes: HabitsRoutes.routes,
+  onToggle: (ref, on) =>
+      on ? ref.read(habitsProvider.notifier).resumeTool() : stopHabitsWork(ref),
   status: (ref) {
     final s = ref.watch(habitsProvider);
     final level = ref.watch(habitPlayerProvider).level.level;

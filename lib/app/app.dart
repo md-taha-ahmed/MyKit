@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/i18n/i18n.dart';
+import '../core/tools/tool_switch.dart';
 import '../features/backup/presentation/providers/backup_providers.dart';
 import '../features/countdown/presentation/providers/countdown_providers.dart';
 import '../features/setup/presentation/providers/setup_providers.dart';
@@ -33,6 +34,7 @@ class _MyKitAppState extends ConsumerState<MyKitApp> {
         (_) => ref.read(appRouterProvider).go(SetupRoutes.welcome),
       );
     }
+    ref.read(disabledToolsProvider.notifier).silenceDisabled();
     // Google Drive backup: scheduled when the app is left, cancelled on return.
     final backup = ref.read(backupProvider.notifier);
     _lifecycle = AppLifecycleListener(

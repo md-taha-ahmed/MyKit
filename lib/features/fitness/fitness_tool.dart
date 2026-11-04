@@ -13,6 +13,10 @@ final fitnessTool = ToolDefinition(
   color: fitnessAccent,
   rootPath: FitnessRoutes.home,
   routes: FitnessRoutes.routes,
+  onToggle: (ref, on) async {
+    await ref.read(fitnessProfileProvider.notifier).syncReminders();
+    if (!on) await ref.read(fitnessNotificationsProvider).cancelRest();
+  },
   status: (ref) {
     if (ref.watch(activeWorkoutProvider) != null) {
       return tr('Workout in progress');

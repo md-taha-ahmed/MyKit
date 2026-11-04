@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/ai/gemini_key_screen.dart';
 import '../../../../core/i18n/i18n.dart';
+import '../../../../core/tools/tool_switch.dart';
 import '../../../backup/backup_routes.dart';
 import '../../../limiter/presentation/providers/limiter_providers.dart';
 import '../../../passwords/passwords_routes.dart';
@@ -24,6 +25,7 @@ class SetupScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final status = ref.watch(setupStatusProvider).value ?? const SetupStatus();
+    final off = ref.watch(disabledToolsProvider);
     final refresh = ref.read(setupStatusProvider.notifier).refresh;
     final native = ref.read(setupNativeProvider);
 
@@ -143,45 +145,48 @@ class SetupScreen extends ConsumerWidget {
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            _Item(
-              icon: Icons.lock_outline,
-              title: tr('Passwords'),
-              why: tr(
-                'Create a master password to keep your logins in an encrypted vault.',
+            if (!off.contains('passwords'))
+              _Item(
+                icon: Icons.lock_outline,
+                title: tr('Passwords'),
+                why: tr(
+                  'Create a master password to keep your logins in an encrypted vault.',
+                ),
+                done: status.passwords,
+                action: tr('Create'),
+                onTap: () async {
+                  await context.push(PasswordsRoutes.home);
+                  await refresh();
+                },
               ),
-              done: status.passwords,
-              action: tr('Create'),
-              onTap: () async {
-                await context.push(PasswordsRoutes.home);
-                await refresh();
-              },
-            ),
-            _Item(
-              icon: Icons.password,
-              title: tr('Fill passwords in apps'),
-              why: tr(
-                'Choose MyKit as the autofill service so your saved logins appear in apps and browsers.',
+            if (!off.contains('passwords'))
+              _Item(
+                icon: Icons.password,
+                title: tr('Fill passwords in apps'),
+                why: tr(
+                  'Choose MyKit as the autofill service so your saved logins appear in apps and browsers.',
+                ),
+                done: status.autofill,
+                action: tr('Choose'),
+                onTap: () async {
+                  await native.requestAutofill();
+                  await refresh();
+                },
               ),
-              done: status.autofill,
-              action: tr('Choose'),
-              onTap: () async {
-                await native.requestAutofill();
-                await refresh();
-              },
-            ),
-            _Item(
-              icon: Icons.hourglass_bottom,
-              title: tr('Screen time'),
-              why: tr(
-                'Turn on "MyKit Screen time" in Accessibility so daily limits can count and block apps and sites.',
+            if (!off.contains(ToolIds.screenTime))
+              _Item(
+                icon: Icons.hourglass_bottom,
+                title: tr('Screen time'),
+                why: tr(
+                  'Turn on "MyKit Screen time" in Accessibility so daily limits can count and block apps and sites.',
+                ),
+                done: status.screenTime,
+                action: tr('Turn on'),
+                onTap: () async {
+                  await ref.read(limiterNativeProvider).openSettings();
+                  await refresh();
+                },
               ),
-              done: status.screenTime,
-              action: tr('Turn on'),
-              onTap: () async {
-                await ref.read(limiterNativeProvider).openSettings();
-                await refresh();
-              },
-            ),
             const SizedBox(height: 24),
             FilledButton(
               onPressed: finish,

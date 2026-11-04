@@ -12,6 +12,9 @@ final musicTool = ToolDefinition(
   color: const Color(0xFF1DB9A0),
   rootPath: MusicRoutes.home,
   routes: MusicRoutes.routes,
+  onToggle: (ref, on) async {
+    if (!on) await ref.read(musicPlayerProvider).player.stop();
+  },
   status: (ref) {
     final playing = ref.watch(nowPlayingProvider).value;
     return playing == null ? null : '▶ ${playing.title}';

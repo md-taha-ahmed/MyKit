@@ -4,6 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
+import '../../../core/tools/tool_switch.dart';
+
 import '../../../core/i18n/i18n.dart';
 import '../../fitness/domain/food.dart';
 import 'app_signals.dart';
@@ -41,13 +43,13 @@ abstract final class Nudges {
     final m = now.hour * 60 + now.minute;
     bool past(int by) => all || m >= by;
     return [
-      if (m >= _breakfastBy && !s.meals.contains(Meal.breakfast))
+      if (s.foodOn && m >= _breakfastBy && !s.meals.contains(Meal.breakfast))
         (id: 'breakfast', text: tr('Breakfast not logged')),
-      if (m >= _lunchBy && !s.meals.contains(Meal.lunch))
+      if (s.foodOn && m >= _lunchBy && !s.meals.contains(Meal.lunch))
         (id: 'lunch', text: tr('Lunch not logged')),
-      if (m >= _dinnerBy && !s.meals.contains(Meal.dinner))
+      if (s.foodOn && m >= _dinnerBy && !s.meals.contains(Meal.dinner))
         (id: 'dinner', text: tr('Dinner not logged')),
-      if (past(_lessonBy) && !s.lessonRead)
+      if (s.lessonOn && past(_lessonBy) && !s.lessonRead)
         (id: 'lesson', text: tr('Today\'s lesson not read')),
       if (s.workoutPlanned != null && !s.workoutDone && past(_questsBy))
         (
@@ -95,7 +97,7 @@ abstract final class Nudges {
   static Future<bool> run() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
-    if (!enabled(prefs)) return true;
+    if (!enabled(prefs) || !ToolSwitch.isOn(prefs, ToolIds.habits)) return true;
     final now = DateTime.now();
     if (quiet(now)) return true;
     I18n.applySaved(prefs);

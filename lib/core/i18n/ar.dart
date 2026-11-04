@@ -62,6 +62,8 @@ const arabicStrings = <String, String>{
   'A new month': 'شهر جديد',
   'A new week': 'أسبوع جديد',
   'A notification on your training days': 'إشعار في أيام تمرينك',
+  'A section you turn off leaves the home screen and stops its notifications and background work. Your data stays, and comes back when you turn it on.':
+      'القسم الذي توقفه يختفي من الشاشة الرئيسية وتتوقف إشعاراته وعمله في الخلفية. تبقى بياناتك وتعود عند تشغيله.',
   'A week of data is in. The System can look at it all and suggest one experiment.':
       'اكتمل أسبوع من البيانات. يستطيع النظام النظر فيها كلها واقتراح تجربة واحدة.',
   'Aa': 'Aa',
@@ -151,6 +153,8 @@ const arabicStrings = <String, String>{
   'All day': 'طوال اليوم',
   'All feeds': 'كل الخلاصات',
   'All quests done': 'إنجاز كل المهام',
+  'All sections are off. Turn them on in Settings.':
+      'كل الأقسام متوقفة. شغّلها من الإعدادات.',
   'All songs': 'كل الأغاني',
   'All tasks': 'كل المهام',
   'Allow': 'سماح',
@@ -177,6 +181,7 @@ const arabicStrings = <String, String>{
   'Anything to add?': 'هل تضيف شيئاً؟',
   'API key': 'مفتاح API',
   'App links forgotten.': 'نُسيت روابط التطبيقات.',
+  'App sections': 'أقسام التطبيق',
   'Apply': 'تطبيق',
   'Arabic': 'العربية',
   'Arm day': 'يوم الذراعين',
@@ -1479,6 +1484,7 @@ const arabicStrings = <String, String>{
   'Turkish': 'التركية',
   'Turn off': 'إيقاف',
   'Turn off "still to do" reminders': 'إيقاف تذكيرات «ما زال»',
+  'Turn off Screen time?': 'إيقاف وقت الشاشة؟',
   'Turn on': 'تفعيل',
   'Turn on "MyKit Screen time" in Accessibility first — that\'s how it counts time.':
       'فعّل «MyKit Screen time» في تسهيلات الاستخدام أولاً — فهكذا يحسب الوقت.',
@@ -1492,6 +1498,7 @@ const arabicStrings = <String, String>{
   'Turn on Screen time': 'تفعيل وقت الشاشة',
   'Turn on the Google Tasks API in your Google Cloud project, then try again.':
       'فعّل Google Tasks API في مشروعك على Google Cloud، ثم حاول مجدداً.',
+  'Turn parts of MyKit on or off': 'شغّل أو أوقف أجزاء من MyKit',
   'Type a title and press search.': 'اكتب عنواناً واضغط بحث.',
   'Type a title and press search. You can also paste an IMDb link.':
       'اكتب عنواناً واضغط بحث. يمكنك أيضاً لصق رابط IMDb.',
@@ -1611,6 +1618,8 @@ const arabicStrings = <String, String>{
       'عادةً تؤديها نحو {typical}، لكن التذكير في {reminder}. يعمل التذكير أفضل قبيل الوقت الذي تؤديها فيه فعلاً.',
   'Your anime library is empty.\nFind something in Browse and tap "Add to library".':
       'مكتبة الأنمي فارغة.\nابحث عن شيء في «تصفّح» واضغط «إضافة إلى المكتبة».',
+  'Your daily limits, focus hours and quest locks stop until you turn it back on.':
+      'ستتوقف حدودك اليومية وساعات التركيز وأقفال المهام حتى تعيد تشغيله.',
   'Your data stays yours': 'بياناتك ملكك',
   'YOUR DOWN-DAY PATTERN': 'نمط أيامك المنخفضة',
   'Your everyday tools in one app: news feeds, music, books, passwords, workouts, screen time and more.':

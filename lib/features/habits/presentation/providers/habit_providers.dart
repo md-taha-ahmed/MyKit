@@ -10,6 +10,7 @@ import '../../../../core/ai/gemini_client.dart';
 import '../../../../core/google/google_oauth.dart';
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
+import '../../../../core/tools/tool_switch.dart';
 import '../../../fitness/domain/entities/fitness_entities.dart';
 import '../../../fitness/presentation/providers/fitness_providers.dart';
 import '../../../fitness/presentation/widgets/exercise_options.dart';
@@ -191,6 +192,15 @@ class HabitsState {
   );
 }
 
+/// The System turned off: its reminders, background check, quest locks.
+Future<void> stopHabitsWork(Ref ref) async {
+  try {
+    await ref.read(habitNotificationsProvider).schedule(const []);
+    await Nudges.sync(enabled: false);
+    await ref.read(limiterNativeProvider).setQuestLocks('[]');
+  } catch (_) {}
+}
+
 /// The id of whole-day talks (not about one quest).
 const dayTalkId = '_day';
 
@@ -208,11 +218,8 @@ class HabitsNotifier extends Notifier<HabitsState> {
     ref.listen(sessionsProvider, (_, sessions) => _syncWorkouts(sessions));
     Future.microtask(() {
       _syncWorkouts(ref.read(sessionsProvider));
-      _schedule();
-      Nudges.sync(enabled: Nudges.enabled(ref.read(sharedPreferencesProvider)));
-      _syncLocks();
+      resumeTool();
       recordDays();
-      syncTasks();
     });
     return HabitsState(
       habits: s.habits,
@@ -231,6 +238,22 @@ class HabitsNotifier extends Notifier<HabitsState> {
       reviews: s.reviews,
       flags: s.flags,
     );
+  }
+
+  /// Off in Settings: nothing may be scheduled, even if another tool reads
+  /// this state.
+  bool get _toolOn =>
+      ToolSwitch.isOn(ref.read(sharedPreferencesProvider), ToolIds.habits);
+
+  /// Starts or restores reminders, the background check, locks and sync.
+  Future<void> resumeTool() async {
+    if (!_toolOn) return;
+    await _schedule();
+    await Nudges.sync(
+      enabled: Nudges.enabled(ref.read(sharedPreferencesProvider)),
+    );
+    await _syncLocks();
+    await syncTasks();
   }
 
   // Day snapshots (v2) -------------------------------------------------------
@@ -384,6 +407,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
 
   /// Tells Screen time which apps stay blocked until a quest is done today.
   Future<void> _syncLocks() async {
+    if (!_toolOn) return;
     final locked = state.active.where((h) => h.lockGroups.isNotEmpty);
     final now = DateTime.now();
     final recent = {
@@ -461,7 +485,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
   }
 
   void _syncSoon() {
-    if (!tasksConnected) return;
+    if (!_toolOn || !tasksConnected) return;
     _syncTimer?.cancel();
     _syncTimer = Timer(const Duration(seconds: 3), syncTasks);
   }
@@ -469,7 +493,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
   /// Two-way sync with Google Tasks, when connected. Returns an error, if
   /// any (offline is fine: changes wait for the next sync).
   Future<String?> syncTasks() async {
-    if (!tasksConnected || _syncing) return null;
+    if (!_toolOn || !tasksConnected || _syncing) return null;
     _syncing = true;
     _touchedTasks.clear();
     final status = ref.read(tasksSyncProvider.notifier);
@@ -1145,7 +1169,12 @@ class HabitsNotifier extends Notifier<HabitsState> {
   Future<String> todayAcrossApp() async {
     final signals = AppSignals.read(ref.read(sharedPreferencesProvider));
     int? minutes, usual;
+    final screenTimeOn = ToolSwitch.isOn(
+      ref.read(sharedPreferencesProvider),
+      ToolIds.screenTime,
+    );
     try {
+      if (!screenTimeOn) throw StateError('Screen time is off');
       final status = await ref.read(limiterNativeProvider).status();
       final groups = ref.read(limiterSettingsProvider).groups;
       int total(Map<String, int> day) =>
@@ -1168,6 +1197,7 @@ class HabitsNotifier extends Notifier<HabitsState> {
   // Reminders ----------------------------------------------------------------
 
   Future<void> _schedule() async {
+    if (!_toolOn) return;
     try {
       await ref.read(habitNotificationsProvider).schedule(state.active);
     } catch (_) {}
