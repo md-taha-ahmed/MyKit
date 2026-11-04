@@ -208,6 +208,23 @@ const toolTips = <String, List<ToolTip>>{
           'Read ahead in the Library, and follow sites and channels in Sources.',
     ),
   ],
+  'rise-fall': [
+    (
+      icon: Icons.timeline,
+      text:
+          'Each country is a long story in parts: red is a fall, green is a rise.',
+    ),
+    (
+      icon: Icons.hub_outlined,
+      text:
+          'Patterns shows one problem across countries. Compare puts two countries side by side.',
+    ),
+    (
+      icon: Icons.help_outline,
+      text:
+          'Written by AI from general knowledge, so it can contain mistakes. Each country lists books to check it against.',
+    ),
+  ],
 };
 
 /// Shows a tool's tips the first time its screen opens.

@@ -442,6 +442,8 @@ const arabicStrings = <String, String>{
   'e.g. Read Quran, Workout, Study English':
       'مثلاً: قراءة القرآن، التمرين، دراسة الإنجليزية',
   'e.g. Tech, News, Design': 'مثلاً: تقنية، أخبار، تصميم',
+  'Each country is a long story in parts: red is a fall, green is a rise.':
+      'كل دولة قصة طويلة في أجزاء: الأحمر سقوط، والأخضر نهوض.',
   'Each habit is a daily quest with a full and a tiny version. On bad days the tiny one is enough.':
       'كل عادة مهمة يومية لها نسخة كاملة وأخرى صغيرة. في الأيام السيئة تكفي الصغيرة.',
   'Each side (per leg / arm)': 'لكل جهة (لكل ساق / ذراع)',
@@ -1060,6 +1062,8 @@ const arabicStrings = <String, String>{
   'Patterns': 'الأنماط',
   'Patterns appear after about a week of days with Screen time on. Keep using MyKit as usual.':
       'تظهر الأنماط بعد نحو أسبوع من الأيام مع تفعيل «وقت الشاشة». واصل استخدام MyKit كالمعتاد.',
+  'Patterns shows one problem across countries. Compare puts two countries side by side.':
+      'تعرض «الأنماط» مشكلة واحدة في دول مختلفة، وتضع «قارن دولتين» بلدين جنباً إلى جنب.',
   'Pause quest': 'إيقاف المهمة مؤقتاً',
   'PDF library with shelves, bookmarks and dark reading':
       'مكتبة PDF برفوف وعلامات وقراءة داكنة',
@@ -1606,6 +1610,8 @@ const arabicStrings = <String, String>{
   'Write your aid kit first.': 'اكتب حقيبة الإسعاف أولاً.',
   'Write your aid kit: for each feeling, what helps you. Tap "I feel…" when it hits.':
       'اكتب حقيبة الإسعاف: لكل شعور ما يساعدك. اضغط «أشعر بـ…» حين يأتيك.',
+  'Written by AI from general knowledge, so it can contain mistakes. Each country lists books to check it against.':
+      'كتبها الذكاء الاصطناعي من معرفته العامة، لذا قد تحتوي أخطاء. في نهاية كل دولة كتب للتحقق.',
   'Wrong master password.': 'كلمة المرور الرئيسية خاطئة.',
   'X app': 'تطبيق إكس',
   'X Lite': 'إكس لايت',

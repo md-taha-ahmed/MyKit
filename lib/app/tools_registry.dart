@@ -9,6 +9,7 @@ import '../features/manga/manga_tool.dart';
 import '../features/movies/movies_tool.dart';
 import '../features/music/music_tool.dart';
 import '../features/passwords/passwords_tool.dart';
+import '../features/rise_fall/rise_fall_tool.dart';
 import '../features/rss/rss_tool.dart';
 
 /// All tools available in the app, in dashboard order.
@@ -29,5 +30,6 @@ final List<ToolDefinition> toolsRegistry = [
   passwordsTool,
   limiterTool,
   knowledgeTool,
+  riseFallTool,
   habitsTool,
 ];
