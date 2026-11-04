@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../providers/movies_providers.dart';
@@ -40,24 +41,27 @@ class AddonsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add-ons'),
+        title: Text(tr('Add-ons')),
         actions: [
           PopupMenuButton<String>(
             onSelected: (v) async {
               if (v == 'reset') {
                 final ok = await showConfirmDialog(
                   context,
-                  title: 'Reset add-ons?',
-                  message:
-                      'Back to Cinemeta, Torrentio and OpenSubtitles '
-                      'with default settings.',
-                  confirmLabel: 'Reset',
+                  title: tr('Reset add-ons?'),
+                  message: tr(
+                    'Back to Cinemeta, Torrentio and OpenSubtitles with default settings.',
+                  ),
+                  confirmLabel: tr('Reset'),
                 );
                 if (ok) ref.read(addonUrlsProvider.notifier).resetToDefaults();
               }
             },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'reset', child: Text('Reset to defaults')),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'reset',
+                child: Text(tr('Reset to defaults')),
+              ),
             ],
           ),
         ],
@@ -68,17 +72,17 @@ class AddonsScreen extends ConsumerWidget {
         backgroundColor: moviesAccent,
         onPressed: () => _install(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('Add-on URL'),
+        label: Text(tr('Add-on URL')),
       ),
       body: CustomScrollView(
         slivers: [
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Text(
-                'Works with Stremio add-ons. Order matters: details come from '
-                'the first add-on that has them. Long-press and drag to '
-                'reorder.',
+                tr(
+                  'Works with Stremio add-ons. Order matters: details come from the first add-on that has them. Long-press and drag to reorder.',
+                ),
                 style: TextStyle(color: Colors.white60, fontSize: 13),
               ),
             ),
@@ -96,17 +100,17 @@ class AddonsScreen extends ConsumerWidget {
             },
           ),
           if (missing.isNotEmpty) ...[
-            const SliverToBoxAdapter(child: SectionHeader('Suggested')),
+            SliverToBoxAdapter(child: SectionHeader(tr('Suggested'))),
             SliverList.list(
               children: [
                 for (final s in missing)
                   ListTile(
                     leading: const Icon(Icons.extension_outlined),
                     title: Text(s.name),
-                    subtitle: Text(s.what),
+                    subtitle: Text(tr(s.what)),
                     trailing: TextButton(
                       onPressed: () => _installUrl(context, ref, s.url),
-                      child: const Text('Install'),
+                      child: Text(tr('Install')),
                     ),
                   ),
               ],
@@ -121,9 +125,9 @@ class AddonsScreen extends ConsumerWidget {
   Future<void> _install(BuildContext context, WidgetRef ref) async {
     final url = await showTextInputDialog(
       context,
-      title: 'Install add-on',
+      title: tr('Install add-on'),
       hint: 'https://…/manifest.json or stremio://…',
-      confirmLabel: 'Install',
+      confirmLabel: tr('Install'),
     );
     if (url == null || url.trim().isEmpty || !context.mounted) return;
     await _installUrl(context, ref, url);
@@ -137,9 +141,13 @@ class AddonsScreen extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final m = await ref.read(addonUrlsProvider.notifier).install(url);
-      messenger.showSnackBar(SnackBar(content: Text('Installed ${m.name}')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(tr('Installed {name}', {'name': m.name}))),
+      );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Could not install: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(tr('Could not install: {e}', {'e': e}))),
+      );
     }
   }
 }
@@ -158,10 +166,10 @@ class _AddonTile extends ConsumerWidget {
         : {
             for (final r in m.resources)
               switch (r.name) {
-                'catalog' => 'Catalogs',
-                'meta' => 'Details',
-                'stream' => 'Streams',
-                'subtitles' => 'Subtitles',
+                'catalog' => tr('Catalogs'),
+                'meta' => tr('Details'),
+                'stream' => tr('Streams'),
+                'subtitles' => tr('Subtitles'),
                 _ => r.name,
               },
           }.join(' · ');
@@ -179,9 +187,9 @@ class _AddonTile extends ConsumerWidget {
       title: Text(m?.name ?? Uri.parse(url).host),
       subtitle: Text(
         state == null
-            ? 'Loading…'
+            ? tr('Loading…')
             : state!.error != null
-            ? 'Failed to load: ${state!.error}'
+            ? tr('Failed to load: {0}', {'0': state!.error})
             : '${m!.version.isEmpty ? '' : 'v${m.version} · '}$resources',
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -198,17 +206,17 @@ class _AddonTile extends ConsumerWidget {
             case 'remove':
               final ok = await showConfirmDialog(
                 context,
-                title: 'Remove ${m?.name ?? 'add-on'}?',
-                message: 'You can install it again later.',
-                confirmLabel: 'Remove',
+                title: tr('Remove {name}?', {'name': m?.name ?? tr('add-on')}),
+                message: tr('You can install it again later.'),
+                confirmLabel: tr('Remove'),
               );
               if (ok) ref.read(addonUrlsProvider.notifier).remove(url);
           }
         },
         itemBuilder: (_) => [
           if (m?.configurable ?? false)
-            const PopupMenuItem(value: 'configure', child: Text('Configure…')),
-          const PopupMenuItem(value: 'remove', child: Text('Remove')),
+            PopupMenuItem(value: 'configure', child: Text(tr('Configure…'))),
+          PopupMenuItem(value: 'remove', child: Text(tr('Remove'))),
         ],
       ),
       onTap: m == null ? null : () => _showInfo(context, m),
@@ -244,10 +252,10 @@ class _AddonTile extends ConsumerWidget {
               ),
               if (m.configurable) ...[
                 const SizedBox(height: 12),
-                const Text(
-                  'Configure opens the add-on\'s page. Copy the install link it '
-                  'gives you and add it here with "Add-on URL" — it replaces '
-                  'this one.',
+                Text(
+                  tr(
+                    'Configure opens the add-on\'s page. Copy the install link it gives you and add it here with "Add-on URL" — it replaces this one.',
+                  ),
                   style: TextStyle(fontSize: 12.5, color: Colors.white60),
                 ),
               ],

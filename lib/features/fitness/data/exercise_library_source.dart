@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import '../../../core/i18n/i18n.dart';
 import '../domain/entities/fitness_entities.dart';
 
 class FitnessException implements Exception {
@@ -51,12 +52,16 @@ class ExerciseLibrarySource {
           .get(Uri.parse('$_base/dist/exercises.json'))
           .timeout(const Duration(seconds: 60));
     } catch (_) {
-      throw const FitnessException(
-        'Could not download the exercise library. Check your connection.',
+      throw FitnessException(
+        tr('Could not download the exercise library. Check your connection.'),
       );
     }
     if (res.statusCode != 200) {
-      throw FitnessException('Exercise library error ${res.statusCode}.');
+      throw FitnessException(
+        tr('Exercise library error {statusCode}.', {
+          'statusCode': res.statusCode,
+        }),
+      );
     }
     final body = utf8.decode(res.bodyBytes);
     await _dir.create(recursive: true);
@@ -83,7 +88,9 @@ class ExerciseLibrarySource {
         .get(Uri.parse('$_base/exercises/$path'))
         .timeout(const Duration(seconds: 30));
     if (res.statusCode != 200) {
-      throw FitnessException('Image unavailable (${res.statusCode}).');
+      throw FitnessException(
+        tr('Image unavailable ({statusCode}).', {'statusCode': res.statusCode}),
+      );
     }
     await _images.create(recursive: true);
     final tmp = File('${file.path}.tmp');

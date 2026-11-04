@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../providers/books_providers.dart';
 import '../widgets/book_widgets.dart';
@@ -12,9 +13,9 @@ class ShelvesScreen extends ConsumerWidget {
   Future<void> _add(BuildContext context, WidgetRef ref) async {
     final name = await showTextInputDialog(
       context,
-      title: 'New shelf',
-      hint: 'e.g. Novels, Study, Manuals',
-      confirmLabel: 'Create',
+      title: tr('New shelf'),
+      hint: tr('e.g. Novels, Study, Manuals'),
+      confirmLabel: tr('Create'),
     );
     if (name != null) {
       await ref.read(booksLibraryProvider.notifier).addShelf(name);
@@ -27,7 +28,7 @@ class ShelvesScreen extends ConsumerWidget {
     final notifier = ref.read(booksLibraryProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Shelves')),
+      appBar: AppBar(title: Text(tr('Shelves'))),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 96),
         children: [
@@ -48,8 +49,12 @@ class ShelvesScreen extends ConsumerWidget {
                   ),
                   title: Text(shelf.name),
                   subtitle: Text(
-                    '${books.length} ${books.length == 1 ? 'book' : 'books'}'
-                    ' · $pages pages',
+                    tr(
+                      books.length == 1
+                          ? '1 book · {pages} pages'
+                          : '{count} books · {pages} pages',
+                      {'count': books.length, 'pages': pages},
+                    ),
                     style: const TextStyle(color: Colors.white54),
                   ),
                   trailing: PopupMenuButton<String>(
@@ -60,7 +65,7 @@ class ShelvesScreen extends ConsumerWidget {
                         case 'rename':
                           final name = await showTextInputDialog(
                             context,
-                            title: 'Rename shelf',
+                            title: tr('Rename shelf'),
                             initialValue: shelf.name,
                           );
                           if (name != null) {
@@ -69,24 +74,28 @@ class ShelvesScreen extends ConsumerWidget {
                         case 'delete':
                           final ok = await showConfirmDialog(
                             context,
-                            title: 'Delete "${shelf.name}"?',
+                            title: tr('Delete "{name}"?', {'name': shelf.name}),
                             message: books.isEmpty
-                                ? 'This shelf is empty.'
-                                : 'Its ${books.length} '
-                                      '${books.length == 1 ? 'book' : 'books'} '
-                                      'will be deleted too. Move them to '
-                                      'another shelf first to keep them.',
+                                ? tr('This shelf is empty.')
+                                : books.length == 1
+                                ? tr(
+                                    'Its 1 book will be deleted too. Move it to another shelf first to keep it.',
+                                  )
+                                : tr(
+                                    'Its {count} books will be deleted too. Move them to another shelf first to keep them.',
+                                    {'count': books.length},
+                                  ),
                           );
                           if (ok) await notifier.deleteShelf(shelf.id);
                       }
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: 'import',
-                        child: Text('Import PDFs here'),
+                        child: Text(tr('Import PDFs here')),
                       ),
-                      PopupMenuItem(value: 'rename', child: Text('Rename')),
-                      PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      PopupMenuItem(value: 'rename', child: Text(tr('Rename'))),
+                      PopupMenuItem(value: 'delete', child: Text(tr('Delete'))),
                     ],
                   ),
                 );
@@ -100,7 +109,7 @@ class ShelvesScreen extends ConsumerWidget {
         foregroundColor: Colors.black,
         onPressed: () => _add(context, ref),
         icon: const Icon(Icons.add),
-        label: const Text('New shelf'),
+        label: Text(tr('New shelf')),
       ),
     );
   }

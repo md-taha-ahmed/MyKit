@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../manga_routes.dart';
 import '../providers/manga_providers.dart';
@@ -131,7 +132,7 @@ class _MangaReaderScreenState extends ConsumerState<MangaReaderScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: manga == null
-          ? const Center(child: Text('Not found.'))
+          ? Center(child: Text(tr('Not found.')))
           : pagesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => MangaErrorView(
@@ -140,9 +141,7 @@ class _MangaReaderScreenState extends ConsumerState<MangaReaderScreen> {
               ),
               data: (pages) {
                 if (pages.isEmpty) {
-                  return const Center(
-                    child: Text('This chapter has no pages.'),
-                  );
+                  return Center(child: Text(tr('This chapter has no pages.')));
                 }
                 final total = pages.length;
                 if (!_restored) {
@@ -255,11 +254,11 @@ class _MangaReaderScreenState extends ConsumerState<MangaReaderScreen> {
             return Padding(
               padding: const EdgeInsets.all(32),
               child: next == null
-                  ? const Center(child: Text('Last chapter'))
+                  ? Center(child: Text(tr('Last chapter')))
                   : FilledButton.icon(
                       onPressed: () => _openChapter(next),
                       icon: const Icon(Icons.skip_next),
-                      label: Text('Next: ${next.name}'),
+                      label: Text(tr('Next: {name}', {'name': next.name})),
                     ),
             );
           }
@@ -306,7 +305,9 @@ class _PageImage extends ConsumerWidget {
               child: TextButton.icon(
                 onPressed: () => ref.invalidate(pageImageProvider(key)),
                 icon: const Icon(Icons.refresh),
-                label: Text('Page ${page.index + 1} failed · Retry'),
+                label: Text(
+                  tr('Page {0} failed · Retry', {'0': page.index + 1}),
+                ),
               ),
             ),
           ),
@@ -373,7 +374,7 @@ class _Overlay extends ConsumerWidget {
                   Row(
                     children: [
                       IconButton(
-                        tooltip: 'Previous chapter',
+                        tooltip: tr('Previous chapter'),
                         onPressed: onPrev,
                         icon: const Icon(Icons.skip_previous),
                       ),
@@ -391,7 +392,7 @@ class _Overlay extends ConsumerWidget {
                       ),
                       Text('$total'),
                       IconButton(
-                        tooltip: 'Next chapter',
+                        tooltip: tr('Next chapter'),
                         onPressed: onNext,
                         icon: const Icon(Icons.skip_next),
                       ),

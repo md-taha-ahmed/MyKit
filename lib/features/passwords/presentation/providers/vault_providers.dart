@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/datasources/vault_native_data_source.dart';
 import '../../data/services/vault_crypto.dart';
@@ -188,17 +189,19 @@ class VaultNotifier extends Notifier<VaultState> {
           // The vault was replaced (e.g. restored); the old key can't open it.
           await _native.removeBiometric();
           state = state.copyWith(biometricEnabled: false);
-          return 'Fingerprint unlock needs to be set up again. Use your '
-              'master password.';
+          return tr(
+            'Fingerprint unlock needs to be set up again. Use your master password.',
+          );
         }
       case BiometricOutcome.cancelled:
         return null;
       case BiometricOutcome.invalidated:
         state = state.copyWith(biometricEnabled: false);
-        return 'Your fingerprints changed, so fingerprint unlock was turned '
-            'off. Use your master password.';
+        return tr(
+          'Your fingerprints changed, so fingerprint unlock was turned off. Use your master password.',
+        );
       case BiometricOutcome.failed:
-        return 'Fingerprint unlock failed. Use your master password.';
+        return tr('Fingerprint unlock failed. Use your master password.');
     }
   }
 
@@ -229,7 +232,7 @@ class VaultNotifier extends Notifier<VaultState> {
   Future<void> _save(List<VaultEntry> entries) async {
     final key = _key;
     if (key == null || _sealed == null) {
-      throw const VaultException('The vault is locked.');
+      throw VaultException(tr('The vault is locked.'));
     }
     final sorted = [...entries]
       ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
@@ -294,7 +297,7 @@ class VaultNotifier extends Notifier<VaultState> {
   /// Returns a message if it didn't work.
   Future<String?> enableBiometric() async {
     final key = _key;
-    if (key == null) return 'Unlock the vault first.';
+    if (key == null) return tr('Unlock the vault first.');
     final outcome = await withoutAutoLock(
       () => _native.enrollBiometric(Uint8List.fromList(key)),
     );
@@ -304,7 +307,7 @@ class VaultNotifier extends Notifier<VaultState> {
     }
     return outcome == BiometricOutcome.cancelled
         ? null
-        : 'Could not turn on fingerprint unlock.';
+        : tr('Could not turn on fingerprint unlock.');
   }
 
   Future<void> disableBiometric() async {
@@ -317,7 +320,7 @@ class VaultNotifier extends Notifier<VaultState> {
     final sealed = _sealed;
     final key = _key;
     if (sealed == null || key == null) {
-      throw const VaultException('Unlock the vault first.');
+      throw VaultException(tr('Unlock the vault first.'));
     }
     // Check the current password before replacing it.
     await VaultCrypto.unwrapKey(
@@ -378,7 +381,7 @@ class VaultNotifier extends Notifier<VaultState> {
       added.add(
         VaultEntry(
           id: _uuid.v4(),
-          title: l.title.isEmpty ? 'Untitled' : l.title,
+          title: l.title.isEmpty ? tr('Untitled') : l.title,
           username: l.username,
           password: l.password,
           url: l.url,

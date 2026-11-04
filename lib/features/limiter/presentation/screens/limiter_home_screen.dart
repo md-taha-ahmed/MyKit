@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../data/limiter_native_data_source.dart';
 import '../../domain/limiter_settings.dart';
 import '../providers/limiter_providers.dart';
@@ -30,7 +31,7 @@ class LimiterHomeScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Screen time')),
+      appBar: AppBar(title: Text(tr('Screen time'))),
       body: RefreshIndicator(
         onRefresh: ref.read(limiterStatusProvider.notifier).refresh,
         child: ListView(
@@ -38,7 +39,7 @@ class LimiterHomeScreen extends ConsumerWidget {
           children: [
             if (!status.serviceEnabled) const _SetupCard(),
             const SizedBox(height: 8),
-            Text('Today', style: Theme.of(context).textTheme.titleMedium),
+            Text(tr('Today'), style: Theme.of(context).textTheme.titleMedium),
             Text(
               formatMinutes(total),
               style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800),
@@ -52,19 +53,25 @@ class LimiterHomeScreen extends ConsumerWidget {
                 extensionsPerDay: settings.extensionsPerDay,
               ),
             const SizedBox(height: 20),
-            Text('This week', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              tr('This week'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 10),
             _WeekChart(settings: settings, status: status),
             const SizedBox(height: 24),
             const _FocusSection(),
             const SizedBox(height: 16),
             Text(
-              'When a limit is reached the app or site is closed. You can '
-              'take ${settings.extensionMinutes} more minutes after a '
-              '${settings.extensionWaitSeconds}-second wait, '
-              '${settings.extensionsPerDay}× a day per platform (not '
-              'during focus hours). A notification warns you '
-              '${settings.warnMinutes} minutes before.',
+              tr(
+                'When a limit is reached the app or site is closed. You can take {extensionMinutes} more minutes after a {extensionWaitSeconds}-second wait, {extensionsPerDay}× a day per platform (not during focus hours). A notification warns you {warnMinutes} minutes before.',
+                {
+                  'extensionMinutes': settings.extensionMinutes,
+                  'extensionWaitSeconds': settings.extensionWaitSeconds,
+                  'extensionsPerDay': settings.extensionsPerDay,
+                  'warnMinutes': settings.warnMinutes,
+                },
+              ),
               style: const TextStyle(color: Colors.white54, height: 1.4),
             ),
           ],
@@ -85,31 +92,28 @@ class _SetupCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.accessibility_new, color: limiterAccent),
               SizedBox(width: 10),
               Text(
-                'Turn on Screen time',
+                tr('Turn on Screen time'),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'MyKit needs Android\'s Accessibility permission to see which '
-            'app is open (and the site in your browser\'s address bar) so it '
-            'can count your time and close apps when you hit a limit. '
-            'Nothing leaves your phone.\n\n'
-            'In the list, open "Installed apps" (or "Downloaded apps") → '
-            'MyKit Screen time → turn it on.',
+          Text(
+            tr(
+              'MyKit needs Android\'s Accessibility permission to see which app is open (and the site in your browser\'s address bar) so it can count your time and close apps when you hit a limit. Nothing leaves your phone.\n\nIn the list, open "Installed apps" (or "Downloaded apps") → MyKit Screen time → turn it on.',
+            ),
             style: TextStyle(height: 1.4),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: () => ref.read(limiterNativeProvider).openSettings(),
             icon: const Icon(Icons.open_in_new),
-            label: const Text('Open Accessibility settings'),
+            label: Text(tr('Open Accessibility settings')),
           ),
         ],
       ),
@@ -150,11 +154,11 @@ class _GroupCard extends ConsumerWidget {
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Limit this'),
+                title: Text(tr('Limit this')),
                 value: enabled,
                 onChanged: (v) => setState(() => enabled = v),
               ),
-              Text('Daily limit: ${formatMinutes(limit * 60)}'),
+              Text(tr('Daily limit: {0}', {'0': formatMinutes(limit * 60)})),
               Slider(
                 value: limit.toDouble(),
                 min: 5,
@@ -168,7 +172,7 @@ class _GroupCard extends ConsumerWidget {
               const SizedBox(height: 8),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Save'),
+                child: Text(tr('Save')),
               ),
             ],
           ),
@@ -183,14 +187,15 @@ class _GroupCard extends ConsumerWidget {
   }
 
   static String _appName(String pkg) => switch (pkg) {
-    'com.instagram.android' => 'Instagram app',
-    'com.instagram.lite' => 'Instagram Lite',
-    'com.facebook.katana' => 'Facebook app',
-    'com.facebook.lite' => 'Facebook Lite',
-    'com.twitter.android' => 'X app',
-    'com.twitter.android.lite' => 'X Lite',
-    'com.google.android.youtube' => 'YouTube app',
-    'app.revanced.android.youtube' || 'app.rvx.android.youtube' => 'ReVanced',
+    'com.instagram.android' => tr('Instagram app'),
+    'com.instagram.lite' => tr('Instagram Lite'),
+    'com.facebook.katana' => tr('Facebook app'),
+    'com.facebook.lite' => tr('Facebook Lite'),
+    'com.twitter.android' => tr('X app'),
+    'com.twitter.android.lite' => tr('X Lite'),
+    'com.google.android.youtube' => tr('YouTube app'),
+    'app.revanced.android.youtube' ||
+    'app.rvx.android.youtube' => tr('ReVanced'),
     _ => pkg,
   };
 
@@ -236,7 +241,7 @@ class _GroupCard extends ConsumerWidget {
                   Text(
                     group.enabled
                         ? '${formatMinutes(seconds)} / ${formatMinutes(limit)}'
-                        : '${formatMinutes(seconds)} · no limit',
+                        : tr('{0} · no limit', {'0': formatMinutes(seconds)}),
                     style: const TextStyle(color: Colors.white70),
                   ),
                 ],
@@ -255,7 +260,7 @@ class _GroupCard extends ConsumerWidget {
                 const SizedBox(height: 6),
                 Text(
                   [
-                    over ? 'Limit reached' : '${formatMinutes(left)} left',
+                    over ? tr('Limit reached') : '${formatMinutes(left)} left',
                     if (extensionsUsed > 0)
                       '$extensionsUsed/$extensionsPerDay extensions used',
                   ].join(' · '),
@@ -354,7 +359,7 @@ class _WeekChart extends StatelessWidget {
           runSpacing: 4,
           children: [
             Text(
-              'Daily average ${formatMinutes(avg)}',
+              tr('Daily average {0}', {'0': formatMinutes(avg)}),
               style: const TextStyle(color: Colors.white70),
             ),
             for (final g in settings.groups)
@@ -402,11 +407,11 @@ class _FocusSection extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Focus hours',
+                tr('Focus hours'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const Text(
-                'These are fully blocked at this time, no extensions.',
+              Text(
+                tr('These are fully blocked at this time, no extensions.'),
                 style: TextStyle(color: Colors.white60),
               ),
               const SizedBox(height: 12),
@@ -421,7 +426,7 @@ class _FocusSection extends ConsumerWidget {
                         );
                         if (t != null) setState(() => start = t);
                       },
-                      child: Text('From ${start.format(context)}'),
+                      child: Text(tr('From {0}', {'0': start.format(context)})),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -434,7 +439,7 @@ class _FocusSection extends ConsumerWidget {
                         );
                         if (t != null) setState(() => end = t);
                       },
-                      child: Text('To ${end.format(context)}'),
+                      child: Text(tr('To {0}', {'0': end.format(context)})),
                     ),
                   ),
                 ],
@@ -471,7 +476,7 @@ class _FocusSection extends ConsumerWidget {
                 onPressed: days.isEmpty || chosen.isEmpty
                     ? null
                     : () => Navigator.pop(context, true),
-                child: const Text('Add'),
+                child: Text(tr('Add')),
               ),
             ],
           ),
@@ -497,21 +502,22 @@ class _FocusSection extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                'Focus hours',
+                tr('Focus hours'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
             TextButton.icon(
               onPressed: () => _add(context, ref),
               icon: const Icon(Icons.add),
-              label: const Text('Add'),
+              label: Text(tr('Add')),
             ),
           ],
         ),
         if (settings.focus.isEmpty)
-          const Text(
-            'None. Add times when these apps are off completely, e.g. '
-            '23:00–07:00 for better sleep.',
+          Text(
+            tr(
+              'None. Add times when these apps are off completely, e.g. 23:00–07:00 for better sleep.',
+            ),
             style: TextStyle(color: Colors.white54),
           ),
         for (final (i, f) in settings.focus.indexed)
@@ -522,7 +528,7 @@ class _FocusSection extends ConsumerWidget {
               subtitle: Text(
                 [
                   f.days.length == 7
-                      ? 'Every day'
+                      ? tr('Every day')
                       : (f.days.toList()..sort())
                             .map((d) => _dayLetters[d - 1])
                             .join(' '),

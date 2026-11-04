@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'manga_routes.dart';
 import 'presentation/providers/anime_providers.dart';
@@ -17,9 +18,11 @@ final mangaTool = ToolDefinition(
     final manga = ref.watch(mangaLibraryProvider).length;
     final anime = ref.watch(animeLibraryProvider).length;
     final parts = [
-      if (manga > 0) '$manga manga',
-      if (anime > 0) '$anime anime',
+      if (manga > 0) tr('{n} manga', {'n': manga}),
+      if (anime > 0) tr('{n} anime', {'n': anime}),
     ];
-    return parts.isEmpty ? null : '${parts.join(' · ')} in library';
+    return parts.isEmpty
+        ? null
+        : tr('{items} in library', {'items': parts.join(' · ')});
   },
 );

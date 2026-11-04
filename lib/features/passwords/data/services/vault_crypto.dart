@@ -5,6 +5,8 @@ import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
 
+import '../../../../core/i18n/i18n.dart';
+
 class VaultException implements Exception {
   const VaultException(this.message);
 
@@ -39,7 +41,7 @@ class KdfParams {
 
   static KdfParams fromJson(Map<String, dynamic> j) {
     if (j['alg'] != 'argon2id') {
-      throw const VaultException('Unknown vault format.');
+      throw VaultException(tr('Unknown vault format.'));
     }
     return KdfParams(
       memoryKiB: (j['m'] as num).toInt(),
@@ -88,7 +90,7 @@ class SealedVault {
     try {
       final j = jsonDecode(raw) as Map<String, dynamic>;
       if ((j['v'] as num) > version) {
-        throw const VaultException('This vault is from a newer MyKit.');
+        throw VaultException(tr('This vault is from a newer MyKit.'));
       }
       final kdf = j['kdf'] as Map<String, dynamic>;
       return SealedVault(
@@ -100,7 +102,7 @@ class SealedVault {
     } on VaultException {
       rethrow;
     } catch (_) {
-      throw const VaultException('The saved vault is damaged.');
+      throw VaultException(tr('The saved vault is damaged.'));
     }
   }
 
@@ -200,7 +202,7 @@ abstract final class VaultCrypto {
         ),
       );
     } on SecretBoxAuthenticationError {
-      throw const VaultException('Wrong master password.');
+      throw VaultException(tr('Wrong master password.'));
     }
   }
 
@@ -215,7 +217,7 @@ abstract final class VaultCrypto {
         ),
       );
     } on SecretBoxAuthenticationError {
-      throw const VaultException('Could not open the vault.');
+      throw VaultException(tr('Could not open the vault.'));
     }
   }
 }

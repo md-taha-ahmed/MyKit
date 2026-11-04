@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/book.dart';
 import '../providers/books_providers.dart';
 import '../widgets/book_widgets.dart';
@@ -91,7 +92,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       ..showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 2),
-          content: Text(added ? 'Page $_page bookmarked' : 'Bookmark removed'),
+          content: Text(
+            added
+                ? tr('Page {_page} bookmarked', {'_page': _page})
+                : tr('Bookmark removed'),
+          ),
         ),
       );
   }
@@ -105,7 +110,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (book == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('This book was removed.')),
+        body: Center(child: Text(tr('This book was removed.'))),
       );
     }
 
@@ -122,7 +127,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Text(
-              'Could not open this PDF.\n$e',
+              tr('Could not open this PDF.\n{e}', {'e': e}),
               textAlign: TextAlign.center,
             ),
           ),
@@ -150,7 +155,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
               _TopBar(
                 visible: _uiVisible,
                 title: book.title,
-                subtitle: 'Page $_page of $pageCount',
+                subtitle: tr('Page {_page} of {pageCount}', {
+                  '_page': _page,
+                  'pageCount': pageCount,
+                }),
                 bookmarked: bookmarked,
                 onBookmark: _toggleBookmark,
                 onSearch: () => _jumpFrom(showSearchSheet(context, document)),
@@ -401,7 +409,9 @@ class _TopBar extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: bookmarked ? 'Remove bookmark' : 'Bookmark page',
+                    tooltip: bookmarked
+                        ? tr('Remove bookmark')
+                        : tr('Bookmark page'),
                     onPressed: onBookmark,
                     icon: Icon(
                       bookmarked ? Icons.bookmark : Icons.bookmark_border,
@@ -409,39 +419,39 @@ class _TopBar extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Search',
+                    tooltip: tr('Search'),
                     onPressed: onSearch,
                     icon: const Icon(Icons.search),
                   ),
                   PopupMenuButton<_Menu>(
                     onSelected: onMenu,
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: _Menu.contents,
                         child: ListTile(
                           leading: Icon(Icons.toc),
-                          title: Text('Contents'),
+                          title: Text(tr('Contents')),
                         ),
                       ),
                       PopupMenuItem(
                         value: _Menu.bookmarks,
                         child: ListTile(
                           leading: Icon(Icons.bookmarks_outlined),
-                          title: Text('Bookmarks'),
+                          title: Text(tr('Bookmarks')),
                         ),
                       ),
                       PopupMenuItem(
                         value: _Menu.goTo,
                         child: ListTile(
                           leading: Icon(Icons.pin_outlined),
-                          title: Text('Go to page'),
+                          title: Text(tr('Go to page')),
                         ),
                       ),
                       PopupMenuItem(
                         value: _Menu.settings,
                         child: ListTile(
                           leading: Icon(Icons.tune),
-                          title: Text('Reading settings'),
+                          title: Text(tr('Reading settings')),
                         ),
                       ),
                     ],
@@ -557,7 +567,7 @@ class _BottomBar extends StatelessWidget {
                       ),
                       _BarButton(
                         icon: Icons.bookmarks_outlined,
-                        label: 'Bookmarks',
+                        label: tr('Bookmarks'),
                         onTap: onBookmarks,
                       ),
                     ],

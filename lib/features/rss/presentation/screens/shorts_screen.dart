@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
 import '../../../../core/utils/text_direction.dart';
 import '../../../limiter/presentation/providers/limiter_providers.dart';
@@ -114,7 +115,9 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
         slot.player.stream.error.listen((e) {
           debugPrint('Shorts: player error on page ${slot.page}: $e');
           final page = slot.page;
-          if (page != null) _fallBack(page, slot, 'player error: $e');
+          if (page != null) {
+            _fallBack(page, slot, tr('player error: {e}', {'e': e}));
+          }
         }),
       );
     }
@@ -201,7 +204,7 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
     if (mounted) setState(() {});
     final id = _shorts[page].youtubeId;
     try {
-      if (id == null) throw StateError('No video id');
+      if (id == null) throw StateError(tr('No video id'));
       final stream = await ref.read(shortsNativeProvider).resolve(id);
       if (token != slot.token) return;
       // Second attempt: a single-file stream if there's one, else the same
@@ -276,7 +279,11 @@ class _ShortsScreenState extends ConsumerState<ShortsScreen> {
         return;
       }
       t.cancel();
-      _fallBack(page, slot, 'stuck at ${state.position}');
+      _fallBack(
+        page,
+        slot,
+        tr('stuck at {position}', {'position': state.position}),
+      );
     });
   }
 
@@ -359,13 +366,14 @@ class _NoShorts extends StatelessWidget {
             onPressed: () => Navigator.of(context).maybePop(),
           ),
         ),
-        const Expanded(
+        Expanded(
           child: Center(
             child: Padding(
               padding: EdgeInsets.all(32),
               child: Text(
-                'No Shorts here yet. Shorts from your YouTube channels show '
-                'up after a refresh.',
+                tr(
+                  'No Shorts here yet. Shorts from your YouTube channels show up after a refresh.',
+                ),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white70),
               ),
@@ -465,8 +473,8 @@ class _ShortPageState extends ConsumerState<_ShortPage>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Can\'t play this one here.',
+                  Text(
+                    tr('Can\'t play this one here.'),
                     style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 12),
@@ -476,7 +484,7 @@ class _ShortPageState extends ConsumerState<_ShortPage>
                     ),
                     onPressed: widget.onOpenInYoutube,
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('Watch in YouTube'),
+                    label: Text(tr('Watch in YouTube')),
                   ),
                 ],
               ),
@@ -569,24 +577,24 @@ class _ShortPageState extends ConsumerState<_ShortPage>
                   _SideButton(
                     icon: liked ? Icons.favorite : Icons.favorite_border,
                     color: liked ? const Color(0xFFFF5A6E) : Colors.white,
-                    label: 'Like',
+                    label: tr('Like'),
                     onTap: () => ref
                         .read(rssReactionsProvider.notifier)
                         .toggleLike(s.id),
                   ),
                   _SideButton(
                     icon: saved ? Icons.bookmark : Icons.bookmark_border,
-                    label: 'Save',
+                    label: tr('Save'),
                     onTap: () => toggleSaveArticle(context, ref, s),
                   ),
                   _SideButton(
                     icon: widget.muted ? Icons.volume_off : Icons.volume_up,
-                    label: widget.muted ? 'Muted' : 'Sound',
+                    label: widget.muted ? tr('Muted') : tr('Sound'),
                     onTap: widget.onToggleMute,
                   ),
                   _SideButton(
                     icon: Icons.open_in_new,
-                    label: 'YouTube',
+                    label: tr('YouTube'),
                     onTap: widget.onOpenInYoutube,
                   ),
                 ],

@@ -20,6 +20,7 @@ import android.widget.ListView
 import android.widget.RemoteViews
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
+import com.mdtaha.mykit.AppLanguage
 import com.mdtaha.mykit.R
 import com.mdtaha.mykit.vault.VaultKeyStore
 
@@ -42,6 +43,10 @@ class AutofillAuthActivity : FragmentActivity() {
     @Suppress("DEPRECATION")
     private fun <T> extra(name: String): T? = intent.getParcelableExtra(name)
 
+    private val arabic by lazy { AppLanguage.isArabic(this) }
+
+    private fun t(en: String, ar: String) = if (arabic) ar else en
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Logins are on screen: no screenshots or recents preview.
@@ -50,25 +55,33 @@ class AutofillAuthActivity : FragmentActivity() {
 
         if (!VaultKeyStore.hasKey(this)) {
             message(
-                "Turn on fingerprint unlock",
-                "To fill passwords from MyKit, open MyKit → Passwords → " +
-                    "Settings and turn on \"Unlock with fingerprint\".",
+                t("Turn on fingerprint unlock", "فعّل الفتح بالبصمة"),
+                t(
+                    "To fill passwords from MyKit, open MyKit → Passwords → " +
+                        "Settings and turn on \"Unlock with fingerprint\".",
+                    "لملء كلمات المرور من MyKit، افتح MyKit ← كلمات المرور ← " +
+                        "الإعدادات وفعّل «الفتح بالبصمة».",
+                ),
             )
             return
         }
         try {
-            VaultKeyStore.unlock(this, "Fill with MyKit") { outcome ->
+            VaultKeyStore.unlock(this, t("Fill with MyKit", "الملء من MyKit")) { outcome ->
                 when (outcome) {
                     is VaultKeyStore.Outcome.Success -> showLogins(outcome.value as ByteArray)
                     VaultKeyStore.Outcome.Cancelled -> finish()
-                    is VaultKeyStore.Outcome.Failed -> message("Couldn't unlock", outcome.message)
+                    is VaultKeyStore.Outcome.Failed -> message(t("Couldn't unlock", "تعذّر الفتح"), outcome.message)
                 }
             }
         } catch (e: VaultKeyStore.Invalidated) {
             message(
-                "Fingerprint unlock was turned off",
-                "Your fingerprints changed. Open MyKit → Passwords, unlock " +
-                    "with your master password and turn fingerprint unlock on again.",
+                t("Fingerprint unlock was turned off", "أُوقف الفتح بالبصمة"),
+                t(
+                    "Your fingerprints changed. Open MyKit → Passwords, unlock " +
+                        "with your master password and turn fingerprint unlock on again.",
+                    "تغيّرت بصماتك. افتح MyKit ← كلمات المرور، وافتحها بكلمة المرور " +
+                        "الرئيسية، ثم فعّل الفتح بالبصمة من جديد.",
+                ),
             )
         }
     }
@@ -87,13 +100,19 @@ class AutofillAuthActivity : FragmentActivity() {
             VaultReader.read(this, key)
         } catch (_: Exception) {
             message(
-                "Couldn't open your passwords",
-                "Open MyKit → Passwords once with your master password, then try again.",
+                t("Couldn't open your passwords", "تعذّر فتح كلمات مرورك"),
+                t(
+                    "Open MyKit → Passwords once with your master password, then try again.",
+                    "افتح MyKit ← كلمات المرور مرة بكلمة المرور الرئيسية، ثم حاول مجدداً.",
+                ),
             )
             return
         }
         if (all.isEmpty()) {
-            message("No passwords yet", "Add logins in MyKit → Passwords first.")
+            message(
+                t("No passwords yet", "لا توجد كلمات مرور بعد"),
+                t("Add logins in MyKit → Passwords first.", "أضف حسابات في MyKit ← كلمات المرور أولاً."),
+            )
             return
         }
         val links = AutofillLinks.read(this, key)
@@ -105,7 +124,7 @@ class AutofillAuthActivity : FragmentActivity() {
         val adapter = LoginAdapter(matches, others, where)
         val dp = resources.displayMetrics.density
         val search = EditText(this).apply {
-            hint = "Search all ${all.size} logins"
+            hint = t("Search all ${all.size} logins", "البحث في كل الحسابات (${all.size})")
             setSingleLine()
             addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) = adapter.filter(s.toString())
@@ -128,9 +147,9 @@ class AutofillAuthActivity : FragmentActivity() {
             )
         }
         val dialog = AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("Fill login for $where")
+            .setTitle(t("Fill login for $where", "ملء حساب لـ $where"))
             .setView(content)
-            .setNegativeButton("Cancel") { _, _ -> finish() }
+            .setNegativeButton(t("Cancel", "إلغاء")) { _, _ -> finish() }
             .setOnCancelListener { finish() }
             .create()
         list.setOnItemClickListener { _, _, position, _ ->
@@ -216,15 +235,21 @@ class AutofillAuthActivity : FragmentActivity() {
             val o = if (expanded || q.isNotEmpty()) others.filter(::ok) else emptyList()
             return buildList {
                 if (s.isNotEmpty()) {
-                    add(Header("For $where"))
+                    add(Header(t("For $where", "لـ $where")))
                     s.forEach { add(Item(it)) }
                 }
                 if (!expanded && q.isEmpty() && others.isNotEmpty()) add(ShowAll)
                 if (o.isNotEmpty()) {
                     add(
                         Header(
-                            if (suggested.isEmpty()) "No saved login for $where yet. Pick one:"
-                            else "Other logins",
+                            if (suggested.isEmpty()) {
+                                t(
+                                    "No saved login for $where yet. Pick one:",
+                                    "لا يوجد حساب محفوظ لـ $where بعد. اختر واحداً:",
+                                )
+                            } else {
+                                t("Other logins", "حسابات أخرى")
+                            },
                         ),
                     )
                     o.forEach { add(Item(it)) }
@@ -268,7 +293,7 @@ class AutofillAuthActivity : FragmentActivity() {
                     alpha = 0.6f
                 }
                 ShowAll -> view.apply {
-                    text = "Show other logins (${others.size})"
+                    text = t("Show other logins (${others.size})", "عرض الحسابات الأخرى (${others.size})")
                     textSize = 15f
                     alpha = 0.8f
                 }

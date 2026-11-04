@@ -12,6 +12,7 @@ import android.service.autofill.SaveCallback
 import android.service.autofill.SaveRequest
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
+import com.mdtaha.mykit.AppLanguage
 import com.mdtaha.mykit.R
 import com.mdtaha.mykit.vault.VaultKeyStore
 
@@ -44,9 +45,13 @@ class MyKitAutofillService : AutofillService() {
         }
 
         val label = if (VaultKeyStore.hasKey(this)) {
-            "Unlock MyKit to fill"
+            AppLanguage.t(this, "Unlock MyKit to fill", "افتح MyKit للملء")
         } else {
-            "MyKit: turn on fingerprint unlock to fill"
+            AppLanguage.t(
+                this,
+                "MyKit: turn on fingerprint unlock to fill",
+                "MyKit: فعّل الفتح بالبصمة للملء",
+            )
         }
         val presentation = RemoteViews(packageName, R.layout.autofill_item).apply {
             setTextViewText(R.id.autofill_text, label)

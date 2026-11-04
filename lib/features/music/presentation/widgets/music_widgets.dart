@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/track.dart';
 import '../../music_routes.dart';
 import '../providers/music_providers.dart';
@@ -76,7 +77,7 @@ class TrackTile extends ConsumerWidget {
     final current = ref.watch(nowPlayingProvider).value?.id == track.id;
     final playing = ref.watch(playerStateProvider).value?.playing ?? false;
     final subtitle = [
-      track.artist ?? 'Unknown artist',
+      track.artist ?? tr('Unknown artist'),
       formatDuration(track.duration),
     ].join(' · ');
 
@@ -179,7 +180,7 @@ class MiniPlayer extends ConsumerWidget {
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                           Text(
-                            item.artist ?? 'Unknown artist',
+                            item.artist ?? tr('Unknown artist'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -229,7 +230,7 @@ Future<void> showMusicSortSheet(BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _SheetHeader('Sort songs by'),
+                _SheetHeader(tr('Sort songs by')),
                 RadioGroup<TrackSort>(
                   groupValue: settings.sort,
                   onChanged: (v) => v == null ? null : notifier.setSort(v),
@@ -243,7 +244,7 @@ Future<void> showMusicSortSheet(BuildContext context) {
                     ],
                   ),
                 ),
-                const _SheetHeader('Show and sort by'),
+                _SheetHeader(tr('Show and sort by')),
                 RadioGroup<TrackNameSource>(
                   groupValue: settings.nameSource,
                   onChanged: (v) =>
@@ -258,10 +259,10 @@ Future<void> showMusicSortSheet(BuildContext context) {
                     ],
                   ),
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
                   child: Text(
-                    'Folders are always listed A–Z.',
+                    tr('Folders are always listed A–Z.'),
                     style: TextStyle(color: Colors.white54, fontSize: 13),
                   ),
                 ),

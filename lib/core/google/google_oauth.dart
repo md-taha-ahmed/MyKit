@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../i18n/i18n.dart';
 import '../storage/shared_preferences_provider.dart';
 
 class GoogleOAuthException implements Exception {
@@ -86,7 +87,7 @@ class GoogleOAuth {
     bool interactive = true,
   }) async {
     if (!isConfigured) {
-      throw const GoogleOAuthException('Google API client is not set up.');
+      throw GoogleOAuthException(tr('Google API client is not set up.'));
     }
     final cached = _accessToken;
     if (cached != null &&
@@ -108,7 +109,7 @@ class GoogleOAuth {
       }
     }
     if (!interactive) {
-      throw const GoogleOAuthException('Sign in with Google first.');
+      throw GoogleOAuthException(tr('Sign in with Google first.'));
     }
     return _signIn({..._granted, ...scopes}.toList());
   }
@@ -154,13 +155,13 @@ class GoogleOAuth {
         'prompt': 'consent',
       });
       if (!await launchUrl(authUrl, mode: LaunchMode.externalApplication)) {
-        throw const GoogleOAuthException('Could not open the browser.');
+        throw GoogleOAuthException(tr('Could not open the browser.'));
       }
 
       final request = await server.first.timeout(
         const Duration(minutes: 5),
-        onTimeout: () => throw const GoogleOAuthException(
-          'Sign-in timed out. Please try again.',
+        onTimeout: () => throw GoogleOAuthException(
+          tr('Sign-in timed out. Please try again.'),
         ),
       );
       final params = request.uri.queryParameters;
@@ -172,9 +173,9 @@ class GoogleOAuth {
       await request.response.close();
 
       if (params['error'] == 'access_denied') {
-        throw const GoogleOAuthException('Access was not granted.');
+        throw GoogleOAuthException(tr('Access was not granted.'));
       }
-      if (!ok) throw const GoogleOAuthException('Sign-in failed.');
+      if (!ok) throw GoogleOAuthException(tr('Sign-in failed.'));
 
       return await _token({
         'grant_type': 'authorization_code',

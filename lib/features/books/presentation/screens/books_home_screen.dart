@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../books_routes.dart';
 import '../../domain/entities/book.dart';
@@ -31,7 +32,7 @@ class _BooksHomeScreenState extends ConsumerState<BooksHomeScreen> {
     final choice = await showDialog<BookSort>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Sort books'),
+        title: Text(tr('Sort books')),
         children: [
           for (final s in BookSort.values)
             SimpleDialogOption(
@@ -79,18 +80,18 @@ class _BooksHomeScreenState extends ConsumerState<BooksHomeScreen> {
             ? TextField(
                 controller: _search,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search books',
+                decoration: InputDecoration(
+                  hintText: tr('Search books'),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                 ),
                 onChanged: (_) => setState(() {}),
               )
-            : const Text('Books'),
+            : Text(tr('Books')),
         actions: [
           IconButton(
-            tooltip: _searching ? 'Close search' : 'Search',
+            tooltip: _searching ? tr('Close search') : tr('Search'),
             icon: Icon(_searching ? Icons.close : Icons.search),
             onPressed: () => setState(() {
               _searching = !_searching;
@@ -98,12 +99,12 @@ class _BooksHomeScreenState extends ConsumerState<BooksHomeScreen> {
             }),
           ),
           IconButton(
-            tooltip: 'Sort',
+            tooltip: tr('Sort'),
             icon: const Icon(Icons.sort),
             onPressed: _sort,
           ),
           IconButton(
-            tooltip: 'Manage shelves',
+            tooltip: tr('Manage shelves'),
             icon: const Icon(Icons.shelves),
             onPressed: () => context.push(BooksRoutes.shelves),
           ),
@@ -114,7 +115,7 @@ class _BooksHomeScreenState extends ConsumerState<BooksHomeScreen> {
           : CustomScrollView(
               slivers: [
                 if (showContinue) ...[
-                  const _SectionTitle('Continue reading'),
+                  _SectionTitle(tr('Continue reading')),
                   SliverToBoxAdapter(
                     child: SizedBox(
                       height: 128,
@@ -136,8 +137,10 @@ class _BooksHomeScreenState extends ConsumerState<BooksHomeScreen> {
                     child: Center(
                       child: Text(
                         _search.text.isEmpty
-                            ? 'This shelf is empty.\nTap + to import PDFs.'
-                            : 'No books match "${_search.text}".',
+                            ? tr('This shelf is empty.\nTap + to import PDFs.')
+                            : tr('No books match "{text}".', {
+                                'text': _search.text,
+                              }),
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white54),
                       ),
@@ -170,7 +173,7 @@ class _BooksHomeScreenState extends ConsumerState<BooksHomeScreen> {
               foregroundColor: Colors.black,
               onPressed: () => importBooks(context, ref, shelfId: shelfId),
               icon: const Icon(Icons.add),
-              label: const Text('Import PDF'),
+              label: Text(tr('Import PDF')),
             ),
     );
   }
@@ -277,18 +280,18 @@ class _ShelfChips extends ConsumerWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
         children: [
-          chip(null, 'All', library.books.length),
+          chip(null, tr('All'), library.books.length),
           for (final s in library.shelves)
             chip(s.id, s.name, library.booksIn(s.id).length),
           ActionChip(
             avatar: const Icon(Icons.add, size: 18),
-            label: const Text('Shelf'),
+            label: Text(tr('Shelf')),
             onPressed: () async {
               final name = await showTextInputDialog(
                 context,
-                title: 'New shelf',
-                hint: 'e.g. Novels, Study, Manuals',
-                confirmLabel: 'Create',
+                title: tr('New shelf'),
+                hint: tr('e.g. Novels, Study, Manuals'),
+                confirmLabel: tr('Create'),
               );
               if (name == null) return;
               final shelf = await ref
@@ -319,13 +322,14 @@ class _EmptyLibrary extends StatelessWidget {
             const Icon(Icons.auto_stories, size: 72, color: Colors.white24),
             const SizedBox(height: 16),
             Text(
-              'Your library is empty',
+              tr('Your library is empty'),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Import PDFs into shelves. MyKit remembers your page, '
-              'keeps bookmarks and has a dark reading mode.',
+            Text(
+              tr(
+                'Import PDFs into shelves. MyKit remembers your page, keeps bookmarks and has a dark reading mode.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white60),
             ),
@@ -337,7 +341,7 @@ class _EmptyLibrary extends StatelessWidget {
               ),
               onPressed: onImport,
               icon: const Icon(Icons.file_open),
-              label: const Text('Import PDF'),
+              label: Text(tr('Import PDF')),
             ),
           ],
         ),

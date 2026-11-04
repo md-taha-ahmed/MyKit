@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../movies/domain/entities/stremio_entities.dart';
 import '../../../movies/movies_routes.dart';
 import '../../../movies/presentation/providers/movies_providers.dart';
@@ -26,7 +27,7 @@ class AnimeDetailsScreen extends ConsumerWidget {
     if (cached == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('This title is no longer available.')),
+        body: Center(child: Text(tr('This title is no longer available.'))),
       );
     }
     final details = ref.watch(animeDetailsProvider(animeKey));
@@ -40,7 +41,7 @@ class AnimeDetailsScreen extends ConsumerWidget {
       appBar: AppBar(
         actions: [
           IconButton(
-            tooltip: 'Open in browser',
+            tooltip: tr('Open in browser'),
             icon: const Icon(Icons.public),
             onPressed: () async {
               final url = await ref.read(animeRepositoryProvider).webUrl(anime);
@@ -157,7 +158,9 @@ class _Header extends ConsumerWidget {
                     inLibrary ? Icons.favorite : Icons.favorite_border,
                     color: inLibrary ? mangaAccent : null,
                   ),
-                  label: Text(inLibrary ? 'In library' : 'Add to library'),
+                  label: Text(
+                    inLibrary ? tr('In library') : tr('Add to library'),
+                  ),
                 ),
               ),
             ],
@@ -255,12 +258,12 @@ class _EpisodesSliver extends ConsumerWidget {
           ),
           data: (episodes) {
             if (episodes.isEmpty) {
-              return const SliverToBoxAdapter(
+              return SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(32),
                   child: Center(
                     child: Text(
-                      'No episodes yet.',
+                      tr('No episodes yet.'),
                       style: TextStyle(color: Colors.white54),
                     ),
                   ),
@@ -299,7 +302,9 @@ class _EpisodesSliver extends ConsumerWidget {
                               episodes.last,
                         ),
                         icon: const Icon(Icons.play_arrow),
-                        label: Text(lastEpisode != null ? 'Continue' : 'Start'),
+                        label: Text(
+                          lastEpisode != null ? tr('Continue') : tr('Start'),
+                        ),
                       ),
                     ],
                   ),
@@ -351,7 +356,7 @@ class _EpisodeTile extends ConsumerWidget {
     final subtitle = [
       ?date,
       if (episode.scanlator?.isNotEmpty ?? false) episode.scanlator!,
-      if (episode.filler) 'Filler',
+      if (episode.filler) tr('Filler'),
       if (watch != null && !seen)
         '${_fmt(watch!.position)} / ${_fmt(watch!.duration)}',
     ].join(' · ');
@@ -418,7 +423,9 @@ Future<void> playEpisode(
         .read(animeRepositoryProvider)
         .resolve(anime.sourceId, picked.token);
   } catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text('Could not play: $e')));
+    messenger.showSnackBar(
+      SnackBar(content: Text(tr('Could not play: {e}', {'e': e}))),
+    );
     return;
   }
   ref.read(animeLibraryProvider.notifier).recordEpisode(anime, episode.url);
@@ -427,7 +434,7 @@ Future<void> playEpisode(
     MoviesRoutes.play,
     extra: PlayerArgs(
       source: StreamSource(
-        addonName: source?.name ?? 'Anime',
+        addonName: source?.name ?? tr('Anime'),
         name: picked.title,
         title: '',
         url: video.url,
@@ -444,7 +451,7 @@ Future<void> playEpisode(
             id: s.url,
             url: s.url,
             lang: s.lang,
-            addonName: source?.name ?? 'Source',
+            addonName: source?.name ?? tr('Source'),
           ),
       ],
       audioTracks: video.audios,
@@ -484,20 +491,20 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
               return Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'Could not load videos: ${snap.error}',
+                  tr('Could not load videos: {error}', {'error': snap.error}),
                   textAlign: TextAlign.center,
                 ),
               );
             }
             if (!snap.hasData) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.all(32),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 12),
-                    Text('Finding videos…'),
+                    Text(tr('Finding videos…')),
                   ],
                 ),
               );
@@ -513,12 +520,12 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
                     widget.episode.name,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: const Text('Choose a video'),
+                  subtitle: Text(tr('Choose a video')),
                 ),
                 if (videos.isEmpty && hosters.every((h) => !h.lazy))
-                  const ListTile(
+                  ListTile(
                     title: Text(
-                      'No videos found for this episode.',
+                      tr('No videos found for this episode.'),
                       style: TextStyle(color: Colors.white54),
                     ),
                   ),
@@ -545,7 +552,7 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
       best ? Icons.play_circle_fill : Icons.play_circle_outline,
       color: best ? mangaAccent : null,
     ),
-    title: Text(v.title.isEmpty ? 'Video' : v.title),
+    title: Text(v.title.isEmpty ? tr('Video') : v.title),
     trailing: v.resolution != null ? Text('${v.resolution}p') : null,
     onTap: () => Navigator.pop(context, v),
   );
@@ -556,7 +563,7 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
       return ListTile(
         dense: true,
         leading: const Icon(Icons.cloud_download_outlined),
-        title: Text(h.lazy ? 'Load videos' : 'Retry loading videos'),
+        title: Text(h.lazy ? tr('Load videos') : tr('Retry loading videos')),
         onTap: () => setState(
           () => _loaded[h.token] = ref
               .read(animeRepositoryProvider)
@@ -571,7 +578,7 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
           return ListTile(
             dense: true,
             title: Text(
-              'Failed: ${snap.error}',
+              tr('Failed: {error}', {'error': snap.error}),
               style: const TextStyle(color: Colors.white54),
             ),
           );
@@ -580,10 +587,10 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
           return const ListTile(dense: true, title: LinearProgressIndicator());
         }
         if (snap.data!.isEmpty) {
-          return const ListTile(
+          return ListTile(
             dense: true,
             title: Text(
-              'No videos here.',
+              tr('No videos here.'),
               style: TextStyle(color: Colors.white54),
             ),
           );

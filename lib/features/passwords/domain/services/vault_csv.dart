@@ -1,3 +1,4 @@
+import '../../../../core/i18n/i18n.dart';
 import '../entities/vault_entry.dart';
 
 /// A login read from a CSV export (before it gets an id).
@@ -59,9 +60,10 @@ abstract final class VaultCsv {
     final password = col(_password);
     final notes = col(_notes);
     if (password < 0) {
-      throw const FormatException(
-        'No "password" column found. Export the CSV from your browser or '
-        'password manager.',
+      throw FormatException(
+        tr(
+          'No "password" column found. Export the CSV from your browser or password manager.',
+        ),
       );
     }
     String at(List<String> row, int i) =>

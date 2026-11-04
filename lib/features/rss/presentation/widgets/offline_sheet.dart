@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../providers/offline_providers.dart';
 import '../providers/rss_providers.dart';
 import 'feeds_drawer.dart';
@@ -53,20 +54,20 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
         }
 
         return AlertDialog(
-          title: const Text('Number of articles'),
+          title: Text(tr('Number of articles')),
           content: TextField(
             controller: controller,
             autofocus: true,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(hintText: 'e.g. 1500'),
+            decoration: InputDecoration(hintText: tr('e.g. 1500')),
             onSubmitted: (_) => submit(),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(tr('Cancel')),
             ),
-            FilledButton(onPressed: submit, child: const Text('Set')),
+            FilledButton(onPressed: submit, child: Text(tr('Set'))),
           ],
         );
       },
@@ -93,12 +94,15 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Read offline', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            tr('Read offline'),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 6),
-          const Text(
-            'Save the full text and pictures of your articles to the phone, '
-            'so you can read them with no connection — on a plane or '
-            'abroad. Feeds are refreshed first.',
+          Text(
+            tr(
+              'Save the full text and pictures of your articles to the phone, so you can read them with no connection — on a plane or abroad. Feeds are refreshed first.',
+            ),
             style: TextStyle(color: Colors.white70, height: 1.4),
           ),
           const SizedBox(height: 12),
@@ -109,7 +113,7 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
                   value: true,
                   label: Text(selectionName, overflow: TextOverflow.ellipsis),
                 ),
-                const ButtonSegment(value: false, label: Text('All feeds')),
+                ButtonSegment(value: false, label: Text(tr('All feeds'))),
               ],
               selected: {_onlySelection},
               onSelectionChanged: state.running
@@ -117,8 +121,8 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
                   : (v) => setState(() => _onlySelection = v.first),
             ),
           const SizedBox(height: 12),
-          const Text(
-            'How many articles (newest first)',
+          Text(
+            tr('How many articles (newest first)'),
             style: TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 6),
@@ -128,7 +132,7 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
             children: [
               for (final n in _presets)
                 ChoiceChip(
-                  label: Text(n == 0 ? 'All' : '$n'),
+                  label: Text(n == 0 ? tr('All') : '$n'),
                   selected: state.limit == n,
                   onSelected: state.running
                       ? null
@@ -137,7 +141,9 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
               ChoiceChip(
                 avatar: const Icon(Icons.edit, size: 16),
                 label: Text(
-                  _presets.contains(state.limit) ? 'Other…' : '${state.limit}',
+                  _presets.contains(state.limit)
+                      ? tr('Other…')
+                      : '${state.limit}',
                 ),
                 selected: !_presets.contains(state.limit),
                 onSelected: state.running
@@ -151,8 +157,8 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Include pictures'),
-            subtitle: const Text('Uses more space'),
+            title: Text(tr('Include pictures')),
+            subtitle: Text(tr('Uses more space')),
             value: _images,
             onChanged: state.running
                 ? null
@@ -160,8 +166,8 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Keep it up to date'),
-            subtitle: const Text('Also save new articles after each refresh'),
+            title: Text(tr('Keep it up to date')),
+            subtitle: Text(tr('Also save new articles after each refresh')),
             value: state.autoUpdate,
             onChanged: notifier.setAutoUpdate,
           ),
@@ -173,22 +179,22 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
             const SizedBox(height: 8),
             Text(
               state.total == 0
-                  ? 'Refreshing feeds…'
-                  : 'Saving ${state.done} of ${state.total}…',
+                  ? tr('Refreshing feeds…')
+                  : tr('Saving {done} of {total}…', {
+                      'done': state.done,
+                      'total': state.total,
+                    }),
               style: const TextStyle(color: Colors.white70),
             ),
             const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: notifier.cancel,
-              child: const Text('Stop'),
-            ),
+            OutlinedButton(onPressed: notifier.cancel, child: Text(tr('Stop'))),
           ] else
             FilledButton.icon(
               onPressed: toSave == 0
                   ? null
                   : () => notifier.download(filter: _scope, images: _images),
               icon: const Icon(Icons.download_for_offline_outlined),
-              label: Text('Download $toSave articles'),
+              label: Text(tr('Download {toSave} articles', {'toSave': toSave})),
             ),
           if (state.message != null) ...[
             const SizedBox(height: 10),
@@ -202,9 +208,16 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
               Expanded(
                 child: Text(
                   [
-                    '${state.savedCount} articles saved · ${_size(state.bytes)}',
+                    tr('{count} articles saved · {size}', {
+                      'count': state.savedCount,
+                      'size': _size(state.bytes),
+                    }),
                     if (state.lastRun != null)
-                      'last ${DateFormat('d MMM, HH:mm').format(state.lastRun!)}',
+                      tr('last {date}', {
+                        'date': DateFormat(
+                          'd MMM, HH:mm',
+                        ).format(state.lastRun!),
+                      }),
                   ].join('\n'),
                   style: const TextStyle(color: Colors.white60, height: 1.4),
                 ),
@@ -213,7 +226,7 @@ class _OfflineSheetState extends ConsumerState<_OfflineSheet> {
                 onPressed: state.running || state.savedCount == 0
                     ? null
                     : notifier.clear,
-                child: const Text('Delete all'),
+                child: Text(tr('Delete all')),
               ),
             ],
           ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../movies_routes.dart';
@@ -43,7 +44,7 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
       type: widget.type,
       metaId: widget.metaId,
       videoId: widget.videoId,
-      name: meta?.name ?? source.filename ?? 'Video',
+      name: meta?.name ?? source.filename ?? tr('Video'),
       poster: meta?.preview.poster,
       background: meta?.preview.background,
       episodeLabel: episode == null
@@ -67,7 +68,7 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(meta?.name ?? 'Sources'),
+            Text(meta?.name ?? tr('Sources')),
             if (episode != null)
               Text(
                 '${episode.code} · ${episode.title}',
@@ -77,29 +78,29 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
         ),
       ),
       body: streams.when(
-        loading: () => const MessageView(
+        loading: () => MessageView(
           icon: Icons.travel_explore,
-          title: 'Looking for sources…',
+          title: tr('Looking for sources…'),
           action: SizedBox(width: 160, child: LinearProgressIndicator()),
         ),
         error: (e, _) => MessageView(
           icon: Icons.error_outline,
-          title: 'No sources',
+          title: tr('No sources'),
           message: '$e',
           action: FilledButton(
             onPressed: () => ref.invalidate(streamsProvider(_key)),
-            child: const Text('Retry'),
+            child: Text(tr('Retry')),
           ),
         ),
         data: (all) {
           if (all.isEmpty) {
             return MessageView(
               icon: Icons.search_off,
-              title: 'No sources found',
-              message: 'Your stream add-ons have nothing for this yet.',
+              title: tr('No sources found'),
+              message: tr('Your stream add-ons have nothing for this yet.'),
               action: OutlinedButton(
                 onPressed: () => context.push(MoviesRoutes.addons),
-                child: const Text('Manage add-ons'),
+                child: Text(tr('Manage add-ons')),
               ),
             );
           }
@@ -118,9 +119,10 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   children: [
-                    _chip('All (${all.length})', null),
+                    _chip(tr('All ({length})', {'length': all.length}), null),
                     for (final r in _order)
-                      if (counts[r] != null) _chip('$r (${counts[r]})', r),
+                      if (counts[r] != null)
+                        _chip('${tr(r)} (${counts[r]})', r),
                   ],
                 ),
               ),
@@ -214,7 +216,7 @@ class _StreamCard extends StatelessWidget {
                     Text(
                       [
                         ...stats,
-                        if (!source.isTorrent) 'Direct link',
+                        if (!source.isTorrent) tr('Direct link'),
                       ].join('   '),
                       style: TextStyle(
                         fontSize: 12,
@@ -227,7 +229,7 @@ class _StreamCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'More',
+                tooltip: tr('More'),
                 icon: const Icon(Icons.more_vert, size: 20),
                 onPressed: () => _showActions(context),
               ),
@@ -248,19 +250,19 @@ class _StreamCard extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.play_arrow),
-              title: const Text('Play'),
+              title: Text(tr('Play')),
               onTap: () => Navigator.pop(context, 'play'),
             ),
             if (source.url != null)
               ListTile(
                 leading: const Icon(Icons.open_in_new),
-                title: const Text('Open in another player'),
+                title: Text(tr('Open in another player')),
                 onTap: () => Navigator.pop(context, 'external'),
               ),
             if (source.isTorrent)
               ListTile(
                 leading: const Icon(Icons.link),
-                title: const Text('Copy magnet link'),
+                title: Text(tr('Copy magnet link')),
                 onTap: () => Navigator.pop(context, 'magnet'),
               ),
           ],
@@ -274,7 +276,7 @@ class _StreamCard extends StatelessWidget {
         final ok = await ExternalApps.openVideo(source.url!);
         if (!ok) {
           messenger.showSnackBar(
-            const SnackBar(content: Text('No video player app found.')),
+            SnackBar(content: Text(tr('No video player app found.'))),
           );
         }
       case 'magnet':
@@ -287,7 +289,7 @@ class _StreamCard extends StatelessWidget {
           ),
         );
         messenger.showSnackBar(
-          const SnackBar(content: Text('Magnet link copied')),
+          SnackBar(content: Text(tr('Magnet link copied'))),
         );
     }
   }

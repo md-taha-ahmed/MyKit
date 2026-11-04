@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
 import '../../manga_routes.dart';
@@ -92,7 +93,7 @@ class MangaGridCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      badge ?? 'In library',
+                      badge ?? tr('In library'),
                       style: const TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w600,
@@ -148,7 +149,7 @@ class MangaErrorView extends StatelessWidget {
                   : () => showDialog<void>(
                       context: context,
                       builder: (_) => AlertDialog(
-                        title: const Text('Details'),
+                        title: Text(tr('Details')),
                         content: SingleChildScrollView(
                           child: SelectableText(
                             details,
@@ -165,7 +166,7 @@ class MangaErrorView extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              FilledButton(onPressed: onRetry, child: const Text('Retry')),
+              FilledButton(onPressed: onRetry, child: Text(tr('Retry'))),
             ],
           ],
         ),
@@ -176,29 +177,29 @@ class MangaErrorView extends StatelessWidget {
 
 /// "en" → "English" for the common ones.
 String languageName(String code) =>
-    const {
-      'all': 'Multi',
-      'en': 'English',
-      'ar': 'Arabic',
-      'es': 'Spanish',
-      'es-419': 'Spanish (LatAm)',
-      'fr': 'French',
-      'de': 'German',
-      'it': 'Italian',
-      'id': 'Indonesian',
-      'ja': 'Japanese',
-      'ko': 'Korean',
-      'pt': 'Portuguese',
-      'pt-BR': 'Portuguese (BR)',
-      'ru': 'Russian',
-      'tr': 'Turkish',
-      'vi': 'Vietnamese',
-      'th': 'Thai',
-      'pl': 'Polish',
-      'uk': 'Ukrainian',
-      'zh': 'Chinese',
-      'zh-Hans': 'Chinese (Simplified)',
-      'zh-Hant': 'Chinese (Traditional)',
+    {
+      'all': tr('Multi'),
+      'en': tr('English'),
+      'ar': tr('Arabic'),
+      'es': tr('Spanish'),
+      'es-419': tr('Spanish (LatAm)'),
+      'fr': tr('French'),
+      'de': tr('German'),
+      'it': tr('Italian'),
+      'id': tr('Indonesian'),
+      'ja': tr('Japanese'),
+      'ko': tr('Korean'),
+      'pt': tr('Portuguese'),
+      tr('pt-BR'): tr('Portuguese (BR)'),
+      'ru': tr('Russian'),
+      'tr': tr('Turkish'),
+      'vi': tr('Vietnamese'),
+      'th': tr('Thai'),
+      'pl': tr('Polish'),
+      'uk': tr('Ukrainian'),
+      'zh': tr('Chinese'),
+      tr('zh-Hans'): tr('Chinese (Simplified)'),
+      tr('zh-Hant'): tr('Chinese (Traditional)'),
     }[code] ??
     code;
 

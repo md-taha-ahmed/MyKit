@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../i18n/i18n.dart';
+
 /// Single text field dialog. Returns the trimmed text, or null if cancelled.
 Future<String?> showTextInputDialog(
   BuildContext context, {
@@ -64,13 +66,13 @@ class _TextInputDialogState extends State<_TextInputDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(tr('Cancel')),
         ),
         ListenableBuilder(
           listenable: _controller,
           builder: (context, _) => FilledButton(
             onPressed: _controller.text.trim().isEmpty ? null : _submit,
-            child: Text(widget.confirmLabel),
+            child: Text(tr(widget.confirmLabel)),
           ),
         ),
       ],
@@ -93,11 +95,11 @@ Future<bool> showConfirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
+          child: Text(tr('Cancel')),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: Text(confirmLabel),
+          child: Text(tr(confirmLabel)),
         ),
       ],
     ),

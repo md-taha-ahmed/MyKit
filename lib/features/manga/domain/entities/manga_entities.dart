@@ -1,3 +1,5 @@
+import '../../../../core/i18n/i18n.dart';
+
 /// A Mihon-compatible extension repository the user added.
 class ExtensionRepo {
   const ExtensionRepo({
@@ -136,8 +138,9 @@ enum MangaStatus {
   cancelled('Cancelled'),
   onHiatus('On hiatus');
 
-  const MangaStatus(this.label);
-  final String label;
+  const MangaStatus(this._label);
+  final String _label;
+  String get label => tr(_label);
 
   static MangaStatus of(int? code) =>
       code != null && code >= 0 && code < values.length
@@ -327,7 +330,9 @@ enum MangaReadingMode {
   leftToRight('Left to right', 'Comics'),
   vertical('Vertical', 'Webtoon / long strip');
 
-  const MangaReadingMode(this.label, this.hint);
-  final String label;
-  final String hint;
+  const MangaReadingMode(this._label, this._hint);
+  final String _label;
+  String get label => tr(_label);
+  final String _hint;
+  String get hint => tr(_hint);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../providers/fitness_providers.dart';
 
@@ -45,7 +46,7 @@ class BodyDiagram extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          front ? 'Front' : 'Back',
+          front ? tr('Front') : tr('Back'),
           style: const TextStyle(fontSize: 12, color: Colors.white54),
         ),
       ],

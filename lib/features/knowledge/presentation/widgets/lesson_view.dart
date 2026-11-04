@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/ai/gemini_client.dart';
+import '../../../../core/ai/gemini_key_screen.dart';
 import '../../../../core/widgets/simple_markdown.dart';
 import '../../data/knowledge_catalog.dart';
 import '../../domain/knowledge_models.dart';
@@ -267,6 +269,16 @@ class _HelperBox extends ConsumerWidget {
                   '$error',
                   style: TextStyle(color: theme.colorScheme.error),
                 ),
+                if (!ref.watch(geminiClientProvider).isConfigured)
+                  FilledButton.tonalIcon(
+                    onPressed: () async {
+                      if (await openGeminiKeySetup(context)) {
+                        await notifier.explain(lesson);
+                      }
+                    },
+                    icon: const Icon(Icons.key),
+                    label: const Text('إعداد مفتاح Gemini'),
+                  ),
                 TextButton(
                   onPressed: () => notifier.explain(lesson),
                   child: const Text('حاول مرة أخرى'),

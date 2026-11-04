@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/app_directories.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../../../core/utils/natural_sort.dart';
@@ -114,7 +115,7 @@ class BooksLibraryNotifier extends Notifier<BooksLibrary> {
       shelves: state.shelves.where((s) => s.id != id).toList(),
       books: state.books.where((b) => b.shelfId != id).toList(),
     );
-    if (state.shelves.isEmpty) await addShelf('My books');
+    if (state.shelves.isEmpty) await addShelf(tr('My books'));
     await ref
         .read(bookmarksProvider.notifier)
         .removeForBooks(doomed.map((b) => b.id).toSet());
@@ -182,7 +183,7 @@ class BooksLibraryNotifier extends Notifier<BooksLibrary> {
     var title = name.replaceFirst(RegExp(r'\.pdf$', caseSensitive: false), '');
     title = title.replaceAll(RegExp(r'[_]+|(?<=\S)-(?=\S)'), ' ');
     title = title.replaceAll(RegExp(r'\s+'), ' ').trim();
-    return title.isEmpty ? 'Untitled' : title;
+    return title.isEmpty ? tr('Untitled') : title;
   }
 }
 
@@ -330,7 +331,7 @@ final continueReadingProvider = Provider<List<Book>>((ref) {
 final bookDocumentProvider = FutureProvider.autoDispose
     .family<PdfDocument, String>((ref, bookId) async {
       final book = ref.read(booksLibraryProvider).bookById(bookId);
-      if (book == null) throw StateError('Book not found');
+      if (book == null) throw StateError(tr('Book not found'));
       final path = ref
           .read(booksRepositoryProvider)
           .absolutePath(book.fileName);

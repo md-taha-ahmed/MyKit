@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../../fitness_routes.dart';
 import '../providers/fitness_providers.dart';
@@ -35,13 +36,13 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
     final q = _query.toLowerCase();
 
     final body = library.when(
-      loading: () => const Center(
+      loading: () => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 12),
-            Text('Downloading the exercise library…'),
+            Text(tr('Downloading the exercise library…')),
           ],
         ),
       ),
@@ -55,7 +56,7 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () => ref.invalidate(exerciseLibraryProvider),
-                child: const Text('Retry'),
+                child: Text(tr('Retry')),
               ),
             ],
           ),
@@ -104,13 +105,13 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
                 [
                   e.equipmentLabel,
                   e.primaryMuscles.map(Muscle.label).join(', '),
-                  if (e.custom) 'Mine',
+                  if (e.custom) tr('Mine'),
                 ].where((s) => s.isNotEmpty).join(' · '),
                 style: const TextStyle(color: Colors.white60),
               ),
               trailing: widget.picker
                   ? IconButton(
-                      tooltip: 'Details',
+                      tooltip: tr('Details'),
                       icon: const Icon(Icons.info_outline),
                       onPressed: () =>
                           context.push(FitnessRoutes.exercise(e.id)),
@@ -130,8 +131,8 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search exercises',
+            decoration: InputDecoration(
+              hintText: tr('Search exercises'),
               prefixIcon: Icon(Icons.search),
               isDense: true,
             ),
@@ -147,7 +148,7 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
               Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: FilterChip(
-                  label: const Text('Home equipment'),
+                  label: Text(tr('Home equipment')),
                   selected: _homeOnly,
                   selectedColor: fitnessAccent.withValues(alpha: 0.3),
                   onSelected: (v) => setState(() => _homeOnly = v),
@@ -187,18 +188,20 @@ class _ExerciseListScreenState extends ConsumerState<ExerciseListScreen> {
         }
       },
       icon: const Icon(Icons.add),
-      label: const Text('My exercise'),
+      label: Text(tr('My exercise')),
     );
 
     if (widget.embedded) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Exercises')),
+        appBar: AppBar(title: Text(tr('Exercises'))),
         body: content,
         floatingActionButton: addButton,
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(widget.picker ? 'Add exercise' : 'Exercises')),
+      appBar: AppBar(
+        title: Text(widget.picker ? tr('Add exercise') : tr('Exercises')),
+      ),
       body: content,
       floatingActionButton: addButton,
     );
@@ -233,28 +236,31 @@ Future<Exercise?> showAddExerciseSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'New exercise',
+              Text(
+                tr('New exercise'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: name,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: tr('Name')),
               ),
               const SizedBox(height: 12),
               SegmentedButton<String?>(
-                segments: const [
-                  ButtonSegment(value: 'body only', label: Text('Bodyweight')),
-                  ButtonSegment(value: 'dumbbell', label: Text('Dumbbell')),
-                  ButtonSegment(value: 'other', label: Text('Other')),
+                segments: [
+                  ButtonSegment(
+                    value: 'body only',
+                    label: Text(tr('Bodyweight')),
+                  ),
+                  ButtonSegment(value: 'dumbbell', label: Text(tr('Dumbbell'))),
+                  ButtonSegment(value: 'other', label: Text(tr('Other'))),
                 ],
                 selected: {equipment},
                 onSelectionChanged: (v) => setSheet(() => equipment = v.first),
               ),
               const SizedBox(height: 14),
-              const Text('Main muscles'),
+              Text(tr('Main muscles')),
               Wrap(
                 spacing: 6,
                 children: [
@@ -271,7 +277,7 @@ Future<Exercise?> showAddExerciseSheet(
                 ],
               ),
               const SizedBox(height: 10),
-              const Text('Also works (optional)'),
+              Text(tr('Also works (optional)')),
               Wrap(
                 spacing: 6,
                 children: [
@@ -292,8 +298,8 @@ Future<Exercise?> showAddExerciseSheet(
                 controller: steps,
                 minLines: 2,
                 maxLines: 6,
-                decoration: const InputDecoration(
-                  labelText: 'How to do it (one step per line, optional)',
+                decoration: InputDecoration(
+                  labelText: tr('How to do it (one step per line, optional)'),
                 ),
               ),
               const SizedBox(height: 14),
@@ -319,7 +325,7 @@ Future<Exercise?> showAddExerciseSheet(
                       );
                   if (context.mounted) Navigator.pop(context, e);
                 },
-                child: const Text('Create'),
+                child: Text(tr('Create')),
               ),
             ],
           ),

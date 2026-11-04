@@ -1,3 +1,5 @@
+import '../../../../core/i18n/i18n.dart';
+
 /// A PDF stored in the app's library.
 class Book {
   const Book({
@@ -94,9 +96,11 @@ enum ReaderScrollMode {
   vertical('Vertical', 'Continuous scroll'),
   horizontal('Horizontal', 'Swipe page by page');
 
-  const ReaderScrollMode(this.label, this.description);
-  final String label;
-  final String description;
+  const ReaderScrollMode(this._label, this._description);
+  final String _label;
+  String get label => tr(_label);
+  final String _description;
+  String get description => tr(_description);
 }
 
 enum ReaderColorMode {
@@ -104,8 +108,9 @@ enum ReaderColorMode {
   dark('Dark'),
   sepia('Sepia');
 
-  const ReaderColorMode(this.label);
-  final String label;
+  const ReaderColorMode(this._label);
+  final String _label;
+  String get label => tr(_label);
 }
 
 enum BookSort {
@@ -113,8 +118,9 @@ enum BookSort {
   recentlyRead('Recently read'),
   recentlyAdded('Recently added');
 
-  const BookSort(this.label);
-  final String label;
+  const BookSort(this._label);
+  final String _label;
+  String get label => tr(_label);
 }
 
 class ReaderSettings {

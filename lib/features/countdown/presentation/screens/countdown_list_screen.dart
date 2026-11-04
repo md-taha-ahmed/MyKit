@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../countdown_routes.dart';
 import '../../domain/entities/countdown.dart';
 import '../../domain/services/countdown_calculator.dart';
@@ -21,7 +22,7 @@ class CountdownListScreen extends ConsumerWidget {
       );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Countdowns')),
+      appBar: AppBar(title: Text(tr('Countdowns'))),
       body: countdowns.isEmpty
           ? const _EmptyState()
           : GridView.builder(
@@ -74,7 +75,7 @@ class _CountdownTile extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                title.isEmpty ? 'Untitled' : title,
+                title.isEmpty ? tr('Untitled') : title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -104,13 +105,14 @@ class _EmptyState extends StatelessWidget {
             const Icon(Icons.timelapse, size: 72, color: Colors.white24),
             const SizedBox(height: 16),
             Text(
-              'No countdowns yet',
+              tr('No countdowns yet'),
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Tap + to create one, then add it to your home screen '
-              'as a widget.',
+            Text(
+              tr(
+                'Tap + to create one, then add it to your home screen as a widget.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white60),
             ),

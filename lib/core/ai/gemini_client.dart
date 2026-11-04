@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../i18n/i18n.dart';
 import '../storage/shared_preferences_provider.dart';
 
 class AiException implements Exception {
@@ -97,9 +98,7 @@ class GeminiClient {
             )
             .timeout(_timeout);
       } catch (_) {
-        throw const AiException(
-          'Could not reach Gemini. Check your connection.',
-        );
+        throw AiException(tr('Could not reach Gemini. Check your connection.'));
       }
       final json = _decode(res.body);
       if (res.statusCode != 200) throw _HttpFailure(res.statusCode, json);
@@ -131,9 +130,7 @@ class GeminiClient {
       try {
         res = await _client.send(request).timeout(_timeout);
       } catch (_) {
-        throw const AiException(
-          'Could not reach Gemini. Check your connection.',
-        );
+        throw AiException(tr('Could not reach Gemini. Check your connection.'));
       }
       if (res.statusCode != 200) {
         final body = await res.stream.bytesToString();
@@ -153,7 +150,7 @@ class GeminiClient {
       } on AiException {
         rethrow;
       } catch (_) {
-        throw const AiException('The connection dropped. Try again.');
+        throw AiException(tr('The connection dropped. Try again.'));
       }
       return out.finish();
     }).then(
@@ -172,7 +169,7 @@ class GeminiClient {
   String _key() {
     final key = _apiKey;
     if (key == null || key.isEmpty) {
-      throw const AiException('Add a Gemini API key first.');
+      throw AiException(tr('Add a Gemini API key first.'));
     }
     return key;
   }
@@ -215,13 +212,18 @@ class GeminiClient {
                     : 'Gemini refused the request: $message',
               );
             default:
-              throw AiException('Gemini error ${f.status}: $message');
+              throw AiException(
+                tr('Gemini error {status}: {message}', {
+                  'status': f.status,
+                  'message': message,
+                }),
+              );
           }
           break;
         }
       }
     }
-    throw last ?? const AiException('Gemini is unavailable.');
+    throw last ?? AiException(tr('Gemini is unavailable.'));
   }
 
   static Uri _uri(String model, String method, {bool sse = false}) => Uri.parse(
@@ -319,7 +321,11 @@ class _Accumulator {
   AiReply finish() {
     if (text.isNotEmpty) return current;
     if (_blockReason != null) {
-      throw AiException('Gemini declined this ($_blockReason).');
+      throw AiException(
+        tr('Gemini declined this ({_blockReason}).', {
+          '_blockReason': _blockReason,
+        }),
+      );
     }
     throw AiException(
       _finishReason != null ? 'No answer ($_finishReason).' : 'No answer.',

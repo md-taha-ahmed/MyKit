@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../manga_routes.dart';
 import '../providers/manga_providers.dart';
@@ -29,7 +30,7 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
     if (cached == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('Not found.')),
+        body: Center(child: Text(tr('Not found.'))),
       );
     }
     final details = ref.watch(mangaDetailsProvider(widget.mangaKey));
@@ -48,7 +49,7 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
       appBar: AppBar(
         actions: [
           IconButton(
-            tooltip: 'Open in browser',
+            tooltip: tr('Open in browser'),
             icon: const Icon(Icons.public),
             onPressed: () async {
               final url = await ref.read(mangaRepositoryProvider).webUrl(manga);
@@ -134,7 +135,7 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
                           color: inLibrary ? mangaAccent : null,
                         ),
                         label: Text(
-                          inLibrary ? 'In library' : 'Add to library',
+                          inLibrary ? tr('In library') : tr('Add to library'),
                         ),
                       ),
                     ),
@@ -149,7 +150,9 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
                             : null,
                         icon: const Icon(Icons.play_arrow),
                         label: Text(
-                          entry?.lastChapterUrl != null ? 'Resume' : 'Start',
+                          entry?.lastChapterUrl != null
+                              ? tr('Resume')
+                              : tr('Start'),
                         ),
                       ),
                     ),
@@ -225,8 +228,8 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
                           const Spacer(),
                           IconButton(
                             tooltip: _newestFirst
-                                ? 'Newest first'
-                                : 'Oldest first',
+                                ? tr('Newest first')
+                                : tr('Oldest first'),
                             icon: Icon(
                               _newestFirst
                                   ? Icons.arrow_downward
@@ -270,7 +273,9 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
                               ),
                             if (c.scanlator?.isNotEmpty ?? false) c.scanlator!,
                             if (isCurrent && !isRead)
-                              'Page ${(entry?.lastPage ?? 0) + 1}',
+                              tr('Page {page}', {
+                                'page': (entry?.lastPage ?? 0) + 1,
+                              }),
                           ].join(' · '),
                           style: const TextStyle(
                             fontSize: 12.5,

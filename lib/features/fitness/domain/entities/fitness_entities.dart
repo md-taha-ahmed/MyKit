@@ -1,6 +1,8 @@
 /// Models for the Fitness tool (home workouts: dumbbells + calisthenics).
 library;
 
+import '../../../../core/i18n/i18n.dart';
+
 /// Muscle groups as named by the exercise database.
 abstract final class Muscle {
   static const abdominals = 'abdominals';
@@ -41,13 +43,13 @@ abstract final class Muscle {
     neck,
   ];
 
-  static String label(String m) => switch (m) {
+  static String label(String m) => tr(switch (m) {
     abdominals => 'Abs',
     lowerBack => 'Lower back',
     middleBack => 'Upper back',
     quadriceps => 'Quads',
     _ => m[0].toUpperCase() + m.substring(1),
-  };
+  });
 }
 
 /// One exercise from the library (public-domain free-exercise-db) or
@@ -92,11 +94,11 @@ class Exercise {
 
   bool get usesWeight => equipment == 'dumbbell' || equipment == 'kettlebells';
 
-  String get equipmentLabel => switch (equipment) {
+  String get equipmentLabel => tr(switch (equipment) {
     null || 'body only' => 'Bodyweight',
     'kettlebells' => 'Dumbbell / kettlebell',
     final e => e[0].toUpperCase() + e.substring(1),
-  };
+  });
 
   factory Exercise.fromJson(Map<String, dynamic> j) => Exercise(
     id: j['id'] as String,

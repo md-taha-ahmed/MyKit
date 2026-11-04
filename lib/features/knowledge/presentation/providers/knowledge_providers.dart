@@ -323,7 +323,7 @@ class LessonExplanationNotifier extends AsyncNotifier<String?> {
     state = await AsyncValue.guard(() async {
       final gemini = ref.read(geminiClientProvider);
       if (!gemini.isConfigured) {
-        throw const AiException('أضف مفتاح Gemini من إعدادات القارئ أولاً.');
+        throw const AiException('أضف مفتاح Gemini أولاً (دقيقتان، مجاناً).');
       }
       final modern = lesson.trackId == KnowledgeCatalog.modernWorld.id;
       final text = await gemini.generate(

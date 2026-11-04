@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../data/services/vault_crypto.dart';
 import '../providers/vault_providers.dart';
 import '../widgets/vault_widgets.dart';
@@ -46,13 +47,17 @@ class VaultSettingsScreen extends ConsumerWidget {
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.check_circle_outline, size: 36),
           title: Text(
-            'Imported $added ${added == 1 ? 'password' : 'passwords'}',
+            added == 1
+                ? tr('Imported 1 password')
+                : tr('Imported {n} passwords', {'n': added}),
           ),
           content: Text(
             [
-              if (skipped > 0) '$skipped were already in the vault.',
-              'The CSV file is not encrypted: delete it from your phone '
-                  '(and from Downloads / Drive) now that it\'s imported.',
+              if (skipped > 0)
+                tr('{n} were already in the vault.', {'n': skipped}),
+              tr(
+                'The CSV file is not encrypted: delete it from your phone (and from Downloads / Drive) now that it\'s imported.',
+              ),
             ].join('\n\n'),
           ),
           actions: [
@@ -66,7 +71,9 @@ class VaultSettingsScreen extends ConsumerWidget {
     } on FormatException catch (e) {
       if (context.mounted) _snack(context, e.message);
     } catch (e) {
-      if (context.mounted) _snack(context, 'Could not import: $e');
+      if (context.mounted) {
+        _snack(context, tr('Could not import: {e}', {'e': e}));
+      }
     } finally {
       // The picker's cached copy holds every password in plain text.
       await FilePicker.clearTemporaryFiles();
@@ -78,20 +85,20 @@ class VaultSettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.warning_amber, size: 36, color: Colors.orange),
-        title: const Text('Export unencrypted?'),
-        content: const Text(
-          'The CSV file will contain all your passwords in plain text. '
-          'Anyone or any app that can read the file can read them. Use it '
-          'only to move to another password manager, then delete it.',
+        title: Text(tr('Export unencrypted?')),
+        content: Text(
+          tr(
+            'The CSV file will contain all your passwords in plain text. Anyone or any app that can read the file can read them. Use it only to move to another password manager, then delete it.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Export'),
+            child: Text(tr('Export')),
           ),
         ],
       ),
@@ -107,7 +114,10 @@ class VaultSettingsScreen extends ConsumerWidget {
       ),
     );
     if (saved != null && context.mounted) {
-      _snack(context, 'Exported. Delete the file when you\'re done with it.');
+      _snack(
+        context,
+        tr('Exported. Delete the file when you\'re done with it.'),
+      );
     }
   }
 
@@ -117,20 +127,19 @@ class VaultSettingsScreen extends ConsumerWidget {
       builder: (_) => const _ChangeMasterDialog(),
     );
     if (changed == true && context.mounted) {
-      _snack(context, 'Master password changed.');
+      _snack(context, tr('Master password changed.'));
     }
   }
 
   Future<void> _deleteVault(BuildContext context, WidgetRef ref) async {
     final password = await showDialog<String>(
       context: context,
-      builder: (_) => const _PasswordPrompt(
-        title: 'Delete the vault?',
-        message:
-            'Every saved password is erased from this phone. Your Drive '
-            'backups keep their copies until they are replaced. Enter your '
-            'master password to confirm.',
-        action: 'Delete everything',
+      builder: (_) => _PasswordPrompt(
+        title: tr('Delete the vault?'),
+        message: tr(
+          'Every saved password is erased from this phone. Your Drive backups keep their copies until they are replaced. Enter your master password to confirm.',
+        ),
+        action: tr('Delete everything'),
       ),
     );
     if (password == null) return;
@@ -147,18 +156,19 @@ class VaultSettingsScreen extends ConsumerWidget {
     final notifier = ref.read(vaultProvider.notifier);
     return VaultGuard(
       child: Scaffold(
-        appBar: AppBar(title: const Text('Password settings')),
+        appBar: AppBar(title: Text(tr('Password settings'))),
         body: ListView(
           children: [
-            const _Header('Unlocking'),
+            _Header(tr('Unlocking')),
             SwitchListTile(
               secondary: const Icon(Icons.fingerprint),
-              title: const Text('Unlock with fingerprint'),
+              title: Text(tr('Unlock with fingerprint')),
               subtitle: Text(
                 vault.biometricAvailable
-                    ? 'If your fingerprints change, or on a new phone, '
-                          'you\'ll need the master password.'
-                    : 'No fingerprint is set up on this phone.',
+                    ? tr(
+                        'If your fingerprints change, or on a new phone, you\'ll need the master password.',
+                      )
+                    : tr('No fingerprint is set up on this phone.'),
               ),
               value: vault.biometricEnabled,
               onChanged: !vault.biometricAvailable
@@ -173,58 +183,62 @@ class VaultSettingsScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.timer_outlined),
-              title: const Text('Lock after leaving MyKit for'),
+              title: Text(tr('Lock after leaving MyKit for')),
               trailing: DropdownButton<Duration>(
                 value: vault.autoLock,
                 underline: const SizedBox.shrink(),
                 items: [
                   for (final (d, label) in _autoLockChoices)
-                    DropdownMenuItem(value: d, child: Text(label)),
+                    DropdownMenuItem(value: d, child: Text(tr(label))),
                 ],
                 onChanged: (d) => d == null ? null : notifier.setAutoLock(d),
               ),
             ),
             ListTile(
               leading: const Icon(Icons.password),
-              title: const Text('Change master password'),
+              title: Text(tr('Change master password')),
               onTap: () => _changeMaster(context, ref),
             ),
-            const _Header('Autofill'),
+            _Header(tr('Autofill')),
             const _AutofillTile(),
             ListTile(
               leading: const Icon(Icons.link_off),
-              title: const Text('Forget app links'),
-              subtitle: const Text(
-                'Logins picked for apps are suggested there next time',
+              title: Text(tr('Forget app links')),
+              subtitle: Text(
+                tr('Logins picked for apps are suggested there next time'),
               ),
               onTap: () async {
                 await ref.read(vaultNativeProvider).clearAutofillLinks();
-                if (context.mounted) _snack(context, 'App links forgotten.');
+                if (context.mounted) {
+                  _snack(context, tr('App links forgotten.'));
+                }
               },
             ),
-            const _Header('Import & export'),
+            _Header(tr('Import & export')),
             ListTile(
               leading: const Icon(Icons.upload_file),
-              title: const Text('Import from CSV'),
-              subtitle: const Text(
-                'From Chrome / Google Password Manager, Bitwarden, Firefox, '
-                'KeePass…',
+              title: Text(tr('Import from CSV')),
+              subtitle: Text(
+                tr(
+                  'From Chrome / Google Password Manager, Bitwarden, Firefox, KeePass…',
+                ),
               ),
               onTap: () => _import(context, ref),
             ),
             ListTile(
               leading: const Icon(Icons.download),
-              title: const Text('Export to CSV'),
-              subtitle: const Text('Unencrypted; for moving elsewhere'),
+              title: Text(tr('Export to CSV')),
+              subtitle: Text(tr('Unencrypted; for moving elsewhere')),
               onTap: () => _export(context, ref),
             ),
-            const _Header('Backup'),
-            const ListTile(
+            _Header(tr('Backup')),
+            ListTile(
               leading: Icon(Icons.cloud_done_outlined),
-              title: Text('Included in your Google Drive backup'),
+              title: Text(tr('Included in your Google Drive backup')),
               subtitle: Text(
-                'Only in encrypted form. Restoring on a new phone needs '
-                'your master password.',
+                tr(
+                  'Only in encrypted form. Restoring on a new phone needs your master password.',
+                ),
               ),
             ),
             const Divider(height: 24),
@@ -233,8 +247,8 @@ class VaultSettingsScreen extends ConsumerWidget {
                 Icons.delete_forever_outlined,
                 color: Colors.redAccent,
               ),
-              title: const Text(
-                'Delete vault',
+              title: Text(
+                tr('Delete vault'),
                 style: TextStyle(color: Colors.redAccent),
               ),
               onTap: () => _deleteVault(context, ref),
@@ -304,14 +318,14 @@ class _PasswordPromptState extends State<_PasswordPrompt> {
           controller: _controller,
           obscureText: true,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Master password'),
+          decoration: InputDecoration(labelText: tr('Master password')),
         ),
       ],
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: Text(tr('Cancel')),
       ),
       FilledButton(
         style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -347,11 +361,11 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
 
   Future<void> _submit() async {
     if (_next.text.length < 8) {
-      setState(() => _error = 'Use at least 8 characters.');
+      setState(() => _error = tr('Use at least 8 characters.'));
       return;
     }
     if (_next.text != _confirm.text) {
-      setState(() => _error = 'The new passwords don\'t match.');
+      setState(() => _error = tr('The new passwords don\'t match.'));
       return;
     }
     setState(() {
@@ -367,8 +381,8 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = e.message == 'Wrong master password.'
-              ? 'The current password is wrong.'
+          _error = e.message == tr('Wrong master password.')
+              ? tr('The current password is wrong.')
               : e.message;
         });
       }
@@ -377,7 +391,7 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Change master password'),
+    title: Text(tr('Change master password')),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -385,21 +399,21 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
           TextField(
             controller: _current,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Current password'),
+            decoration: InputDecoration(labelText: tr('Current password')),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _next,
             obscureText: true,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(labelText: 'New password'),
+            decoration: InputDecoration(labelText: tr('New password')),
           ),
           StrengthMeter(_next.text),
           const SizedBox(height: 10),
           TextField(
             controller: _confirm,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'New password again'),
+            decoration: InputDecoration(labelText: tr('New password again')),
           ),
           if (_error != null)
             Padding(
@@ -415,7 +429,7 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
     actions: [
       TextButton(
         onPressed: _busy ? null : () => Navigator.pop(context),
-        child: const Text('Cancel'),
+        child: Text(tr('Cancel')),
       ),
       FilledButton(
         onPressed: _busy ? null : _submit,
@@ -424,7 +438,7 @@ class _ChangeMasterDialogState extends ConsumerState<_ChangeMasterDialog> {
                 dimension: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Text('Change'),
+            : Text(tr('Change')),
       ),
     ],
   );
@@ -472,21 +486,22 @@ class _AutofillTileState extends ConsumerState<_AutofillTile> {
             color: on ? const Color(0xFF34C759) : null,
           ),
           title: Text(
-            on ? 'Autofill is on' : 'Fill passwords in apps & Chrome',
+            on ? tr('Autofill is on') : tr('Fill passwords in apps & Chrome'),
           ),
           subtitle: Text(
             !vault.biometricEnabled
-                ? 'Turn on fingerprint unlock first: autofill opens the '
-                      'vault with your fingerprint.'
+                ? tr(
+                    'Turn on fingerprint unlock first: autofill opens the vault with your fingerprint.',
+                  )
                 : on
-                ? 'Tap a login field, then "Unlock MyKit to fill".'
-                : 'Choose MyKit as your phone\'s autofill service.',
+                ? tr('Tap a login field, then "Unlock MyKit to fill".')
+                : tr('Choose MyKit as your phone\'s autofill service.'),
           ),
           trailing: on
               ? TextButton(
                   onPressed: () =>
                       ref.read(vaultNativeProvider).openAutofillSettings(),
-                  child: const Text('Change'),
+                  child: Text(tr('Change')),
                 )
               : FilledButton(
                   onPressed: () async {
@@ -495,25 +510,27 @@ class _AutofillTileState extends ConsumerState<_AutofillTile> {
                         .openAutofillSettings();
                     if (!opened && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
-                            'Open Settings → Passwords & accounts → '
-                            'Autofill service, and pick MyKit.',
+                            tr(
+                              'Open Settings → Passwords & accounts → Autofill service, and pick MyKit.',
+                            ),
                           ),
                         ),
                       );
                     }
                   },
-                  child: const Text('Turn on'),
+                  child: Text(tr('Turn on')),
                 ),
         ),
         if (on)
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.public),
-            title: Text('Chrome'),
+            title: Text(tr('Chrome')),
             subtitle: Text(
-              'In Chrome: Settings → Autofill services → "Autofill using '
-              'another service", then restart Chrome.',
+              tr(
+                'In Chrome: Settings → Autofill services → "Autofill using another service", then restart Chrome.',
+              ),
             ),
           ),
       ],

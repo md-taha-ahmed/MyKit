@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/services/countdown_calculator.dart';
 import '../screens/calendar_event_picker_screen.dart';
 
@@ -24,21 +25,21 @@ Future<DateSelection?> selectCountdownDate(
   final source = await showDialog<_DateSource>(
     context: context,
     builder: (context) => SimpleDialog(
-      title: const Text('Select a date'),
+      title: Text(tr('Select a date')),
       children: [
         _SourceOption(
           icon: Icons.event,
-          label: 'Specific date',
+          label: tr('Specific date'),
           value: _DateSource.specific,
         ),
         _SourceOption(
           icon: Icons.more_time,
-          label: 'Number of days from today',
+          label: tr('Number of days from today'),
           value: _DateSource.daysFromToday,
         ),
         _SourceOption(
           icon: Icons.calendar_month,
-          label: 'Event from your calendar',
+          label: tr('Event from your calendar'),
           value: _DateSource.calendarEvent,
         ),
       ],
@@ -108,8 +109,9 @@ enum _Span {
   weeks('Weeks'),
   months('Months');
 
-  const _Span(this.label);
-  final String label;
+  const _Span(this._label);
+  final String _label;
+  String get label => tr(_label);
 }
 
 class _DaysFromTodayDialog extends StatefulWidget {
@@ -179,7 +181,7 @@ class _DaysFromTodayDialogState extends State<_DaysFromTodayDialog> {
         : CountdownCalculator.daysBetween(_today, result);
 
     return AlertDialog(
-      title: const Text('Days from today'),
+      title: Text(tr('Days from today')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -191,7 +193,9 @@ class _DaysFromTodayDialogState extends State<_DaysFromTodayDialog> {
               keyboardType: TextInputType.number,
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
               decoration: InputDecoration(
-                errorText: result == null ? 'Enter 0 – $_max' : null,
+                errorText: result == null
+                    ? tr('Enter 0 – {_max}', {'_max': _max})
+                    : null,
               ),
               onChanged: (_) => setState(() {}),
               onSubmitted: (_) {
@@ -215,7 +219,7 @@ class _DaysFromTodayDialogState extends State<_DaysFromTodayDialog> {
               children: [
                 for (final (amount, span, label) in _presets)
                   ActionChip(
-                    label: Text(label),
+                    label: Text(tr(label)),
                     onPressed: () => _applyPreset(amount, span),
                   ),
               ],
@@ -235,7 +239,7 @@ class _DaysFromTodayDialogState extends State<_DaysFromTodayDialog> {
                     ),
                     if (_span != _Span.days)
                       TextSpan(
-                        text: '\n$days days from today',
+                        text: tr('\n{days} days from today', {'days': days}),
                         style: const TextStyle(color: Colors.white60),
                       ),
                   ],
@@ -247,7 +251,7 @@ class _DaysFromTodayDialogState extends State<_DaysFromTodayDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(tr('Cancel')),
         ),
         FilledButton(
           onPressed: result == null

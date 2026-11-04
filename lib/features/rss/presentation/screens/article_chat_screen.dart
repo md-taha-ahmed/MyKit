@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/ai/gemini_client.dart';
 import '../../../../core/utils/text_direction.dart';
 import '../../../../core/widgets/simple_markdown.dart';
@@ -93,7 +94,7 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Ask about this article'),
+            Text(tr('Ask about this article')),
             if (article != null)
               Text(
                 article.title,
@@ -107,7 +108,7 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
         actions: [
           if (chat.turns.isNotEmpty)
             IconButton(
-              tooltip: 'New conversation',
+              tooltip: tr('New conversation'),
               icon: const Icon(Icons.refresh),
               onPressed: () => ref
                   .read(articleChatProvider(widget.articleId).notifier)
@@ -115,8 +116,8 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
             ),
           PopupMenuButton<String>(
             onSelected: (_) => showGeminiKeyDialog(context, ref),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'key', child: Text('Gemini API key…')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'key', child: Text(tr('Gemini API key…'))),
             ],
           ),
         ],
@@ -137,9 +138,10 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
                   const SizedBox(height: 20),
                   const Icon(Icons.auto_awesome, color: aiAccent, size: 32),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Ask anything — about the article, the people in it, or '
-                    'the background you need to understand it.',
+                  Text(
+                    tr(
+                      'Ask anything — about the article, the people in it, or the background you need to understand it.',
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white70),
                   ),
@@ -166,8 +168,8 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
                 if (chat.preparing || chat.thinking)
                   _Status(
                     chat.preparing
-                        ? 'Reading the article and looking up background…'
-                        : 'Thinking…',
+                        ? tr('Reading the article and looking up background…')
+                        : tr('Thinking…'),
                   ),
                 if (chat.error != null)
                   Padding(
@@ -192,7 +194,7 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
                                 .retryLast();
                             if (q != null) _send(q);
                           },
-                          child: const Text('Retry'),
+                          child: Text(tr('Retry')),
                         ),
                       ],
                     ),
@@ -221,7 +223,9 @@ class _ArticleChatScreenState extends ConsumerState<ArticleChatScreen> {
                         }
                       },
                       decoration: InputDecoration(
-                        hintText: arabic ? 'اسأل سؤالاً…' : 'Ask a question…',
+                        hintText: arabic
+                            ? 'اسأل سؤالاً…'
+                            : tr('Ask a question…'),
                         isDense: true,
                       ),
                     ),
@@ -271,25 +275,27 @@ class _BriefingCard extends StatelessWidget {
                 ),
           title: Text(
             briefing.isLoading
-                ? 'Preparing background…'
+                ? tr('Preparing background…')
                 : ready
-                ? 'Background ready'
-                : 'Using the article only',
+                ? tr('Background ready')
+                : tr('Using the article only'),
             style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
           ),
           subtitle: Text(
             briefing.isLoading
-                ? 'Reading the article and searching for context'
+                ? tr('Reading the article and searching for context')
                 : ready && b.sources.isNotEmpty
-                ? 'Researched on the web · tap to read'
+                ? tr('Researched on the web · tap to read')
                 : ready
-                ? 'From Gemini\'s own knowledge · tap to read'
-                : 'Couldn\'t prepare it: ${b?.error ?? 'unknown error'}',
+                ? tr('From Gemini\'s own knowledge · tap to read')
+                : tr('Couldn\'t prepare it: {error}', {
+                    'error': b?.error ?? tr('unknown error'),
+                  }),
             style: const TextStyle(fontSize: 12.5, color: Colors.white54),
           ),
           trailing: briefing.isLoading || ready
               ? null
-              : TextButton(onPressed: onRetry, child: const Text('Retry')),
+              : TextButton(onPressed: onRetry, child: Text(tr('Retry'))),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
           children: [
             if (ready) ...[SimpleMarkdown(b.background), _Sources(b.sources)],

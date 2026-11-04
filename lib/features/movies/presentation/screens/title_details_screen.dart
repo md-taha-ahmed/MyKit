@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../movies_routes.dart';
 import '../providers/movies_providers.dart';
@@ -32,13 +33,13 @@ class _TitleDetailsScreenState extends ConsumerState<TitleDetailsScreen> {
           appBar: AppBar(),
           body: MessageView(
             icon: Icons.error_outline,
-            title: 'Could not load this title',
+            title: tr('Could not load this title'),
             message: '$e',
             action: FilledButton(
               onPressed: () => ref.invalidate(
                 metaProvider((type: widget.type, id: widget.id)),
               ),
-              child: const Text('Retry'),
+              child: Text(tr('Retry')),
             ),
           ),
         ),
@@ -116,7 +117,9 @@ class _TitleDetailsScreenState extends ConsumerState<TitleDetailsScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: ChoiceChip(
-                        label: Text(s == 0 ? 'Specials' : 'Season $s'),
+                        label: Text(
+                          s == 0 ? tr('Specials') : tr('Season {s}', {'s': s}),
+                        ),
                         selected: s == season,
                         selectedColor: moviesAccent.withValues(alpha: 0.35),
                         onSelected: (_) => setState(() => _season = s),
@@ -208,8 +211,14 @@ class _TitleDetailsScreenState extends ConsumerState<TitleDetailsScreen> {
                 icon: const Icon(Icons.play_arrow),
                 label: Text(
                   resume
-                      ? 'Resume${lastWatched.episodeLabel != null ? ' ${lastWatched.episodeLabel!.split(' ·').first}' : ''}'
-                      : 'Watch',
+                      ? (lastWatched.episodeLabel != null
+                            ? tr('Resume {episode}', {
+                                'episode': lastWatched.episodeLabel!
+                                    .split(' ·')
+                                    .first,
+                              })
+                            : tr('Resume'))
+                      : tr('Watch'),
                 ),
                 onPressed: () => context.push(
                   MoviesRoutes.streams(
@@ -227,9 +236,9 @@ class _TitleDetailsScreenState extends ConsumerState<TitleDetailsScreen> {
           if (meta.director.isNotEmpty || meta.cast.isNotEmpty) ...[
             const SizedBox(height: 10),
             if (meta.director.isNotEmpty)
-              _Credit('Director', meta.director.join(', ')),
+              _Credit(tr('Director'), meta.director.join(', ')),
             if (meta.cast.isNotEmpty)
-              _Credit('Cast', meta.cast.take(6).join(', ')),
+              _Credit(tr('Cast'), meta.cast.take(6).join(', ')),
           ],
         ],
       ),
@@ -350,7 +359,7 @@ class _EpisodeTile extends ConsumerWidget {
                     ),
                     if (date != null)
                       Text(
-                        upcoming ? 'Airs $date' : date,
+                        upcoming ? tr('Airs {date}', {'date': date}) : date,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white54,

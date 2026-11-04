@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/music_organizer.dart';
 import '../providers/music_providers.dart';
 import '../widgets/music_widgets.dart';
@@ -28,17 +29,17 @@ class MusicFolderScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isAll ? 'All songs' : MusicOrganizer.folderName(path)),
+        title: Text(isAll ? tr('All songs') : MusicOrganizer.folderName(path)),
         actions: [
           IconButton(
-            tooltip: 'Sort',
+            tooltip: tr('Sort'),
             icon: const Icon(Icons.sort_by_alpha),
             onPressed: () => showMusicSortSheet(context),
           ),
         ],
       ),
       body: tracks.isEmpty
-          ? const Center(child: Text('No songs in this folder.'))
+          ? Center(child: Text(tr('No songs in this folder.')))
           : ListView.builder(
               padding: const EdgeInsets.only(bottom: 24),
               itemCount: tracks.length + 1,
@@ -47,7 +48,10 @@ class MusicFolderScreen extends ConsumerWidget {
                   return _Header(
                     subtitle: [
                       if (!isAll) MusicOrganizer.friendlyPath(path),
-                      '${tracks.length} songs · ${formatDuration(total)}',
+                      tr('{length} songs · {0}', {
+                        'length': tracks.length,
+                        '0': formatDuration(total),
+                      }),
                       settings.sort.label,
                     ].join('\n'),
                     onPlay: () => play(0),
@@ -97,7 +101,7 @@ class _Header extends StatelessWidget {
                   style: FilledButton.styleFrom(backgroundColor: musicAccent),
                   onPressed: onPlay,
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text('Play'),
+                  label: Text(tr('Play')),
                 ),
               ),
               const SizedBox(width: 12),
@@ -105,7 +109,7 @@ class _Header extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onShuffle,
                   icon: const Icon(Icons.shuffle),
-                  label: const Text('Shuffle'),
+                  label: Text(tr('Shuffle')),
                 ),
               ),
             ],

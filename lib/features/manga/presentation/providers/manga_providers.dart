@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/datasources/extension_repo_remote_data_source.dart';
 import '../../data/datasources/manga_local_data_source.dart';
@@ -223,7 +224,7 @@ final mangaDetailsProvider = FutureProvider.autoDispose.family<Manga, String>((
   key,
 ) async {
   final cached = ref.read(mangaCacheProvider)[key];
-  if (cached == null) throw const MangaException('Manga not found');
+  if (cached == null) throw MangaException(tr('Manga not found'));
   final fresh = cached.merge(
     await ref.read(mangaRepositoryProvider).details(cached),
   );
@@ -238,7 +239,7 @@ final chaptersProvider = FutureProvider.family<List<Chapter>, String>((
   key,
 ) async {
   final manga = ref.read(mangaCacheProvider)[key];
-  if (manga == null) throw const MangaException('Manga not found');
+  if (manga == null) throw MangaException(tr('Manga not found'));
   return ref.read(mangaRepositoryProvider).chapters(manga);
 });
 

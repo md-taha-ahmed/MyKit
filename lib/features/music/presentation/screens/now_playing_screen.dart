@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../providers/music_providers.dart';
 import '../widgets/music_widgets.dart';
 
@@ -15,7 +16,7 @@ class NowPlayingScreen extends ConsumerWidget {
     if (item == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('Nothing is playing.')),
+        body: Center(child: Text(tr('Nothing is playing.'))),
       );
     }
 
@@ -32,11 +33,11 @@ class NowPlayingScreen extends ConsumerWidget {
           icon: const Icon(Icons.keyboard_arrow_down, size: 32),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: const Text('Now playing', style: TextStyle(fontSize: 16)),
+        title: Text(tr('Now playing'), style: TextStyle(fontSize: 16)),
         centerTitle: true,
         actions: [
           IconButton(
-            tooltip: 'Queue',
+            tooltip: tr('Queue'),
             icon: const Icon(Icons.queue_music),
             onPressed: () => _showQueue(context),
           ),
@@ -68,7 +69,7 @@ class NowPlayingScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                [item.artist ?? 'Unknown artist', ?item.album].join(' · '),
+                [item.artist ?? tr('Unknown artist'), ?item.album].join(' · '),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -81,7 +82,7 @@ class NowPlayingScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    tooltip: 'Shuffle',
+                    tooltip: tr('Shuffle'),
                     onPressed: service.toggleShuffle,
                     icon: Icon(
                       Icons.shuffle,
@@ -110,9 +111,9 @@ class NowPlayingScreen extends ConsumerWidget {
                   ),
                   IconButton(
                     tooltip: switch (loop) {
-                      LoopMode.off => 'Repeat off',
-                      LoopMode.all => 'Repeat all',
-                      LoopMode.one => 'Repeat one',
+                      LoopMode.off => tr('Repeat off'),
+                      LoopMode.all => tr('Repeat all'),
+                      LoopMode.one => tr('Repeat one'),
                     },
                     onPressed: service.cycleRepeat,
                     icon: Icon(
@@ -152,7 +153,7 @@ class NowPlayingScreen extends ConsumerWidget {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                     child: Text(
-                      'Up next · ${queue.length} songs',
+                      tr('Up next · {length} songs', {'length': queue.length}),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   );
@@ -168,7 +169,7 @@ class NowPlayingScreen extends ConsumerWidget {
                     style: TextStyle(color: current ? musicAccent : null),
                   ),
                   subtitle: Text(
-                    item.artist ?? 'Unknown artist',
+                    item.artist ?? tr('Unknown artist'),
                     maxLines: 1,
                     style: const TextStyle(color: Colors.white54),
                   ),

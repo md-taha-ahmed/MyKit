@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../domain/repositories/movies_repository.dart';
 
@@ -105,14 +106,21 @@ class StremioAddonClient {
     try {
       res = await _client.get(uri).timeout(_timeout);
     } catch (e) {
-      throw MoviesException('Could not reach ${uri.host}.');
+      throw MoviesException(tr('Could not reach {host}.', {'host': uri.host}));
     }
     if (res.statusCode != 200) {
-      throw MoviesException('${uri.host} answered ${res.statusCode}.');
+      throw MoviesException(
+        tr('{host} answered {statusCode}.', {
+          'host': uri.host,
+          'statusCode': res.statusCode,
+        }),
+      );
     }
     final body = jsonDecode(utf8.decode(res.bodyBytes));
     if (body is! Map<String, dynamic>) {
-      throw MoviesException('${uri.host} sent an unexpected response.');
+      throw MoviesException(
+        tr('{host} sent an unexpected response.', {'host': uri.host}),
+      );
     }
     return body;
   }

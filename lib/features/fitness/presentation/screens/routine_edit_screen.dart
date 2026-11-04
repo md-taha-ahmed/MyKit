@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/fitness_entities.dart';
 import '../../fitness_routes.dart';
@@ -24,7 +25,7 @@ class RoutineEditScreen extends ConsumerWidget {
     if (routine == null) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: Text('This workout was deleted.')),
+        body: Center(child: Text(tr('This workout was deleted.'))),
       );
     }
     final library = ref.watch(exerciseLibraryProvider).value ?? const {};
@@ -36,12 +37,12 @@ class RoutineEditScreen extends ConsumerWidget {
         title: Text(routine.name),
         actions: [
           IconButton(
-            tooltip: 'Rename',
+            tooltip: tr('Rename'),
             icon: const Icon(Icons.edit_outlined),
             onPressed: () async {
               final name = await showTextInputDialog(
                 context,
-                title: 'Workout name',
+                title: tr('Workout name'),
                 initialValue: routine.name,
               );
               if (name != null && name.trim().isNotEmpty) {
@@ -50,13 +51,13 @@ class RoutineEditScreen extends ConsumerWidget {
             },
           ),
           IconButton(
-            tooltip: 'Delete workout',
+            tooltip: tr('Delete workout'),
             icon: const Icon(Icons.delete_outline),
             onPressed: () async {
               final ok = await showConfirmDialog(
                 context,
-                title: 'Delete ${routine.name}?',
-                message: 'Your workout history stays.',
+                title: tr('Delete {name}?', {'name': routine.name}),
+                message: tr('Your workout history stays.'),
               );
               if (ok && context.mounted) {
                 context.pop();
@@ -84,7 +85,7 @@ class RoutineEditScreen extends ConsumerWidget {
           }
         },
         icon: const Icon(Icons.add),
-        label: const Text('Exercise'),
+        label: Text(tr('Exercise')),
       ),
       body: Column(
         children: [
@@ -93,8 +94,8 @@ class RoutineEditScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Training days',
+                Text(
+                  tr('Training days'),
                   style: TextStyle(color: Colors.white60, fontSize: 13),
                 ),
                 const SizedBox(height: 6),
@@ -103,7 +104,7 @@ class RoutineEditScreen extends ConsumerWidget {
                   children: [
                     for (final d in weekOrder)
                       FilterChip(
-                        label: Text(weekdayShort[d]!),
+                        label: Text(tr(weekdayShort[d]!)),
                         selected: routine.weekdays.contains(d),
                         selectedColor: fitnessAccent.withValues(alpha: 0.35),
                         showCheckmark: false,
@@ -122,9 +123,9 @@ class RoutineEditScreen extends ConsumerWidget {
           ),
           Expanded(
             child: routine.items.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      'No exercises yet. Tap "Exercise" to add one.',
+                      tr('No exercises yet. Tap "Exercise" to add one.'),
                       style: TextStyle(color: Colors.white60),
                     ),
                   )
@@ -149,7 +150,10 @@ class RoutineEditScreen extends ConsumerWidget {
                           e?.name ?? item.exerciseId.replaceAll('_', ' '),
                         ),
                         subtitle: Text(
-                          '${item.target} · rest ${item.restSeconds}s',
+                          tr('{target} · rest {restSeconds}s', {
+                            'target': item.target,
+                            'restSeconds': item.restSeconds,
+                          }),
                           style: const TextStyle(color: Colors.white60),
                         ),
                         trailing: const Icon(Icons.drag_handle),
@@ -239,9 +243,9 @@ Future<PlanItem?> _editItem(
                   ),
                 const SizedBox(height: 8),
                 SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('Reps')),
-                    ButtonSegment(value: true, label: Text('Time')),
+                  segments: [
+                    ButtonSegment(value: false, label: Text(tr('Reps'))),
+                    ButtonSegment(value: true, label: Text(tr('Time'))),
                   ],
                   selected: {current.timed},
                   onSelectionChanged: (v) => setSheet(
@@ -252,13 +256,13 @@ Future<PlanItem?> _editItem(
                 ),
                 const SizedBox(height: 8),
                 stepper(
-                  'Sets',
+                  tr('Sets'),
                   current.sets,
                   (v) => current = current.copyWith(sets: v),
                 ),
                 if (current.timed)
                   stepper(
-                    'Seconds',
+                    tr('Seconds'),
                     current.seconds!,
                     (v) => current = current.copyWith(seconds: v),
                     step: 5,
@@ -267,7 +271,7 @@ Future<PlanItem?> _editItem(
                   )
                 else ...[
                   stepper(
-                    'Reps from',
+                    tr('Reps from'),
                     current.repsMin,
                     (v) => current = current.copyWith(
                       repsMin: v,
@@ -275,14 +279,14 @@ Future<PlanItem?> _editItem(
                     ),
                   ),
                   stepper(
-                    'Reps up to',
+                    tr('Reps up to'),
                     current.repsMax,
                     (v) => current = current.copyWith(repsMax: v),
                     min: current.repsMin,
                   ),
                 ],
                 stepper(
-                  'Rest',
+                  tr('Rest'),
                   current.restSeconds,
                   (v) => current = current.copyWith(restSeconds: v),
                   step: 15,
@@ -291,7 +295,7 @@ Future<PlanItem?> _editItem(
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Each side (per leg / arm)'),
+                  title: Text(tr('Each side (per leg / arm)')),
                   value: current.perSide,
                   onChanged: (v) =>
                       setSheet(() => current = current.copyWith(perSide: v)),
@@ -302,7 +306,7 @@ Future<PlanItem?> _editItem(
                     TextButton.icon(
                       onPressed: () => Navigator.pop(context, _remove),
                       icon: const Icon(Icons.delete_outline),
-                      label: const Text('Remove'),
+                      label: Text(tr('Remove')),
                     ),
                     const Spacer(),
                     FilledButton(
@@ -311,7 +315,7 @@ Future<PlanItem?> _editItem(
                         foregroundColor: Colors.black,
                       ),
                       onPressed: () => Navigator.pop(context, current),
-                      child: const Text('Save'),
+                      child: Text(tr('Save')),
                     ),
                   ],
                 ),

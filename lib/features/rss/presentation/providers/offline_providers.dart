@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/storage/app_directories.dart';
 import '../../../../core/storage/shared_preferences_provider.dart';
 import '../../data/datasources/offline_article_store.dart';
@@ -173,13 +174,20 @@ class OfflineDownloadNotifier extends Notifier<OfflineDownloadState> {
       state = state.copyWith(
         lastRun: now,
         message: () => _cancelled
-            ? 'Stopped. $saved articles saved.'
+            ? tr('Stopped. {saved} articles saved.', {'saved': saved})
             : failed == 0
-            ? 'Saved $saved articles for offline reading.'
-            : 'Saved $saved articles; $failed could not be downloaded.',
+            ? tr('Saved {saved} articles for offline reading.', {
+                'saved': saved,
+              })
+            : tr('Saved {saved} articles; {failed} could not be downloaded.', {
+                'saved': saved,
+                'failed': failed,
+              }),
       );
     } catch (e) {
-      state = state.copyWith(message: () => 'Download failed: $e');
+      state = state.copyWith(
+        message: () => tr('Download failed: {e}', {'e': e}),
+      );
     } finally {
       state = state.copyWith(running: false);
       await _refreshUsage();
@@ -233,7 +241,7 @@ class OfflineDownloadNotifier extends Notifier<OfflineDownloadState> {
   /// Deletes every saved copy.
   Future<void> clear() async {
     await _store.clear();
-    state = state.copyWith(message: () => 'Offline copies deleted.');
+    state = state.copyWith(message: () => tr('Offline copies deleted.'));
     await _refreshUsage();
   }
 

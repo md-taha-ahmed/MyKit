@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/widgets/dialogs.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
@@ -48,9 +49,9 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               selectedBackgroundColor: mangaAccent.withValues(alpha: .3),
             ),
-            segments: const [
-              ButtonSegment(value: MediaMode.manga, label: Text('Manga')),
-              ButtonSegment(value: MediaMode.anime, label: Text('Anime')),
+            segments: [
+              ButtonSegment(value: MediaMode.manga, label: Text(tr('Manga'))),
+              ButtonSegment(value: MediaMode.anime, label: Text(tr('Anime'))),
             ],
             selected: {mode},
             onSelectionChanged: (v) =>
@@ -60,13 +61,13 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
         actions: [
           if (_tab != 0)
             IconButton(
-              tooltip: 'Filters',
+              tooltip: tr('Filters'),
               icon: const Icon(Icons.translate),
               onPressed: () => _showFilters(context),
             ),
           if (_tab == 2)
             IconButton(
-              tooltip: 'Repositories',
+              tooltip: tr('Repositories'),
               icon: const Icon(Icons.dns_outlined),
               onPressed: () => _showRepos(context),
             ),
@@ -83,21 +84,21 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.collections_bookmark_outlined),
             selectedIcon: Icon(Icons.collections_bookmark),
-            label: 'Library',
+            label: tr('Library'),
           ),
           NavigationDestination(
             icon: Icon(Icons.explore_outlined),
             selectedIcon: Icon(Icons.explore),
-            label: 'Browse',
+            label: tr('Browse'),
           ),
           NavigationDestination(
             icon: Icon(Icons.extension_outlined),
             selectedIcon: Icon(Icons.extension),
-            label: 'Extensions',
+            label: tr('Extensions'),
           ),
         ],
       ),
@@ -120,11 +121,11 @@ class _LibraryTab extends ConsumerWidget {
         return db.compareTo(da);
       });
     if (library.isEmpty) {
-      return const EmptyHint(
+      return EmptyHint(
         icon: Icons.collections_bookmark_outlined,
-        text:
-            'Your library is empty.\nFind something in Browse and tap '
-            '"Add to library".',
+        text: tr(
+          'Your library is empty.\nFind something in Browse and tap "Add to library".',
+        ),
       );
     }
     return GridView.builder(
@@ -161,11 +162,11 @@ class _BrowseTab extends ConsumerWidget {
           ),
           data: (sources) {
             if (sources.isEmpty) {
-              return const EmptyHint(
+              return EmptyHint(
                 icon: Icons.explore_outlined,
-                text:
-                    'No sources yet.\nInstall an extension from the Extensions '
-                    'tab (check the language filter too).',
+                text: tr(
+                  'No sources yet.\nInstall an extension from the Extensions tab (check the language filter too).',
+                ),
               );
             }
             String? lastLang;
@@ -192,7 +193,7 @@ class _BrowseTab extends ConsumerWidget {
                             onPressed: () => context.push(
                               MangaRoutes.source(s.id, latest: true),
                             ),
-                            child: const Text('Latest'),
+                            child: Text(tr('Latest')),
                           )
                         : null,
                     onTap: () => context.push(MangaRoutes.source(s.id)),
@@ -224,7 +225,7 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
       await ref.read(installedExtensionsProvider.notifier).install(ext);
       _snack('${ext.name} installed');
     } on MangaException catch (e) {
-      _snack('Install failed: ${e.message}');
+      _snack(tr('Install failed: {message}', {'message': e.message}));
     }
   }
 
@@ -287,8 +288,8 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                     child: TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Search extensions',
+                      decoration: InputDecoration(
+                        hintText: tr('Search extensions'),
                         prefixIcon: Icon(Icons.search),
                         isDense: true,
                       ),
@@ -296,7 +297,9 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                     ),
                   ),
                   if (installed.isNotEmpty)
-                    SectionLabel('Installed · ${installed.length}'),
+                    SectionLabel(
+                      tr('Installed · {length}', {'length': installed.length}),
+                    ),
                   for (final e in installed)
                     ExtensionTile(
                       name: e.name,
@@ -318,7 +321,7 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                         onInstall: updates.contains(e.pkgName)
                             ? () => _install(byPkg[e.pkgName]!)
                             : null,
-                        installLabel: 'Update',
+                        installLabel: tr('Update'),
                       ),
                       trailing: busy.contains(e.pkgName)
                           ? const SmallSpinner()
@@ -329,19 +332,21 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                                   FilledButton(
                                     onPressed: () =>
                                         _install(byPkg[e.pkgName]!),
-                                    child: const Text('Update'),
+                                    child: Text(tr('Update')),
                                   ),
                                 IconButton(
-                                  tooltip: 'Uninstall',
+                                  tooltip: tr('Uninstall'),
                                   icon: const Icon(Icons.delete_outline),
                                   onPressed: () async {
                                     final ok = await showConfirmDialog(
                                       context,
-                                      title: 'Uninstall ${e.name}?',
-                                      message:
-                                          'Its sources disappear from Browse. '
-                                          'Library entries stay.',
-                                      confirmLabel: 'Uninstall',
+                                      title: tr('Uninstall {name}?', {
+                                        'name': e.name,
+                                      }),
+                                      message: tr(
+                                        'Its sources disappear from Browse. Library entries stay.',
+                                      ),
+                                      confirmLabel: tr('Uninstall'),
                                     );
                                     if (ok) {
                                       await ref
@@ -356,7 +361,9 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                               ],
                             ),
                     ),
-                  SectionLabel('Available · ${shown.length}'),
+                  SectionLabel(
+                    tr('Available · {length}', {'length': shown.length}),
+                  ),
                   for (final a in shown)
                     ExtensionTile(
                       name: a.name,
@@ -378,8 +385,10 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                         ]),
                         note: a.isSupported
                             ? null
-                            : 'Needs extension lib ${a.libVersion}, which '
-                                  'MyKit doesn\'t support yet.',
+                            : tr(
+                                'Needs extension lib {version}, which MyKit doesn\'t support yet.',
+                                {'version': a.libVersion},
+                              ),
                         onInstall: a.isSupported && !busy.contains(a.pkgName)
                             ? () => _install(a)
                             : null,
@@ -390,7 +399,7 @@ class _ExtensionsTabState extends ConsumerState<_ExtensionsTab> {
                               onPressed: a.isSupported
                                   ? () => _install(a)
                                   : null,
-                              child: const Text('Install'),
+                              child: Text(tr('Install')),
                             ),
                     ),
                   const SizedBox(height: 32),
@@ -447,14 +456,15 @@ class _AddRepoPromptState extends ConsumerState<_AddRepoPrompt> {
         const Icon(Icons.extension_outlined, size: 64, color: Colors.white24),
         const SizedBox(height: 16),
         Text(
-          'Add an extension repository',
+          tr('Add an extension repository'),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'MyKit runs Mihon-compatible extensions. Each extension is '
-          'verified against the repository\'s signing key before it loads.',
+        Text(
+          tr(
+            'MyKit runs Mihon-compatible extensions. Each extension is verified against the repository\'s signing key before it loads.',
+          ),
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.white60),
         ),
@@ -463,7 +473,7 @@ class _AddRepoPromptState extends ConsumerState<_AddRepoPrompt> {
           controller: _url,
           keyboardType: TextInputType.url,
           decoration: InputDecoration(
-            labelText: 'Repository URL',
+            labelText: tr('Repository URL'),
             errorText: _error,
             errorMaxLines: 3,
           ),
@@ -472,7 +482,7 @@ class _AddRepoPromptState extends ConsumerState<_AddRepoPrompt> {
         FilledButton.icon(
           onPressed: _loading ? null : _add,
           icon: _loading ? const SmallSpinner() : const Icon(Icons.add),
-          label: const Text('Add repository'),
+          label: Text(tr('Add repository')),
         ),
       ],
     );
@@ -493,13 +503,13 @@ Future<void> _showRepos(BuildContext context) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const ListTile(title: Text('Repositories')),
+              ListTile(title: Text(tr('Repositories'))),
               for (final r in repos)
                 ListTile(
                   leading: const Icon(Icons.verified_outlined),
                   title: Text(r.name),
                   subtitle: Text(
-                    'Key ${r.signingKey.substring(0, 16)}…',
+                    tr('Key {0}…', {'0': r.signingKey.substring(0, 16)}),
                     style: const TextStyle(fontSize: 12),
                   ),
                   trailing: IconButton(
@@ -510,13 +520,13 @@ Future<void> _showRepos(BuildContext context) {
                 ),
               ListTile(
                 leading: const Icon(Icons.add),
-                title: const Text('Add repository'),
+                title: Text(tr('Add repository')),
                 onTap: () async {
                   final url = await showTextInputDialog(
                     context,
-                    title: 'Repository URL',
+                    title: tr('Repository URL'),
                     hint: 'https://…/index.min.json',
-                    confirmLabel: 'Add',
+                    confirmLabel: tr('Add'),
                   );
                   if (url == null) return;
                   try {
@@ -524,7 +534,9 @@ Future<void> _showRepos(BuildContext context) {
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Could not add: $e')),
+                        SnackBar(
+                          content: Text(tr('Could not add: {e}', {'e': e})),
+                        ),
                       );
                     }
                   }
@@ -539,7 +551,7 @@ Future<void> _showRepos(BuildContext context) {
 }
 
 Future<void> _showFilters(BuildContext context) {
-  const common = [
+  final common = [
     'all',
     'en',
     'ar',
@@ -548,7 +560,7 @@ Future<void> _showFilters(BuildContext context) {
     'id',
     'ja',
     'ko',
-    'pt-BR',
+    tr('pt-BR'),
     'ru',
     'tr',
     'vi',
@@ -567,7 +579,7 @@ Future<void> _showFilters(BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Languages', style: TextStyle(color: mangaAccent)),
+                Text(tr('Languages'), style: TextStyle(color: mangaAccent)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -584,7 +596,7 @@ Future<void> _showFilters(BuildContext context) {
                 const SizedBox(height: 8),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Show 18+ extensions and sources'),
+                  title: Text(tr('Show 18+ extensions and sources')),
                   value: s.showNsfw,
                   onChanged: n.setShowNsfw,
                 ),

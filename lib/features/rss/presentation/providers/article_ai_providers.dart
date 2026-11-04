@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/ai/gemini_client.dart';
 import '../../data/datasources/article_text_source.dart';
 import '../../domain/entities/feed_article.dart';
@@ -61,7 +62,7 @@ final articleTextProvider = FutureProvider.autoDispose.family<String, String>((
   articleId,
 ) async {
   final article = ref.read(articleByIdProvider(articleId));
-  if (article == null) throw const AiException('Article not found.');
+  if (article == null) throw AiException(tr('Article not found.'));
   final saved = await ref.read(offlineStoreProvider).text(articleId);
   if (saved != null && saved.isNotEmpty) {
     ref.keepAlive();
@@ -94,7 +95,7 @@ final articleSummaryProvider = FutureProvider.autoDispose
     .family<String, String>((ref, articleId) async {
       ref.watch(aiSessionProvider);
       final article = ref.read(articleByIdProvider(articleId));
-      if (article == null) throw const AiException('Article not found.');
+      if (article == null) throw AiException(tr('Article not found.'));
       final text = await ref.watch(articleTextProvider(articleId).future);
       final feed = ref.read(rssLibraryProvider).feedById(article.feedId);
       final summary = await ref
@@ -145,7 +146,7 @@ final articleBriefingProvider = FutureProvider.autoDispose
     .family<ArticleBriefing, String>((ref, articleId) async {
       ref.watch(aiSessionProvider);
       final article = ref.read(articleByIdProvider(articleId));
-      if (article == null) throw const AiException('Article not found.');
+      if (article == null) throw AiException(tr('Article not found.'));
       final text = await ref.watch(articleTextProvider(articleId).future);
       final feed = ref.read(rssLibraryProvider).feedById(article.feedId);
       final context = _articleContext(article, feed?.title, text);

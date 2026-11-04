@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'fitness_routes.dart';
 import 'presentation/providers/fitness_providers.dart';
@@ -13,13 +14,15 @@ final fitnessTool = ToolDefinition(
   rootPath: FitnessRoutes.home,
   routes: FitnessRoutes.routes,
   status: (ref) {
-    if (ref.watch(activeWorkoutProvider) != null) return 'Workout in progress';
+    if (ref.watch(activeWorkoutProvider) != null) {
+      return tr('Workout in progress');
+    }
     final next = ref.watch(nextRoutineProvider);
     if (next == null) return null;
     return switch (next.inDays) {
-      0 => '${next.routine.name} today',
-      1 => '${next.routine.name} tomorrow',
-      _ => 'Next: ${next.routine.name}',
+      0 => tr('{name} today', {'name': next.routine.name}),
+      1 => tr('{name} tomorrow', {'name': next.routine.name}),
+      _ => tr('Next: {name}', {'name': next.routine.name}),
     };
   },
 );

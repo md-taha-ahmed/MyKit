@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/utils/text_direction.dart';
 
 import '../../domain/entities/rss_feed.dart';
@@ -15,13 +16,13 @@ const youtubeRed = Color(0xFFFF3B30);
 String rssFilterTitle(WidgetRef ref, ArticleFilter filter) {
   final library = ref.watch(rssLibraryProvider);
   if (filter.feedId != null) {
-    return library.feedById(filter.feedId!)?.title ?? 'Feed';
+    return library.feedById(filter.feedId!)?.title ?? tr('Feed');
   }
   return switch (filter.categoryId) {
-    null => 'All feeds',
-    savedArticlesFilter => 'Saved',
-    likedArticlesFilter => 'Liked',
-    final id => library.categoryById(id)?.name ?? 'All feeds',
+    null => tr('All feeds'),
+    savedArticlesFilter => tr('Saved'),
+    likedArticlesFilter => tr('Liked'),
+    final id => library.categoryById(id)?.name ?? tr('All feeds'),
   };
 }
 
@@ -84,14 +85,14 @@ class FeedsDrawer extends ConsumerWidget {
       child: SafeArea(
         child: Column(
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 16, 8),
               child: Row(
                 children: [
                   Icon(Icons.rss_feed, color: Color(0xFFFF8A3D)),
                   SizedBox(width: 12),
                   Text(
-                    'Feeds',
+                    tr('Feeds'),
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                   ),
                 ],
@@ -103,14 +104,14 @@ class FeedsDrawer extends ConsumerWidget {
                 children: [
                   _Row(
                     icon: Icons.all_inbox,
-                    label: 'All feeds',
+                    label: tr('All feeds'),
                     count: unread(allArticles),
                     selected: selected == allArticles,
                     onTap: () => select(allArticles),
                   ),
                   _Row(
                     icon: Icons.bookmark,
-                    label: 'Saved',
+                    label: tr('Saved'),
                     count: reactions.saved.length,
                     countIsTotal: true,
                     selected: selected.categoryId == savedArticlesFilter,
@@ -119,17 +120,17 @@ class FeedsDrawer extends ConsumerWidget {
                   ),
                   _Row(
                     icon: Icons.favorite,
-                    label: 'Liked',
+                    label: tr('Liked'),
                     count: reactions.liked.length,
                     countIsTotal: true,
                     selected: selected.categoryId == likedArticlesFilter,
                     onTap: () =>
                         select((categoryId: likedArticlesFilter, feedId: null)),
                   ),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.fromLTRB(20, 16, 20, 6),
                     child: Text(
-                      'CATEGORIES',
+                      tr('CATEGORIES'),
                       style: TextStyle(
                         fontSize: 12,
                         letterSpacing: 1,
@@ -146,7 +147,7 @@ class FeedsDrawer extends ConsumerWidget {
             ListTile(
               dense: true,
               leading: const Icon(Icons.add),
-              title: const Text('Add feed'),
+              title: Text(tr('Add feed')),
               onTap: () {
                 Navigator.of(context).pop();
                 showAddFeedSheet(context);
@@ -155,7 +156,7 @@ class FeedsDrawer extends ConsumerWidget {
             ListTile(
               dense: true,
               leading: const Icon(Icons.subscriptions, color: youtubeRed),
-              title: const Text('Import YouTube subscriptions'),
+              title: Text(tr('Import YouTube subscriptions')),
               onTap: () {
                 final router = GoRouter.of(context);
                 Navigator.of(context).pop();
@@ -165,7 +166,7 @@ class FeedsDrawer extends ConsumerWidget {
             ListTile(
               dense: true,
               leading: const Icon(Icons.folder_open),
-              title: const Text('Manage feeds & categories'),
+              title: Text(tr('Manage feeds & categories')),
               onTap: () {
                 final router = GoRouter.of(context);
                 Navigator.of(context).pop();

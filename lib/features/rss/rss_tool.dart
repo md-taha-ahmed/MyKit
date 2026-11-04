@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'rss_routes.dart';
 import 'presentation/providers/rss_providers.dart';
@@ -15,6 +16,6 @@ final rssTool = ToolDefinition(
   status: (ref) {
     if (ref.watch(rssLibraryProvider).feeds.isEmpty) return null;
     final unread = ref.watch(unreadCountProvider(allArticles));
-    return unread == 0 ? 'All caught up' : '$unread unread';
+    return unread == 0 ? tr('All caught up') : tr('{n} unread', {'n': unread});
   },
 );

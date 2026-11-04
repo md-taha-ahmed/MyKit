@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'passwords_routes.dart';
 import 'presentation/providers/vault_providers.dart';
@@ -16,9 +17,11 @@ final passwordsTool = ToolDefinition(
     final vault = ref.watch(vaultProvider);
     return switch (vault.status) {
       VaultStatus.noVault => null,
-      VaultStatus.locked => 'Locked',
+      VaultStatus.locked => tr('Locked'),
       VaultStatus.unlocked =>
-        '${vault.entries.length} ${vault.entries.length == 1 ? 'password' : 'passwords'}',
+        vault.entries.length == 1
+            ? tr('1 password')
+            : tr('{n} passwords', {'n': vault.entries.length}),
     };
   },
 );

@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:pdfrx/pdfrx.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../domain/repositories/books_repository.dart';
 
 /// Stores PDFs and their cover images under `<documents>/books/`.
@@ -20,7 +21,7 @@ class BookFileStorage {
   Future<ImportedPdf> import(String sourcePath, String bookId) async {
     final source = File(sourcePath);
     if (!await source.exists()) {
-      throw const BookImportException('The selected file could not be read.');
+      throw BookImportException(tr('The selected file could not be read.'));
     }
 
     final pdfRelative = '$_booksDir/$bookId.pdf';
@@ -32,7 +33,7 @@ class BookFileStorage {
       final document = await PdfDocument.openFile(pdfFile.path);
       try {
         if (document.pages.isEmpty) {
-          throw const BookImportException('This PDF has no pages.');
+          throw BookImportException(tr('This PDF has no pages.'));
         }
         final cover = await _renderCover(document.pages.first, bookId);
         return ImportedPdf(
@@ -49,8 +50,8 @@ class BookFileStorage {
       rethrow;
     } catch (e) {
       await _deleteQuietly(pdfFile);
-      throw const BookImportException(
-        'Not a readable PDF (it may be damaged or password-protected).',
+      throw BookImportException(
+        tr('Not a readable PDF (it may be damaged or password-protected).'),
       );
     }
   }

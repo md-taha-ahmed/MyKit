@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/tools/tools_provider.dart';
 import '../../../backup/backup_routes.dart';
+import '../../../setup/setup_routes.dart';
 import '../widgets/tool_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -26,8 +28,8 @@ class DashboardScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'MyKit',
+                          Text(
+                            tr('MyKit'),
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
@@ -45,9 +47,14 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Backup',
+                      tooltip: tr('Backup'),
                       icon: const Icon(Icons.cloud_outlined),
                       onPressed: () => context.push(BackupRoutes.home),
+                    ),
+                    IconButton(
+                      tooltip: tr('Settings'),
+                      icon: const Icon(Icons.settings_outlined),
+                      onPressed: () => context.push(SetupRoutes.settings),
                     ),
                   ],
                 ),

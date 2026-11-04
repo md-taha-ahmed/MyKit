@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../data/services/vault_crypto.dart';
 import '../../domain/entities/vault_entry.dart';
 import '../../domain/services/password_tools.dart';
@@ -56,15 +57,15 @@ class _SetupViewState extends ConsumerState<_SetupView> {
     final p = _password.text;
     setState(() => _error = null);
     if (p.length < 8) {
-      setState(() => _error = 'Use at least 8 characters.');
+      setState(() => _error = tr('Use at least 8 characters.'));
       return;
     }
     if (strengthOf(p).index < PasswordStrength.fair.index) {
-      setState(() => _error = 'Too easy to guess. Make it longer.');
+      setState(() => _error = tr('Too easy to guess. Make it longer.'));
       return;
     }
     if (p != _confirm.text) {
-      setState(() => _error = 'The two passwords don\'t match.');
+      setState(() => _error = tr('The two passwords don\'t match.'));
       return;
     }
     setState(() => _busy = true);
@@ -76,19 +77,20 @@ class _SetupViewState extends ConsumerState<_SetupView> {
         context: context,
         builder: (context) => AlertDialog(
           icon: const Icon(Icons.fingerprint, size: 36),
-          title: const Text('Unlock with fingerprint?'),
-          content: const Text(
-            'Open your passwords with your fingerprint instead of typing '
-            'the master password each time. You can change this in settings.',
+          title: Text(tr('Unlock with fingerprint?')),
+          content: Text(
+            tr(
+              'Open your passwords with your fingerprint instead of typing the master password each time. You can change this in settings.',
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Not now'),
+              child: Text(tr('Not now')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Turn on'),
+              child: Text(tr('Turn on')),
             ),
           ],
         ),
@@ -100,22 +102,22 @@ class _SetupViewState extends ConsumerState<_SetupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Passwords')),
+      appBar: AppBar(title: Text(tr('Passwords'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
         children: [
           const Icon(Icons.lock_outline, size: 48, color: passwordsAccent),
           const SizedBox(height: 12),
           Text(
-            'Create your master password',
+            tr('Create your master password'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'It encrypts every password you save here. It never leaves this '
-            'phone and is never stored, so pick something long you\'ll '
-            'remember, like a short sentence.',
+          Text(
+            tr(
+              'It encrypts every password you save here. It never leaves this phone and is never stored, so pick something long you\'ll remember, like a short sentence.',
+            ),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, height: 1.4),
           ),
@@ -127,7 +129,7 @@ class _SetupViewState extends ConsumerState<_SetupView> {
             enableSuggestions: false,
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
-              labelText: 'Master password',
+              labelText: tr('Master password'),
               suffixIcon: IconButton(
                 icon: Icon(_show ? Icons.visibility_off : Icons.visibility),
                 onPressed: () => setState(() => _show = !_show),
@@ -141,7 +143,7 @@ class _SetupViewState extends ConsumerState<_SetupView> {
             obscureText: !_show,
             autocorrect: false,
             enableSuggestions: false,
-            decoration: const InputDecoration(labelText: 'Type it again'),
+            decoration: InputDecoration(labelText: tr('Type it again')),
             onSubmitted: (_) => _create(),
           ),
           const SizedBox(height: 16),
@@ -150,9 +152,10 @@ class _SetupViewState extends ConsumerState<_SetupView> {
             value: _understood,
             onChanged: (v) => setState(() => _understood = v ?? false),
             controlAffinity: ListTileControlAffinity.leading,
-            title: const Text(
-              'I understand that if I forget it, my passwords can\'t be '
-              'recovered by anyone.',
+            title: Text(
+              tr(
+                'I understand that if I forget it, my passwords can\'t be recovered by anyone.',
+              ),
               style: TextStyle(fontSize: 14),
             ),
           ),
@@ -172,7 +175,7 @@ class _SetupViewState extends ConsumerState<_SetupView> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Create vault'),
+                : Text(tr('Create vault')),
           ),
         ],
       ),
@@ -245,14 +248,14 @@ class _LockViewState extends ConsumerState<_LockView> {
       vaultProvider.select((s) => s.biometricEnabled),
     );
     return Scaffold(
-      appBar: AppBar(title: const Text('Passwords')),
+      appBar: AppBar(title: Text(tr('Passwords'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
         children: [
           const Icon(Icons.lock, size: 56, color: passwordsAccent),
           const SizedBox(height: 16),
           Text(
-            'Vault locked',
+            tr('Vault locked'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge,
           ),
@@ -265,7 +268,7 @@ class _LockViewState extends ConsumerState<_LockView> {
             autofocus: !biometric,
             onSubmitted: (_) => _unlock(),
             decoration: InputDecoration(
-              labelText: 'Master password',
+              labelText: tr('Master password'),
               suffixIcon: IconButton(
                 icon: Icon(_show ? Icons.visibility_off : Icons.visibility),
                 onPressed: () => setState(() => _show = !_show),
@@ -288,14 +291,14 @@ class _LockViewState extends ConsumerState<_LockView> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Unlock'),
+                : Text(tr('Unlock')),
           ),
           if (biometric) ...[
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: _busy ? null : _fingerprint,
               icon: const Icon(Icons.fingerprint),
-              label: const Text('Use fingerprint'),
+              label: Text(tr('Use fingerprint')),
             ),
           ],
         ],
@@ -360,15 +363,15 @@ class _VaultListViewState extends ConsumerState<_VaultListView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Passwords'),
+        title: Text(tr('Passwords')),
         actions: [
           IconButton(
-            tooltip: 'Lock',
+            tooltip: tr('Lock'),
             icon: const Icon(Icons.lock_outline),
             onPressed: () => ref.read(vaultProvider.notifier).lock(),
           ),
           IconButton(
-            tooltip: 'Settings',
+            tooltip: tr('Settings'),
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push(PasswordsRoutes.settings),
           ),
@@ -382,7 +385,9 @@ class _VaultListViewState extends ConsumerState<_VaultListView> {
               controller: _search,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: 'Search ${vault.entries.length} passwords',
+                hintText: tr('Search {length} passwords', {
+                  'length': vault.entries.length,
+                }),
                 prefixIcon: const Icon(Icons.search),
                 isDense: true,
                 suffixIcon: _search.text.isEmpty
@@ -400,11 +405,20 @@ class _VaultListViewState extends ConsumerState<_VaultListView> {
             child: Row(
               children: [
                 for (final (f, label) in [
-                  (_Filter.all, 'All'),
-                  (_Filter.favorites, 'Favourites'),
-                  if (weakCount > 0) (_Filter.weak, 'Weak · $weakCount'),
+                  (_Filter.all, tr('All')),
+                  (_Filter.favorites, tr('Favourites')),
+                  if (weakCount > 0)
+                    (
+                      _Filter.weak,
+                      tr('Weak · {weakCount}', {'weakCount': weakCount}),
+                    ),
                   if (reusedCount > 0)
-                    (_Filter.reused, 'Reused · $reusedCount'),
+                    (
+                      _Filter.reused,
+                      tr('Reused · {reusedCount}', {
+                        'reusedCount': reusedCount,
+                      }),
+                    ),
                 ])
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -456,10 +470,14 @@ class _VaultListViewState extends ConsumerState<_VaultListView> {
                           style: const TextStyle(color: Colors.white54),
                         ),
                         trailing: IconButton(
-                          tooltip: 'Copy password',
+                          tooltip: tr('Copy password'),
                           icon: const Icon(Icons.copy, size: 20),
-                          onPressed: () =>
-                              copySecret(context, ref, e.password, 'Password'),
+                          onPressed: () => copySecret(
+                            context,
+                            ref,
+                            e.password,
+                            tr('Password'),
+                          ),
                         ),
                         onTap: () => context.push(PasswordsRoutes.entry(e.id)),
                       );
@@ -469,7 +487,7 @@ class _VaultListViewState extends ConsumerState<_VaultListView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        tooltip: 'Add password',
+        tooltip: tr('Add password'),
         onPressed: () => context.push(PasswordsRoutes.create),
         child: const Icon(Icons.add),
       ),
@@ -489,14 +507,15 @@ class _EmptyVault extends StatelessWidget {
         children: [
           const Icon(Icons.key, size: 56, color: Colors.white24),
           const SizedBox(height: 12),
-          const Text(
-            'No passwords yet',
+          Text(
+            tr('No passwords yet'),
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Add one with +, or import a CSV exported from Chrome or another '
-            'password manager (Settings → Import).',
+          Text(
+            tr(
+              'Add one with +, or import a CSV exported from Chrome or another password manager (Settings → Import).',
+            ),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white60),
           ),
@@ -504,7 +523,7 @@ class _EmptyVault extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => context.push(PasswordsRoutes.settings),
             icon: const Icon(Icons.upload_file),
-            label: const Text('Import CSV'),
+            label: Text(tr('Import CSV')),
           ),
         ],
       ),
@@ -526,7 +545,7 @@ Future<void> copySecret(
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text('$what copied · clears in 30 s'),
+        content: Text(tr('{what} copied · clears in 30 s', {'what': what})),
         duration: const Duration(seconds: 2),
       ),
     );

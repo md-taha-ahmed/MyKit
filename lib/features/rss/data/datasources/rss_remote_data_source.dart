@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/utils/charsets.dart';
 
 import '../../domain/entities/feed_article.dart';
@@ -72,24 +73,24 @@ class RssRemoteDataSource {
         // Try the next candidate.
       }
     }
-    throw const FeedException('No RSS or Atom feed found at this address.');
+    throw FeedException(tr('No RSS or Atom feed found at this address.'));
   }
 
   Future<ParsedFeed> fetch(String url) async {
     final parsed = FeedParser.tryParse(await _get(Uri.parse(url)));
     if (parsed == null) {
-      throw const FeedException('The address no longer returns a valid feed.');
+      throw FeedException(tr('The address no longer returns a valid feed.'));
     }
     return parsed;
   }
 
   static Uri normalize(String input) {
     var text = input.trim();
-    if (text.isEmpty) throw const FeedException('Enter a feed or website URL.');
+    if (text.isEmpty) throw FeedException(tr('Enter a feed or website URL.'));
     if (!text.contains('://')) text = 'https://$text';
     final uri = Uri.tryParse(text);
     if (uri == null || uri.host.isEmpty) {
-      throw const FeedException('That doesn\'t look like a valid URL.');
+      throw FeedException(tr('That doesn\'t look like a valid URL.'));
     }
     return uri;
   }
@@ -114,14 +115,14 @@ class RssRemoteDataSource {
     try {
       res = await _client.get(uri, headers: _headers).timeout(_timeout);
     } on SocketException {
-      throw const FeedException(
-        'No internet connection.',
+      throw FeedException(
+        tr('No internet connection.'),
         transient: true,
         offline: true,
       );
     } catch (_) {
-      throw const FeedException(
-        'Could not connect (timed out).',
+      throw FeedException(
+        tr('Could not connect (timed out).'),
         transient: true,
       );
     }

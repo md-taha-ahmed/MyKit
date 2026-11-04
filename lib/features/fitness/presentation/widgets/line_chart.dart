@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../../../core/i18n/i18n.dart';
 import '../providers/fitness_providers.dart';
 
 typedef ChartPoint = ({DateTime x, double y});
@@ -27,9 +28,9 @@ class ProgressLineChart extends StatelessWidget {
     if (points.isEmpty) {
       return SizedBox(
         height: height,
-        child: const Center(
+        child: Center(
           child: Text(
-            'No entries yet',
+            tr('No entries yet'),
             style: TextStyle(color: Colors.white54),
           ),
         ),
@@ -113,7 +114,7 @@ class _ChartPainter extends CustomPainter {
       }
       _text(
         canvas,
-        'Goal ${goal!.toStringAsFixed(0)}$unit',
+        tr('Goal {0}{unit}', {'0': goal!.toStringAsFixed(0), 'unit': unit}),
         Offset(size.width - 80, y - 14),
         const TextStyle(color: Colors.amber, fontSize: 10.5),
       );

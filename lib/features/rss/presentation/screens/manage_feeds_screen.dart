@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/i18n/i18n.dart';
 import '../../../../core/utils/text_direction.dart';
 
 import '../../../../core/widgets/dialogs.dart';
@@ -18,9 +19,9 @@ class ManageFeedsScreen extends ConsumerWidget {
   Future<void> _addCategory(BuildContext context, WidgetRef ref) async {
     final name = await showTextInputDialog(
       context,
-      title: 'New category',
-      hint: 'e.g. Tech, News, Design',
-      confirmLabel: 'Create',
+      title: tr('New category'),
+      hint: tr('e.g. Tech, News, Design'),
+      confirmLabel: tr('Create'),
     );
     if (name != null) {
       await ref.read(rssLibraryProvider.notifier).addCategory(name);
@@ -33,10 +34,10 @@ class ManageFeedsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feeds & categories'),
+        title: Text(tr('Feeds & categories')),
         actions: [
           IconButton(
-            tooltip: 'New category',
+            tooltip: tr('New category'),
             icon: const Icon(Icons.create_new_folder_outlined),
             onPressed: () => _addCategory(context, ref),
           ),
@@ -54,7 +55,7 @@ class ManageFeedsScreen extends ConsumerWidget {
         shape: const StadiumBorder(),
         onPressed: () => showAddFeedSheet(context),
         icon: const Icon(Icons.add),
-        label: const Text('Add feed'),
+        label: Text(tr('Add feed')),
       ),
     );
   }
@@ -104,7 +105,7 @@ Future<String?> pickFolder(
     builder: (context) => SimpleDialog(
       title: Text(title),
       children: [
-        if (topLevel) option('', 'Top level', 0),
+        if (topLevel) option('', tr('Top level'), 0),
         for (final (:category, :depth) in tree)
           option(
             category.id,
@@ -137,9 +138,9 @@ class _CategorySection extends ConsumerWidget {
       case _CategoryAction.addFolder:
         final name = await showTextInputDialog(
           context,
-          title: 'New folder in "${category.name}"',
-          hint: 'e.g. AI, Phones, Gaming',
-          confirmLabel: 'Create',
+          title: tr('New folder in "{name}"', {'name': category.name}),
+          hint: tr('e.g. AI, Phones, Gaming'),
+          confirmLabel: tr('Create'),
         );
         if (name != null) {
           await notifier.addCategory(name, parentId: category.id);
@@ -149,7 +150,7 @@ class _CategorySection extends ConsumerWidget {
         final target = await pickFolder(
           context,
           ref,
-          title: 'Move "${category.name}" into',
+          title: tr('Move "{name}" into', {'name': category.name}),
           current: category.parentId,
           exclude: library.subtreeIds(category.id),
           topLevel: true,
@@ -163,7 +164,7 @@ class _CategorySection extends ConsumerWidget {
       case _CategoryAction.rename:
         final name = await showTextInputDialog(
           context,
-          title: 'Rename category',
+          title: tr('Rename category'),
           initialValue: category.name,
         );
         if (name != null) await notifier.renameCategory(category.id, name);
@@ -173,16 +174,24 @@ class _CategorySection extends ConsumerWidget {
         final folders = library.childrenOf(category.id).length;
         final ok = await showConfirmDialog(
           context,
-          title: 'Delete "${category.name}"?',
+          title: tr('Delete "{name}"?', {'name': category.name}),
           message: [
             count == 0
-                ? 'It has no feeds of its own.'
-                : 'Its $count ${count == 1 ? 'feed' : 'feeds'} will be '
-                      'unsubscribed too. Move feeds to another folder first '
-                      'to keep them.',
+                ? tr('It has no feeds of its own.')
+                : count == 1
+                ? tr(
+                    'Its 1 feed will be unsubscribed too. Move it to another folder first to keep it.',
+                  )
+                : tr(
+                    'Its {count} feeds will be unsubscribed too. Move feeds to another folder first to keep them.',
+                    {'count': count},
+                  ),
             if (folders > 0)
-              'Its ${folders == 1 ? 'sub-folder moves' : '$folders sub-folders move'} '
-                  'up a level.',
+              folders == 1
+                  ? tr('Its sub-folder moves up a level.')
+                  : tr('Its {folders} sub-folders move up a level.', {
+                      'folders': folders,
+                    }),
           ].join(' '),
         );
         if (ok) await notifier.deleteCategory(category.id);
@@ -228,26 +237,26 @@ class _CategorySection extends ConsumerWidget {
               ),
               PopupMenuButton<_CategoryAction>(
                 onSelected: (a) => _onAction(context, ref, a),
-                itemBuilder: (_) => const [
+                itemBuilder: (_) => [
                   PopupMenuItem(
                     value: _CategoryAction.addFeed,
-                    child: Text('Add feed here'),
+                    child: Text(tr('Add feed here')),
                   ),
                   PopupMenuItem(
                     value: _CategoryAction.addFolder,
-                    child: Text('New sub-folder'),
+                    child: Text(tr('New sub-folder')),
                   ),
                   PopupMenuItem(
                     value: _CategoryAction.move,
-                    child: Text('Move into…'),
+                    child: Text(tr('Move into…')),
                   ),
                   PopupMenuItem(
                     value: _CategoryAction.rename,
-                    child: Text('Rename'),
+                    child: Text(tr('Rename')),
                   ),
                   PopupMenuItem(
                     value: _CategoryAction.delete,
-                    child: Text('Delete'),
+                    child: Text(tr('Delete')),
                   ),
                 ],
               ),
@@ -257,8 +266,8 @@ class _CategorySection extends ConsumerWidget {
         if (feeds.isEmpty && !hasFolders)
           Padding(
             padding: EdgeInsets.fromLTRB(46 + indent, 0, 16, 8),
-            child: const Text(
-              'No feeds yet',
+            child: Text(
+              tr('No feeds yet'),
               style: TextStyle(color: Colors.white38),
             ),
           ),
@@ -281,7 +290,7 @@ class _FeedTile extends ConsumerWidget {
     final target = await pickFolder(
       context,
       ref,
-      title: 'Move to',
+      title: tr('Move to'),
       current: feed.categoryId,
     );
     if (target != null && target != feed.categoryId) {
@@ -301,7 +310,7 @@ class _FeedTile extends ConsumerWidget {
       case _FeedAction.rename:
         final name = await showTextInputDialog(
           context,
-          title: 'Rename feed',
+          title: tr('Rename feed'),
           initialValue: feed.title,
         );
         if (name != null) await notifier.updateFeed(feed.copyWith(title: name));
@@ -310,9 +319,11 @@ class _FeedTile extends ConsumerWidget {
       case _FeedAction.delete:
         final ok = await showConfirmDialog(
           context,
-          title: 'Unsubscribe?',
-          message: 'Remove "${feed.title}" and its saved articles.',
-          confirmLabel: 'Unsubscribe',
+          title: tr('Unsubscribe?'),
+          message: tr('Remove "{title}" and its saved articles.', {
+            'title': feed.title,
+          }),
+          confirmLabel: tr('Unsubscribe'),
         );
         if (ok) await notifier.deleteFeed(feed.id);
     }
@@ -327,7 +338,9 @@ class _FeedTile extends ConsumerWidget {
         ? null
         : broken
         ? health.lastError
-        : 'Temporarily unavailable, will retry · ${health.lastError}';
+        : tr('Temporarily unavailable, will retry · {error}', {
+            'error': health.lastError,
+          });
     final unread = ref.watch(
       unreadCountProvider((categoryId: null, feedId: feed.id)),
     );
@@ -367,15 +380,18 @@ class _FeedTile extends ConsumerWidget {
             ),
           PopupMenuButton<_FeedAction>(
             onSelected: (a) => _onAction(context, ref, a),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: _FeedAction.rename, child: Text('Rename')),
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: _FeedAction.rename,
+                child: Text(tr('Rename')),
+              ),
               PopupMenuItem(
                 value: _FeedAction.move,
-                child: Text('Move to category'),
+                child: Text(tr('Move to category')),
               ),
               PopupMenuItem(
                 value: _FeedAction.delete,
-                child: Text('Unsubscribe'),
+                child: Text(tr('Unsubscribe')),
               ),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/i18n/i18n.dart';
 import '../../core/tools/tool_definition.dart';
 import 'limiter_routes.dart';
 import 'presentation/providers/limiter_providers.dart';
@@ -14,13 +15,13 @@ final limiterTool = ToolDefinition(
   routes: LimiterRoutes.routes,
   status: (ref) {
     final status = ref.watch(limiterStatusProvider);
-    if (!status.serviceEnabled) return 'Not turned on';
+    if (!status.serviceEnabled) return tr('Not turned on');
     final settings = ref.watch(limiterSettingsProvider);
     final today = status.day(DateTime.now());
     final total = settings.groups.fold<int>(
       0,
       (s, g) => s + (today[g.id] ?? 0),
     );
-    return '${formatMinutes(total)} today';
+    return tr('{time} today', {'time': formatMinutes(total)});
   },
 );
