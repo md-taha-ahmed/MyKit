@@ -294,6 +294,33 @@ class _LibraryTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
+        Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          color: knowledgeAccent.withValues(alpha: 0.16),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => context.push(KnowledgeRoutes.sahaba),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    KnowledgeCatalog.sahabaBook.title,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    KnowledgeCatalog.sahabaBook.description,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         Text(
           'القراءة من هنا تتقدّم في الدرس اليومي أيضاً.',
           style: theme.textTheme.bodySmall?.copyWith(

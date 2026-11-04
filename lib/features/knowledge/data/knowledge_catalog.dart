@@ -198,7 +198,17 @@ abstract final class KnowledgeCatalog {
     modernWorld,
   ];
 
-  static const all = [...scheduled, onThisDay];
+  /// Sahabah biographies bundled with the app, read by person rather than in
+  /// order, so never a daily lesson (see domain/sahaba_models.dart).
+  static const sahabaBook = KnowledgeTrack(
+    id: 'sahaba-book',
+    topic: 'الصحابة',
+    title: 'سير الصحابة',
+    description: 'عمر بن الخطاب والصحابة: قصصهم وصفاتهم، بلا إنترنت',
+    kind: TrackKind.book,
+  );
+
+  static const all = [...scheduled, onThisDay, sahabaBook];
 
   static KnowledgeTrack? byId(String id) {
     for (final t in all) {
