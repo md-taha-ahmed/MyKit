@@ -51,6 +51,18 @@ class TorrentChannel(private val context: Context, messenger: BinaryMessenger) :
         "status" -> engine.status(call.argument<String>("id")!!)
         "stop" -> engine.stop(call.argument<String>("id")!!).let { null }
         "warmUp" -> engine.warmUp().let { null }
+        "download" -> engine.startDownload(
+            infoHash = call.argument<String>("infoHash")!!,
+            fileIdx = call.argument<Int>("fileIdx"),
+            trackers = call.argument<List<String>>("trackers") ?: emptyList(),
+            filename = call.argument<String>("filename"),
+            dir = call.argument<String>("dir")!!,
+        )
+        "downloadStatus" -> engine.downloadStatus(call.argument<String>("infoHash")!!)
+        "stopDownload" -> engine.stopDownload(
+            call.argument<String>("infoHash")!!,
+            call.argument<Boolean>("deleteFiles") ?: false,
+        ).let { null }
         else -> throw IllegalArgumentException("Unknown method ${call.method}")
     }
 

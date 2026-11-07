@@ -1,5 +1,9 @@
 import 'package:go_router/go_router.dart';
 
+import '../downloads/domain/download_item.dart';
+import '../downloads/presentation/screens/downloads_screen.dart';
+import 'presentation/providers/movies_providers.dart';
+
 import 'presentation/screens/addons_screen.dart';
 import 'presentation/screens/catalog_screen.dart';
 import 'presentation/screens/movies_home_screen.dart';
@@ -12,6 +16,7 @@ abstract final class MoviesRoutes {
   static const home = '/movies';
   static const addons = '/movies/addons';
   static const search = '/movies/search';
+  static const downloads = '/movies/downloads';
 
   static String catalog(String addonUrl, String type, String id, String name) =>
       Uri(
@@ -46,6 +51,13 @@ abstract final class MoviesRoutes {
         GoRoute(
           path: 'addons',
           builder: (context, state) => const AddonsScreen(),
+        ),
+        GoRoute(
+          path: 'downloads',
+          builder: (context, state) => const DownloadsScreen(
+            kinds: {DownloadKind.movie},
+            accent: moviesAccent,
+          ),
         ),
         GoRoute(
           path: 'search',

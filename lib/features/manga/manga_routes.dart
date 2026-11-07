@@ -1,14 +1,19 @@
 import 'package:go_router/go_router.dart';
 
+import '../downloads/domain/download_item.dart';
+import '../downloads/presentation/screens/downloads_screen.dart';
+
 import 'presentation/screens/anime_details_screen.dart';
 import 'presentation/screens/anime_source_browse_screen.dart';
 import 'presentation/screens/manga_details_screen.dart';
 import 'presentation/screens/manga_home_screen.dart';
 import 'presentation/screens/manga_reader_screen.dart';
 import 'presentation/screens/source_browse_screen.dart';
+import 'presentation/widgets/manga_widgets.dart';
 
 abstract final class MangaRoutes {
   static const home = '/manga';
+  static const downloads = '/manga/downloads';
 
   static String source(String sourceId, {bool latest = false}) =>
       '/manga/source/$sourceId${latest ? '?latest=1' : ''}';
@@ -36,6 +41,13 @@ abstract final class MangaRoutes {
       path: home,
       builder: (context, state) => const MangaHomeScreen(),
       routes: [
+        GoRoute(
+          path: 'downloads',
+          builder: (context, state) => const DownloadsScreen(
+            kinds: {DownloadKind.anime, DownloadKind.manga},
+            accent: mangaAccent,
+          ),
+        ),
         GoRoute(
           path: 'source/:sourceId',
           builder: (context, state) => SourceBrowseScreen(

@@ -3,6 +3,7 @@ package com.mdtaha.mykit
 import android.content.pm.PackageManager
 import com.mdtaha.mykit.apps.ExternalAppsChannel
 import com.mdtaha.mykit.calendar.CalendarChannel
+import com.mdtaha.mykit.downloads.DownloadsChannel
 import com.mdtaha.mykit.manga.AnimeChannel
 import com.mdtaha.mykit.manga.MangaChannel
 import com.mdtaha.mykit.media.MediaLibraryChannel
@@ -29,6 +30,7 @@ class MainActivity : AudioServiceFragmentActivity() {
     private var youTubeChannel: YouTubeChannel? = null
     private var limiterChannel: LimiterChannel? = null
     private var setupChannel: SetupChannel? = null
+    private var downloadsChannel: DownloadsChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -43,6 +45,7 @@ class MainActivity : AudioServiceFragmentActivity() {
         youTubeChannel = YouTubeChannel(messenger)
         limiterChannel = LimiterChannel(applicationContext, messenger)
         setupChannel = SetupChannel(applicationContext, messenger)
+        downloadsChannel = DownloadsChannel(applicationContext, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -66,6 +69,8 @@ class MainActivity : AudioServiceFragmentActivity() {
         limiterChannel = null
         setupChannel?.dispose()
         setupChannel = null
+        downloadsChannel?.dispose()
+        downloadsChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

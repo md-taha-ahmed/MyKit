@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
+import '../../../downloads/presentation/providers/downloads_providers.dart';
+import '../../../downloads/presentation/widgets/download_widgets.dart';
+import '../../../downloads/domain/download_item.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../movies_routes.dart';
 import '../providers/movies_providers.dart';
@@ -53,11 +56,35 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
     );
   }
 
+  void _download(MetaDetail? meta, StreamSource source) {
+    final args = _args(meta, source);
+    ref
+        .read(downloadsProvider.notifier)
+        .addMovie(
+          type: args.type,
+          metaId: args.metaId,
+          videoId: args.videoId,
+          name: args.name,
+          source: source,
+          poster: args.poster,
+          background: args.background,
+          episodeLabel: args.episodeLabel,
+        );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(tr('Downloading. It\'s in Downloads.'))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final meta = ref
         .watch(metaProvider((type: widget.type, id: widget.metaId)))
         .value;
+    final saved = ref.watch(
+      downloadForProvider(
+        DownloadsNotifier.movieId(widget.metaId, widget.videoId),
+      ),
+    );
     final streams = ref.watch(streamsProvider(_key));
     final episode = meta?.episodes
         .where((e) => e.id == widget.videoId)
@@ -77,73 +104,86 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
           ],
         ),
       ),
-      body: streams.when(
-        loading: () => MessageView(
-          icon: Icons.travel_explore,
-          title: tr('Looking for sources…'),
-          action: SizedBox(width: 160, child: LinearProgressIndicator()),
-        ),
-        error: (e, _) => MessageView(
-          icon: Icons.error_outline,
-          title: tr('No sources'),
-          message: '$e',
-          action: FilledButton(
-            onPressed: () => ref.invalidate(streamsProvider(_key)),
-            child: Text(tr('Retry')),
-          ),
-        ),
-        data: (all) {
-          if (all.isEmpty) {
-            return MessageView(
-              icon: Icons.search_off,
-              title: tr('No sources found'),
-              message: tr('Your stream add-ons have nothing for this yet.'),
-              action: OutlinedButton(
-                onPressed: () => context.push(MoviesRoutes.addons),
-                child: Text(tr('Manage add-ons')),
-              ),
-            );
-          }
-          final counts = <String, int>{};
-          for (final s in all) {
-            counts.update(s.resolution, (v) => v + 1, ifAbsent: () => 1);
-          }
-          final shown = _resolution == null
-              ? all
-              : all.where((s) => s.resolution == _resolution).toList();
-          return Column(
-            children: [
-              SizedBox(
-                height: 52,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  children: [
-                    _chip(tr('All ({length})', {'length': all.length}), null),
-                    for (final r in _order)
-                      if (counts[r] != null)
-                        _chip('${tr(r)} (${counts[r]})', r),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-                  itemCount: shown.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (_, i) => _StreamCard(
-                    source: shown[i],
-                    onPlay: () => context.push(
-                      MoviesRoutes.play,
-                      extra: _args(meta, shown[i]),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+      body: Column(
+        children: [
+          if (saved != null) _SavedBanner(item: saved),
+          Expanded(child: _body(context, meta, streams)),
+        ],
       ),
+    );
+  }
+
+  Widget _body(
+    BuildContext context,
+    MetaDetail? meta,
+    AsyncValue<List<StreamSource>> streams,
+  ) {
+    return streams.when(
+      loading: () => MessageView(
+        icon: Icons.travel_explore,
+        title: tr('Looking for sources…'),
+        action: SizedBox(width: 160, child: LinearProgressIndicator()),
+      ),
+      error: (e, _) => MessageView(
+        icon: Icons.error_outline,
+        title: tr('No sources'),
+        message: '$e',
+        action: FilledButton(
+          onPressed: () => ref.invalidate(streamsProvider(_key)),
+          child: Text(tr('Retry')),
+        ),
+      ),
+      data: (all) {
+        if (all.isEmpty) {
+          return MessageView(
+            icon: Icons.search_off,
+            title: tr('No sources found'),
+            message: tr('Your stream add-ons have nothing for this yet.'),
+            action: OutlinedButton(
+              onPressed: () => context.push(MoviesRoutes.addons),
+              child: Text(tr('Manage add-ons')),
+            ),
+          );
+        }
+        final counts = <String, int>{};
+        for (final s in all) {
+          counts.update(s.resolution, (v) => v + 1, ifAbsent: () => 1);
+        }
+        final shown = _resolution == null
+            ? all
+            : all.where((s) => s.resolution == _resolution).toList();
+        return Column(
+          children: [
+            SizedBox(
+              height: 52,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                children: [
+                  _chip(tr('All ({length})', {'length': all.length}), null),
+                  for (final r in _order)
+                    if (counts[r] != null) _chip('${tr(r)} (${counts[r]})', r),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                itemCount: shown.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                itemBuilder: (_, i) => _StreamCard(
+                  source: shown[i],
+                  onPlay: () => context.push(
+                    MoviesRoutes.play,
+                    extra: _args(meta, shown[i]),
+                  ),
+                  onDownload: () => _download(meta, shown[i]),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -158,11 +198,49 @@ class _StreamsScreenState extends ConsumerState<StreamsScreen> {
   );
 }
 
+/// This movie or episode is saved: play it from the phone.
+class _SavedBanner extends ConsumerWidget {
+  const _SavedBanner({required this.item});
+
+  final DownloadItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Material(
+      color: moviesAccent.withValues(alpha: 0.16),
+      child: ListTile(
+        leading: DownloadStateIcon(item: item, accent: moviesAccent),
+        title: Text(
+          item.isDone ? tr('Downloaded') : tr('Downloading'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(downloadStatusText(item)),
+        trailing: item.isDone
+            ? FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: moviesAccent),
+                onPressed: () => openDownload(context, ref, item),
+                icon: const Icon(Icons.play_arrow),
+                label: Text(tr('Play')),
+              )
+            : null,
+        onTap: () => item.isDone
+            ? openDownload(context, ref, item)
+            : showDownloadActions(context, ref, item),
+      ),
+    );
+  }
+}
+
 class _StreamCard extends StatelessWidget {
-  const _StreamCard({required this.source, required this.onPlay});
+  const _StreamCard({
+    required this.source,
+    required this.onPlay,
+    required this.onDownload,
+  });
 
   final StreamSource source;
   final VoidCallback onPlay;
+  final VoidCallback onDownload;
 
   @override
   Widget build(BuildContext context) {
@@ -228,6 +306,12 @@ class _StreamCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (source.isPlayable)
+                IconButton(
+                  tooltip: tr('Download for offline'),
+                  icon: const Icon(Icons.download_outlined, size: 20),
+                  onPressed: onDownload,
+                ),
               IconButton(
                 tooltip: tr('More'),
                 icon: const Icon(Icons.more_vert, size: 20),
@@ -253,6 +337,15 @@ class _StreamCard extends StatelessWidget {
               title: Text(tr('Play')),
               onTap: () => Navigator.pop(context, 'play'),
             ),
+            if (source.isPlayable)
+              ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: Text(tr('Download for offline')),
+                subtitle: source.size == null
+                    ? null
+                    : Text(tr('Size: {size}', {'size': source.size})),
+                onTap: () => Navigator.pop(context, 'download'),
+              ),
             if (source.url != null)
               ListTile(
                 leading: const Icon(Icons.open_in_new),
@@ -272,6 +365,8 @@ class _StreamCard extends StatelessWidget {
     switch (action) {
       case 'play':
         onPlay();
+      case 'download':
+        onDownload();
       case 'external':
         final ok = await ExternalApps.openVideo(source.url!);
         if (!ok) {

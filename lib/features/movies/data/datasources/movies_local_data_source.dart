@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/stremio_entities.dart';
+import 'open_subtitles_client.dart';
 
 /// Default add-ons: Cinemeta (catalogs + details), Torrentio (streams),
 /// OpenSubtitles v3 (subtitles).
@@ -20,6 +21,7 @@ class MoviesLocalDataSource {
   static const _addonsKey = 'movies.addons.v1';
   static const _historyKey = 'movies.history.v1';
   static const _subLangKey = 'movies.subtitleLang';
+  static const _subTitlePrefix = 'movies.subtitleTitle.';
 
   List<String> getAddonUrls() =>
       _prefs.getStringList(_addonsKey) ?? defaultAddonUrls;
@@ -49,4 +51,18 @@ class MoviesLocalDataSource {
 
   Future<void> saveSubtitleLanguage(String lang) =>
       _prefs.setString(_subLangKey, lang);
+
+  /// Which show an anime is on OpenSubtitles, once it's been chosen.
+  SubtitleTitle? getSubtitleTitle(String metaId) {
+    final raw = _prefs.getString('$_subTitlePrefix$metaId');
+    if (raw == null) return null;
+    try {
+      return SubtitleTitle.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveSubtitleTitle(String metaId, SubtitleTitle title) =>
+      _prefs.setString('$_subTitlePrefix$metaId', jsonEncode(title.toJson()));
 }

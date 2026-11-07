@@ -11,11 +11,13 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../../../../core/i18n/i18n.dart';
 import '../../../../core/platform/external_apps.dart';
+import '../../data/datasources/open_subtitles_client.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../domain/entities/torrent_stream_status.dart';
 import '../../domain/repositories/movies_repository.dart';
 import '../providers/movies_providers.dart';
 import '../widgets/movies_widgets.dart';
+import '../widgets/subtitle_search_sheet.dart';
 
 /// What the player needs to play a source and remember progress.
 class PlayerArgs {
@@ -88,6 +90,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   /// Titles of the online subtitles we loaded; mpv lists them as tracks too.
   final _loadedSubtitleTitles = <String>{};
+
+  /// Separate audio files already added; mpv lists them as tracks after that.
+  final _loadedAudioUrls = <String>{};
   double _subDelay = 0;
 
   PlayerArgs get _args => widget.args;
@@ -189,6 +194,42 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       (_) => _saveProgress(),
     );
     _applyPreferredSubtitle();
+    _startAudio();
+  }
+
+  /// Some videos have no sound of their own, only separate audio files: play
+  /// the first of those. A video with its own sound keeps it, and the others
+  /// stay in the audio menu.
+  Future<void> _startAudio() async {
+    bool real(AudioTrack t) => t.id != 'auto' && t.id != 'no';
+    try {
+      bool hasVideo(Tracks t) =>
+          t.video.any((v) => v.id != 'auto' && v.id != 'no');
+      // They may have arrived while the video was being opened.
+      final tracks = hasVideo(_player.state.tracks)
+          ? _player.state.tracks
+          : await _player.stream.tracks
+                .firstWhere(hasVideo)
+                .timeout(const Duration(minutes: 2));
+      if (!mounted) return;
+      final own = tracks.audio.where(real).toList();
+      if (own.isNotEmpty) {
+        if (_player.state.track.audio.id == 'no') {
+          await _player.setAudioTrack(own.first);
+        }
+      } else if (_args.audioTracks.isNotEmpty) {
+        await _selectExternalAudio(_args.audioTracks.first);
+      }
+    } catch (_) {
+      // The video never loaded, or the screen was closed; nothing to do.
+    }
+  }
+
+  Future<void> _selectExternalAudio(({String url, String lang}) audio) {
+    _loadedAudioUrls.add(audio.url);
+    return _player.setAudioTrack(
+      AudioTrack.uri(audio.url, title: audio.lang, language: audio.lang),
+    );
   }
 
   Future<void> _loadSubtitles() async {
@@ -223,13 +264,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   /// "English 2" for add-on codes; sources that send names keep their own
   /// label (they already number duplicates).
-  String _subLabel(SubtitleInfo s, int n) =>
-      languageNames.containsKey(s.lang) ? '${s.languageName} $n' : s.lang;
+  String _subLabel(SubtitleInfo s, int n) => s.fileName != null
+      ? '${s.languageName} · ${s.fileName}'
+      : languageNames.containsKey(s.lang)
+      ? '${s.languageName} $n'
+      : s.lang;
 
   Future<void> _selectExternal(SubtitleInfo s, int n) async {
     final title = _subLabel(s, n);
     _loadedSubtitleTitles.add(title);
-    if (_args.httpHeaders.isEmpty) {
+    // OpenSubtitles isn't the video's host, so it doesn't get its headers.
+    final fromVideoHost = s.addonName != OpenSubtitlesClient.addonName;
+    if (_args.httpHeaders.isEmpty && fromVideoHost) {
       await _player.setSubtitleTrack(
         SubtitleTrack.uri(s.url, title: title, language: s.lang),
       );
@@ -240,7 +286,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     // ourselves and hand mpv the text.
     try {
       final res = await http
-          .get(Uri.parse(s.url), headers: _args.httpHeaders)
+          .get(
+            Uri.parse(s.url),
+            headers: fromVideoHost ? _args.httpHeaders : null,
+          )
           .timeout(const Duration(seconds: 20));
       if (res.statusCode != 200) throw 'HTTP ${res.statusCode}';
       await _player.setSubtitleTrack(
@@ -318,6 +367,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       automaticallyImplySkipNextButton: false,
       automaticallyImplySkipPreviousButton: false,
       topButtonBarMargin: const EdgeInsets.symmetric(horizontal: 8),
+      // Well above the screen's bottom edge, where a swipe is taken by the
+      // system and a thumb can't reach, with a bigger area to grab.
+      padding: const EdgeInsets.fromLTRB(28, 8, 28, 48),
+      seekBarHeight: 4,
+      seekBarContainerHeight: 52,
       topButtonBar: [
         MaterialCustomButton(
           icon: const Icon(Icons.arrow_back),
@@ -591,6 +645,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
                       ],
                     ),
                   ),
+                  ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.search, color: moviesAccent),
+                    title: Text(tr('Search OpenSubtitles')),
+                    onTap: () async {
+                      await _searchOpenSubtitles();
+                      setSheet(() {});
+                    },
+                  ),
                   tile(
                     tr('Off'),
                     current.id == 'no',
@@ -668,6 +731,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     );
   }
 
+  Future<void> _searchOpenSubtitles() async {
+    final picked = await showSubtitleSearchSheet(
+      context,
+      SubtitleSearchRequest(
+        metaId: _args.metaId,
+        videoId: _args.videoId,
+        name: _args.name,
+        seriesLike: _args.type != 'movie',
+        episodeLabel: _args.episodeLabel,
+      ),
+    );
+    if (picked == null || !mounted) return;
+    _subtitles = [..._subtitles, picked];
+    await _selectExternal(picked, 1);
+  }
+
   void _setDelay(double change) {
     _subDelay = double.parse((_subDelay + change).toStringAsFixed(2));
     final platform = _player.platform;
@@ -698,14 +777,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
             if (tracks.isEmpty && _args.audioTracks.isEmpty)
               ListTile(dense: true, title: Text(tr('No audio tracks yet'))),
             for (final a in _args.audioTracks)
-              if (!tracks.any((t) => t.id == a.url))
+              if (!_loadedAudioUrls.contains(a.url))
                 ListTile(
                   dense: true,
                   title: Text(a.lang.isEmpty ? tr('Extra audio') : a.lang),
                   onTap: () {
-                    _player.setAudioTrack(
-                      AudioTrack.uri(a.url, title: a.lang, language: a.lang),
-                    );
+                    _selectExternalAudio(a);
                     Navigator.pop(context);
                   },
                 ),

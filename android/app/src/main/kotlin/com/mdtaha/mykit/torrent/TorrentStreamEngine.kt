@@ -47,6 +47,19 @@ class TorrentStreamEngine private constructor(context: Context) {
         @Volatile
         private var instance: TorrentStreamEngine? = null
 
+        /** The requested file, else the one named like [hint], else the biggest video. */
+        private fun chooseVideoFile(files: org.libtorrent4j.FileStorage, requested: Int?, hint: String?): Int {
+            val count = files.numFiles()
+            requested?.takeIf { it in 0 until count && !files.padFileAt(it) }?.let { return it }
+            val videos = (0 until count).filter {
+                !files.padFileAt(it) && files.fileName(it).substringAfterLast('.', "").lowercase() in VIDEO_EXTENSIONS
+            }
+            hint?.let { h ->
+                videos.firstOrNull { files.fileName(it).equals(h, ignoreCase = true) }?.let { return it }
+            }
+            return videos.maxByOrNull { files.fileSize(it) } ?: -1
+        }
+
         fun get(context: Context): TorrentStreamEngine =
             instance ?: synchronized(this) {
                 instance ?: TorrentStreamEngine(context.applicationContext).also { instance = it }
@@ -124,17 +137,8 @@ class TorrentStreamEngine private constructor(context: Context) {
             Log.i(TAG, "Streaming '$fileName' ($fileSize bytes, ${prebufferPieces.size} prebuffer pieces)")
         }
 
-        private fun chooseFile(files: org.libtorrent4j.FileStorage): Int {
-            val count = files.numFiles()
-            requestedFileIdx?.takeIf { it in 0 until count && !files.padFileAt(it) }?.let { return it }
-            val videos = (0 until count).filter {
-                !files.padFileAt(it) && files.fileName(it).substringAfterLast('.', "").lowercase() in VIDEO_EXTENSIONS
-            }
-            filenameHint?.let { hint ->
-                videos.firstOrNull { files.fileName(it).equals(hint, ignoreCase = true) }?.let { return it }
-            }
-            return videos.maxByOrNull { files.fileSize(it) } ?: -1
-        }
+        private fun chooseFile(files: org.libtorrent4j.FileStorage) =
+            chooseVideoFile(files, requestedFileIdx, filenameHint)
 
         private fun boost(h: TorrentHandle, piece: Int) {
             if (boosted.add(piece) && !h.havePiece(piece)) h.piecePriority(piece, Priority.TOP_PRIORITY)
@@ -258,6 +262,9 @@ class TorrentStreamEngine private constructor(context: Context) {
     fun start(infoHash: String, fileIdx: Int?, trackers: List<String>, filename: String?): Stream {
         ensureStarted()
         val hash = infoHash.lowercase()
+        if (downloads.containsKey(hash)) {
+            throw IllegalStateException("This torrent is being downloaded. Play it from Downloads when it's done.")
+        }
         current?.let { if (it.infoHash == hash && it.error == null && !it.stopped) return it }
         stopCurrent()
 
@@ -290,5 +297,127 @@ class TorrentStreamEngine private constructor(context: Context) {
         current = null
         val h = stream.handle ?: session.find(Sha1Hash.parseHex(stream.infoHash))
         if (h != null && h.isValid) session.remove(h, SessionHandle.DELETE_FILES)
+    }
+
+    // -- Offline downloads ---------------------------------------------------
+
+    /**
+     * A whole file downloaded for offline viewing, into a folder the app keeps.
+     * Once complete the torrent is removed (files kept), so it doesn't keep
+     * uploading over mobile data. Re-adding it later finds the pieces on disk.
+     */
+    inner class Download(
+        val infoHash: String,
+        private val dir: File,
+        private val requestedFileIdx: Int?,
+        private val filenameHint: String?,
+    ) {
+        @Volatile var handle: TorrentHandle? = null
+        @Volatile var fileIdx = -1
+        @Volatile var fileName = ""
+        @Volatile var fileSize = 0L
+        @Volatile var file: File? = null
+        @Volatile var error: String? = null
+        @Volatile var done = false
+        private var firstPiece = 0
+        private var lastPiece = 0
+        private var lastProgress = 0.0
+
+        fun poll() {
+            if (done || error != null) return
+            val h = handle ?: session.find(Sha1Hash.parseHex(infoHash))?.also { handle = it } ?: return
+            if (!h.isValid || !h.status().hasMetadata()) return
+            if (file == null) {
+                val info = h.torrentFile() ?: return
+                val files = info.files()
+                val idx = chooseVideoFile(files, requestedFileIdx, filenameHint)
+                if (idx < 0) {
+                    error = "This torrent has no playable video file."
+                    return
+                }
+                h.prioritizeFiles(Array(files.numFiles()) { if (it == idx) Priority.DEFAULT else Priority.IGNORE })
+                fileIdx = idx
+                fileName = files.fileName(idx)
+                fileSize = files.fileSize(idx)
+                val offset = files.fileOffset(idx)
+                firstPiece = (offset / info.pieceLength()).toInt()
+                lastPiece = ((offset + fileSize - 1) / info.pieceLength()).toInt()
+                file = File(dir, files.filePath(idx))
+            }
+            val total = lastPiece - firstPiece + 1
+            val have = (firstPiece..lastPiece).count { h.havePiece(it) }
+            lastProgress = have.toDouble() / total
+            if (have == total) {
+                done = true
+                session.remove(h)
+                handle = null
+                Log.i(TAG, "Downloaded '$fileName'")
+            }
+        }
+
+        fun toMap(): Map<String, Any?> {
+            val status = handle?.takeIf { it.isValid }?.status()
+            return mapOf(
+                "id" to infoHash,
+                "state" to when {
+                    error != null -> "error"
+                    done -> "done"
+                    file == null -> "metadata"
+                    else -> "downloading"
+                },
+                "error" to error,
+                "path" to file?.absolutePath,
+                "fileName" to fileName,
+                "fileSize" to fileSize,
+                "progress" to if (done) 1.0 else lastProgress,
+                "downloadRate" to (status?.downloadPayloadRate() ?: 0),
+                "peers" to (status?.numPeers() ?: 0),
+                "seeds" to (status?.numSeeds() ?: 0),
+            )
+        }
+    }
+
+    private val downloads = java.util.concurrent.ConcurrentHashMap<String, Download>()
+
+    @Synchronized
+    fun startDownload(
+        infoHash: String,
+        fileIdx: Int?,
+        trackers: List<String>,
+        filename: String?,
+        dir: String,
+    ): Map<String, Any?> {
+        ensureStarted()
+        val hash = infoHash.lowercase()
+        downloads[hash]?.let { if (it.error == null) return it.also { d -> d.poll() }.toMap() }
+        // Streaming the same torrent: that copy lives in the cache, drop it.
+        if (current?.infoHash == hash) stopCurrent()
+        val magnet = buildString {
+            append("magnet:?xt=urn:btih:").append(hash)
+            for (tr in (trackers + trackers()).distinct()) append("&tr=").append(URLEncoder.encode(tr, "UTF-8"))
+        }
+        val folder = File(dir).apply { mkdirs() }
+        val download = Download(hash, folder, fileIdx, filename)
+        downloads[hash] = download
+        session.download(magnet, folder, TorrentFlags.SEQUENTIAL_DOWNLOAD)
+        download.poll()
+        return download.toMap()
+    }
+
+    fun downloadStatus(infoHash: String): Map<String, Any?>? {
+        val download = downloads[infoHash.lowercase()] ?: return null
+        download.poll()
+        return download.toMap()
+    }
+
+    /** Pauses (keeps the files) or cancels a download. */
+    @Synchronized
+    fun stopDownload(infoHash: String, deleteFiles: Boolean) {
+        val hash = infoHash.lowercase()
+        val download = downloads.remove(hash)
+        val h = download?.handle ?: session.find(Sha1Hash.parseHex(hash))
+        if (h != null && h.isValid) {
+            if (deleteFiles) session.remove(h, SessionHandle.DELETE_FILES) else session.remove(h)
+        }
     }
 }

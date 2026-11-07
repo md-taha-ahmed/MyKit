@@ -8,8 +8,9 @@ import 'presentation/providers/knowledge_providers.dart';
 
 final knowledgeTool = ToolDefinition(
   id: 'knowledge',
-  name: 'علم وتاريخ',
-  description: 'درس يومي في السيرة والتاريخ والفقه والعقيدة من الكتب الأصلية',
+  name: 'علم وأدب وتاريخ',
+  description:
+      'درس يومي في السيرة والتاريخ والفقه، وكتب الأدب، من الكتب الأصلية',
   icon: Icons.auto_stories_outlined,
   color: knowledgeAccent,
   rootPath: KnowledgeRoutes.home,

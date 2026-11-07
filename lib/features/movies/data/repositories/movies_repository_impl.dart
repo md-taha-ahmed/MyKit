@@ -4,6 +4,7 @@ import '../../../../core/i18n/i18n.dart';
 import '../../domain/entities/stremio_entities.dart';
 import '../../domain/entities/torrent_stream_status.dart';
 import '../../domain/repositories/movies_repository.dart';
+import '../datasources/open_subtitles_client.dart';
 import '../datasources/movies_local_data_source.dart';
 import '../datasources/stremio_addon_client.dart';
 import '../datasources/torrent_stream_data_source.dart';
@@ -178,4 +179,12 @@ class MoviesRepositoryImpl implements MoviesRepository {
   @override
   Future<void> saveSubtitleLanguage(String lang) =>
       _local.saveSubtitleLanguage(lang);
+
+  @override
+  SubtitleTitle? getSubtitleTitle(String metaId) =>
+      _local.getSubtitleTitle(metaId);
+
+  @override
+  Future<void> saveSubtitleTitle(String metaId, SubtitleTitle title) =>
+      _local.saveSubtitleTitle(metaId, title);
 }

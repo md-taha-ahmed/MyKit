@@ -54,3 +54,40 @@ class TorrentStreamStatus {
         seeds: (m['seeds'] as num?)?.toInt() ?? 0,
       );
 }
+
+/// Progress of a torrent downloaded for offline viewing.
+class TorrentDownloadStatus {
+  const TorrentDownloadStatus({
+    required this.state,
+    this.error,
+    this.path,
+    this.fileSize = 0,
+    this.progress = 0,
+    this.downloadRate = 0,
+    this.peers = 0,
+  });
+
+  /// `metadata` → `downloading` → `done`, or `error`.
+  final String state;
+  final String? error;
+
+  /// Where the video is saved (once the file is known).
+  final String? path;
+  final int fileSize;
+
+  /// 0..1.
+  final double progress;
+  final int downloadRate;
+  final int peers;
+
+  factory TorrentDownloadStatus.fromMap(Map<Object?, Object?> m) =>
+      TorrentDownloadStatus(
+        state: m['state'] as String,
+        error: m['error'] as String?,
+        path: m['path'] as String?,
+        fileSize: (m['fileSize'] as num?)?.toInt() ?? 0,
+        progress: (m['progress'] as num?)?.toDouble() ?? 0,
+        downloadRate: (m['downloadRate'] as num?)?.toInt() ?? 0,
+        peers: (m['peers'] as num?)?.toInt() ?? 0,
+      );
+}

@@ -33,6 +33,11 @@ class _MoviesHomeScreenState extends ConsumerState<MoviesHomeScreen> {
           title: Text(tr('Movies & Series')),
           actions: [
             IconButton(
+              tooltip: tr('Downloads'),
+              icon: const Icon(Icons.download_for_offline_outlined),
+              onPressed: () => context.push(MoviesRoutes.downloads),
+            ),
+            IconButton(
               tooltip: tr('Search'),
               icon: const Icon(Icons.search),
               onPressed: () => context.push(MoviesRoutes.search),

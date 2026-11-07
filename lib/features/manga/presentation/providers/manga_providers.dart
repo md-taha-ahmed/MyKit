@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
@@ -9,6 +11,8 @@ import '../../data/datasources/manga_native_data_source.dart';
 import '../../data/repositories/manga_repository_impl.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/manga_repository.dart';
+import '../../../downloads/domain/download_item.dart';
+import '../../../downloads/presentation/providers/downloads_providers.dart';
 
 /// Default repository suggested in the UI (keiyoushi, as in the request).
 const keiyoushiRepoUrl =
@@ -240,8 +244,24 @@ final chaptersProvider = FutureProvider.family<List<Chapter>, String>((
 ) async {
   final manga = ref.read(mangaCacheProvider)[key];
   if (manga == null) throw MangaException(tr('Manga not found'));
-  return ref.read(mangaRepositoryProvider).chapters(manga);
+  try {
+    return await ref.read(mangaRepositoryProvider).chapters(manga);
+  } catch (_) {
+    // Offline: the downloaded chapters are still there to read.
+    final saved = downloadedChapters(ref.read(downloadsProvider), key);
+    if (saved.isNotEmpty) return saved;
+    rethrow;
+  }
 });
+
+/// Downloaded chapters of a manga, newest first like the sources list them.
+List<Chapter> downloadedChapters(List<DownloadItem> downloads, String key) {
+  final items = [
+    for (final d in downloads)
+      if (d.kind == DownloadKind.manga && d.groupKey == key && d.isDone) d,
+  ]..sort((a, b) => b.order.compareTo(a.order));
+  return [for (final d in items) Chapter.fromMap(d.source['chapter'] as Map)];
+}
 
 typedef CoverRequest = ({String sourceId, String url});
 
@@ -255,6 +275,18 @@ typedef ChapterRef = ({String mangaKey, String chapterUrl});
 
 final chapterPagesProvider = FutureProvider.autoDispose
     .family<List<ReaderPage>, ChapterRef>((ref, c) async {
+      final saved = ref.read(
+        downloadForProvider(
+          DownloadItem.idFor(DownloadKind.manga, c.mangaKey, c.chapterUrl),
+        ),
+      );
+      final paths = saved?.isDone ?? false ? saved!.pagePaths : const [];
+      if (paths.isNotEmpty && File(paths.first).existsSync()) {
+        return [
+          for (final (i, path) in paths.indexed)
+            ReaderPage(index: i, url: '$localPagePrefix$path'),
+        ];
+      }
       final manga = ref.read(mangaCacheProvider)[c.mangaKey]!;
       final chapters = await ref.read(chaptersProvider(c.mangaKey).future);
       final chapter = chapters.firstWhere((ch) => ch.url == c.chapterUrl);
@@ -263,11 +295,19 @@ final chapterPagesProvider = FutureProvider.autoDispose
 
 typedef PageRef = ({String sourceId, ReaderPage page});
 
+/// Marks [ReaderPage.url]s that are files of a downloaded chapter.
+const localPagePrefix = 'file:';
+
 /// Downloaded page file. Kept alive (just a path) so prefetching sticks.
 final pageImageProvider = FutureProvider.autoDispose.family<String, PageRef>((
   ref,
   p,
 ) async {
+  // A downloaded chapter's page: already on the phone.
+  if (p.page.url.startsWith(localPagePrefix)) {
+    ref.keepAlive();
+    return p.page.url.substring(localPagePrefix.length);
+  }
   final path = await ref
       .read(mangaRepositoryProvider)
       .pageImage(p.sourceId, p.page);
