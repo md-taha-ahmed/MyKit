@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../downloads/presentation/providers/downloads_providers.dart';
+import '../../../downloads/presentation/widgets/download_widgets.dart';
 import '../../domain/entities/manga_entities.dart';
 import '../../manga_routes.dart';
 import '../providers/manga_providers.dart';
@@ -227,6 +229,17 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
                           ),
                           const Spacer(),
                           IconButton(
+                            tooltip: tr('Download chapters'),
+                            icon: const Icon(
+                              Icons.download_for_offline_outlined,
+                            ),
+                            onPressed: () => _downloadMany(
+                              manga,
+                              list,
+                              entry?.readChapters ?? const {},
+                            ),
+                          ),
+                          IconButton(
                             tooltip: _newestFirst
                                 ? tr('Newest first')
                                 : tr('Oldest first'),
@@ -282,9 +295,20 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
                             color: Colors.white54,
                           ),
                         ),
-                        trailing: isRead
-                            ? const Icon(Icons.done, color: Colors.white38)
-                            : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isRead)
+                              const Icon(Icons.done, color: Colors.white38),
+                            DownloadButton(
+                              id: DownloadsNotifier.mangaId(manga, c),
+                              accent: mangaAccent,
+                              onDownload: () => ref
+                                  .read(downloadsProvider.notifier)
+                                  .addManga(manga, c),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -296,6 +320,45 @@ class _MangaDetailsScreenState extends ConsumerState<MangaDetailsScreen> {
         ),
       ),
     );
+  }
+
+  /// Queues the unread (or all) chapters, oldest first.
+  Future<void> _downloadMany(
+    Manga manga,
+    List<Chapter> chapters,
+    Set<String> read,
+  ) async {
+    final unread = chapters.where((c) => !read.contains(c.url)).toList();
+    final choice = await showModalBottomSheet<List<Chapter>>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(tr('Download for offline')),
+              subtitle: Text(tr('One chapter at a time, to save data.')),
+            ),
+            if (unread.isNotEmpty && unread.length != chapters.length)
+              ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: Text(tr('Unread chapters ({n})', {'n': unread.length})),
+                onTap: () => Navigator.pop(context, unread),
+              ),
+            ListTile(
+              leading: const Icon(Icons.download_outlined),
+              title: Text(tr('All chapters ({n})', {'n': chapters.length})),
+              onTap: () => Navigator.pop(context, chapters),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null) return;
+    final notifier = ref.read(downloadsProvider.notifier);
+    for (final c in choice.reversed) {
+      notifier.addManga(manga, c);
+    }
   }
 
   /// Last-read chapter, else the first (oldest) one.

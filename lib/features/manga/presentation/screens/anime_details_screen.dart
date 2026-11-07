@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/i18n/i18n.dart';
+import '../../../downloads/presentation/providers/downloads_providers.dart';
+import '../../../downloads/presentation/widgets/download_widgets.dart';
 import '../../../movies/domain/entities/stremio_entities.dart';
 import '../../../movies/movies_routes.dart';
 import '../../../movies/presentation/providers/movies_providers.dart';
@@ -388,6 +390,11 @@ class _EpisodeTile extends ConsumerWidget {
               subtitle,
               style: const TextStyle(fontSize: 12, color: Colors.white54),
             ),
+      trailing: DownloadButton(
+        id: DownloadsNotifier.animeId(anime, episode),
+        accent: mangaAccent,
+        onDownload: () => downloadEpisode(context, ref, anime, episode),
+      ),
     );
   }
 
@@ -408,6 +415,14 @@ Future<void> playEpisode(
   Anime anime,
   AnimeEpisode episode,
 ) async {
+  // Saved on the phone: play that, no internet needed.
+  final saved = ref.read(
+    downloadForProvider(DownloadsNotifier.animeId(anime, episode)),
+  );
+  if (saved != null && saved.isDone) {
+    openDownload(context, ref, saved);
+    return;
+  }
   final picked = await showModalBottomSheet<AnimeVideo>(
     context: context,
     isScrollControlled: true,
@@ -459,11 +474,54 @@ Future<void> playEpisode(
   );
 }
 
+/// Picks a video like [playEpisode], then saves it for offline instead.
+Future<void> downloadEpisode(
+  BuildContext context,
+  WidgetRef ref,
+  Anime anime,
+  AnimeEpisode episode,
+) async {
+  final picked = await showModalBottomSheet<AnimeVideo>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) =>
+        _VideoPicker(anime: anime, episode: episode, forDownload: true),
+  );
+  if (picked == null || !context.mounted) return;
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final video = await ref
+        .read(animeRepositoryProvider)
+        .resolve(anime.sourceId, picked.token);
+    ref
+        .read(downloadsProvider.notifier)
+        .addAnime(
+          anime: anime,
+          episode: episode,
+          videoTitle: picked.title,
+          video: video,
+          sourceName: ref.read(animeSourceProvider(anime.sourceId))?.name,
+        );
+    messenger.showSnackBar(
+      SnackBar(content: Text(tr('Downloading. It\'s in Downloads.'))),
+    );
+  } catch (e) {
+    messenger.showSnackBar(
+      SnackBar(content: Text(tr('Could not download: {e}', {'e': e}))),
+    );
+  }
+}
+
 class _VideoPicker extends ConsumerStatefulWidget {
-  const _VideoPicker({required this.anime, required this.episode});
+  const _VideoPicker({
+    required this.anime,
+    required this.episode,
+    this.forDownload = false,
+  });
 
   final Anime anime;
   final AnimeEpisode episode;
+  final bool forDownload;
 
   @override
   ConsumerState<_VideoPicker> createState() => _VideoPickerState();
@@ -520,7 +578,11 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
                     widget.episode.name,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: Text(tr('Choose a video')),
+                  subtitle: Text(
+                    widget.forDownload
+                        ? tr('Choose a video to download')
+                        : tr('Choose a video'),
+                  ),
                 ),
                 if (videos.isEmpty && hosters.every((h) => !h.lazy))
                   ListTile(
@@ -549,7 +611,11 @@ class _VideoPickerState extends ConsumerState<_VideoPicker> {
   Widget _videoTile(AnimeVideo v, {bool best = false}) => ListTile(
     dense: true,
     leading: Icon(
-      best ? Icons.play_circle_fill : Icons.play_circle_outline,
+      widget.forDownload
+          ? Icons.download_outlined
+          : best
+          ? Icons.play_circle_fill
+          : Icons.play_circle_outline,
       color: best ? mangaAccent : null,
     ),
     title: Text(v.title.isEmpty ? tr('Video') : v.title),

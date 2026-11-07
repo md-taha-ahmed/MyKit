@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -12,6 +14,8 @@ import 'core/i18n/i18n.dart';
 import 'core/storage/app_directories.dart';
 import 'core/storage/shared_preferences_provider.dart';
 import 'core/tools/tools_provider.dart';
+import 'features/downloads/presentation/providers/downloads_providers.dart';
+import 'features/read_aloud/presentation/read_aloud_popup.dart';
 import 'features/setup/presentation/providers/setup_providers.dart';
 import 'app/background_tasks.dart';
 
@@ -35,16 +39,38 @@ Future<void> main() async {
   // Dates in English and Arabic (the language is applied from settings).
   await I18n.init();
   final documents = await getApplicationDocumentsDirectory();
+  // Anime, manga and movies saved for offline: the app's folder on the phone
+  // storage (the most room, no permission needed).
+  Directory? external;
+  try {
+    external = await getExternalStorageDirectory();
+  } catch (_) {}
+  final downloads = Directory('${(external ?? documents).path}/downloads');
 
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         appDocumentsDirectoryProvider.overrideWithValue(documents),
+        downloadsDirectoryProvider.overrideWithValue(downloads),
         toolsProvider.overrideWithValue(toolsRegistry),
         freshInstallProvider.overrideWithValue(freshInstall),
       ],
       child: const MyKitApp(),
+    ),
+  );
+}
+
+/// Started by Android's "Read aloud" selection menu (ReadAloudActivity), with
+/// the selected text. None of the app's start-up is needed for this.
+@pragma('vm:entry-point')
+Future<void> readAloudMain(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: ReadAloudApp(text: args.isEmpty ? '' : args.first),
     ),
   );
 }

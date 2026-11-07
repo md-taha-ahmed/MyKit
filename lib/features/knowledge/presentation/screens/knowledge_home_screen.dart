@@ -19,7 +19,7 @@ const _weekdays = {
   5: 'الجمعة',
 };
 
-/// علم وتاريخ: today's lesson, the library, followed sources and saved
+/// علم وأدب وتاريخ: today's lesson, the library, followed sources and saved
 /// lessons, all in Arabic, right to left.
 class KnowledgeHomeScreen extends ConsumerStatefulWidget {
   const KnowledgeHomeScreen({super.key});
@@ -61,7 +61,7 @@ class _KnowledgeHomeScreenState extends ConsumerState<KnowledgeHomeScreen> {
         length: 4,
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('علم وتاريخ'),
+            title: const Text('علم وأدب وتاريخ'),
             actions: [
               IconButton(
                 tooltip: 'الإعدادات',
@@ -284,6 +284,43 @@ class _ErrorBox extends StatelessWidget {
 // Library
 // -----------------------------------------------------------------------------
 
+/// A bundled collection, read by choice and never a daily lesson.
+class _ShelfCard extends StatelessWidget {
+  const _ShelfCard({required this.track, required this.route});
+
+  final KnowledgeTrack track;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      color: knowledgeAccent.withValues(alpha: 0.16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(route),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(track.title, style: theme.textTheme.titleMedium),
+              const SizedBox(height: 2),
+              Text(
+                track.description,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LibraryTab extends ConsumerWidget {
   const _LibraryTab();
 
@@ -294,33 +331,16 @@ class _LibraryTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
-        Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          color: knowledgeAccent.withValues(alpha: 0.16),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => context.push(KnowledgeRoutes.sahaba),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    KnowledgeCatalog.sahabaBook.title,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    KnowledgeCatalog.sahabaBook.description,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        _ShelfCard(
+          track: KnowledgeCatalog.sahabaBook,
+          route: KnowledgeRoutes.sahaba,
         ),
+        const SizedBox(height: 10),
+        _ShelfCard(
+          track: KnowledgeCatalog.adabBook,
+          route: KnowledgeRoutes.adab,
+        ),
+        const SizedBox(height: 16),
         Text(
           'القراءة من هنا تتقدّم في الدرس اليومي أيضاً.',
           style: theme.textTheme.bodySmall?.copyWith(

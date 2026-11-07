@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../../core/storage/shared_preferences_provider.dart';
+import '../../data/datasources/open_subtitles_client.dart';
 import '../../data/datasources/movies_local_data_source.dart';
 import '../../data/datasources/stremio_addon_client.dart';
 import '../../data/datasources/torrent_stream_data_source.dart';
@@ -150,6 +151,10 @@ final streamsProvider = StreamProvider.autoDispose
           .watch(moviesRepositoryProvider)
           .streams(addons, arg.type, arg.videoId);
     });
+
+final openSubtitlesClientProvider = Provider<OpenSubtitlesClient>(
+  (ref) => OpenSubtitlesClient(http.Client()),
+);
 
 final subtitlesProvider = FutureProvider.autoDispose
     .family<List<SubtitleInfo>, ({String type, String videoId})>((

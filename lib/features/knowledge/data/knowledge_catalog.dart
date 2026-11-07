@@ -208,7 +208,17 @@ abstract final class KnowledgeCatalog {
     kind: TrackKind.book,
   );
 
-  static const all = [...scheduled, onThisDay, sahabaBook];
+  /// Literature bundled with the app, chosen by book, so never a daily lesson
+  /// either (see domain/adab_models.dart).
+  static const adabBook = KnowledgeTrack(
+    id: 'adab-book',
+    topic: 'الأدب',
+    title: 'الأدب',
+    description: 'سبعة من أمهات كتب الأدب العربي: شعر وأخبار وحكمة، بلا إنترنت',
+    kind: TrackKind.book,
+  );
+
+  static const all = [...scheduled, onThisDay, sahabaBook, adabBook];
 
   static KnowledgeTrack? byId(String id) {
     for (final t in all) {

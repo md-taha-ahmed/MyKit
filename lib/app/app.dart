@@ -8,6 +8,7 @@ import '../core/i18n/i18n.dart';
 import '../core/tools/tool_switch.dart';
 import '../features/backup/presentation/providers/backup_providers.dart';
 import '../features/countdown/presentation/providers/countdown_providers.dart';
+import '../features/downloads/presentation/providers/downloads_providers.dart';
 import '../features/setup/presentation/providers/setup_providers.dart';
 import '../features/setup/setup_routes.dart';
 import 'router/app_router.dart';
@@ -35,6 +36,8 @@ class _MyKitAppState extends ConsumerState<MyKitApp> {
       );
     }
     ref.read(disabledToolsProvider.notifier).silenceDisabled();
+    // Unfinished offline downloads carry on where they stopped.
+    ref.read(downloadsProvider);
     // Google Drive backup: scheduled when the app is left, cancelled on return.
     final backup = ref.read(backupProvider.notifier);
     _lifecycle = AppLifecycleListener(

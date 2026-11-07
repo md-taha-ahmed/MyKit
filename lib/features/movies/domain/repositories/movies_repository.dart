@@ -1,3 +1,4 @@
+import '../../data/datasources/open_subtitles_client.dart';
 import '../entities/stremio_entities.dart';
 import '../entities/torrent_stream_status.dart';
 
@@ -48,4 +49,8 @@ abstract interface class MoviesRepository {
   Future<void> saveHistory(List<WatchEntry> history);
   String getSubtitleLanguage();
   Future<void> saveSubtitleLanguage(String lang);
+
+  SubtitleTitle? getSubtitleTitle(String metaId);
+
+  Future<void> saveSubtitleTitle(String metaId, SubtitleTitle title);
 }

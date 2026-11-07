@@ -14,4 +14,8 @@
     <style name="AutofillTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
         <item name="android:windowAnimationStyle">@null</item>
     </style>
+    <!-- Read aloud: only its small card shows, over the app being read. -->
+    <style name="ReadAloudTheme" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

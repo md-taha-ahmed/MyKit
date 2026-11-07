@@ -59,6 +59,11 @@ class _MangaHomeScreenState extends ConsumerState<MangaHomeScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            tooltip: tr('Downloads'),
+            icon: const Icon(Icons.download_for_offline_outlined),
+            onPressed: () => context.push(MangaRoutes.downloads),
+          ),
           if (_tab != 0)
             IconButton(
               tooltip: tr('Filters'),

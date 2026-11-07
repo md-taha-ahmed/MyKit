@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Anime, manga and movies: keep offline downloads running in the background. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:label="MyKit"
@@ -72,6 +74,12 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
+
+        <!-- Offline downloads (anime, manga, movies): the "Downloading…" notification. -->
+        <service
+            android:name=".downloads.DownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- Countdown home-screen widget -->
         <receiver
@@ -131,6 +139,22 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:theme="@style/AutofillTheme" />
+        <!-- "Read aloud" in the text-selection menu of every app. -->
+        <activity
+            android:name=".readaloud.ReadAloudActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:label="@string/read_aloud"
+            android:taskAffinity=""
+            android:theme="@style/ReadAloudTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <!-- Screen time: counts and limits social media use (apps and sites). -->
         <service
             android:name=".limiter.LimiterService"

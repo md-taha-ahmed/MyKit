@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 
+import 'domain/adab_models.dart';
 import 'domain/sahaba_models.dart';
+import 'presentation/screens/adab_screens.dart';
 import 'presentation/screens/knowledge_home_screen.dart';
 import 'presentation/screens/sahaba_screens.dart';
 import 'presentation/screens/track_reader_screen.dart';
@@ -12,6 +14,10 @@ abstract final class KnowledgeRoutes {
   static String sahabaPerson(String id) => '/knowledge/sahaba/$id';
   static String sahabaChapter(String id, String book, String index) =>
       '/knowledge/sahaba/$id/$book/$index';
+  static const adab = '/knowledge/adab';
+  static String adabBook(String book) => '/knowledge/adab/$book';
+  static String adabChapter(String book, String index) =>
+      '/knowledge/adab/$book/$index';
 
   static final routes = <RouteBase>[
     GoRoute(
@@ -41,6 +47,29 @@ abstract final class KnowledgeRoutes {
                     book: SahabaBook.values.byName(
                       state.pathParameters['book']!,
                     ),
+                    index: int.parse(state.pathParameters['index']!),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'adab',
+          builder: (context, state) => const AdabHomeScreen(),
+          routes: [
+            GoRoute(
+              path: ':book',
+              builder: (context, state) => AdabBookScreen(
+                book: AdabBook.values.byName(state.pathParameters['book']!),
+              ),
+              routes: [
+                GoRoute(
+                  path: ':index',
+                  builder: (context, state) => AdabReaderScreen(
+                    // Replacing one chapter with the next must start fresh.
+                    key: state.pageKey,
+                    book: AdabBook.values.byName(state.pathParameters['book']!),
                     index: int.parse(state.pathParameters['index']!),
                   ),
                 ),

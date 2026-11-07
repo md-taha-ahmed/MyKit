@@ -405,10 +405,14 @@ class SubtitleInfo {
     required this.url,
     required this.lang,
     required this.addonName,
+    this.fileName,
   });
 
   final String id;
   final String url;
+
+  /// The subtitle's own file name, when known; it shows which release it's for.
+  final String? fileName;
 
   /// ISO 639-2 code as sent by the add-on (e.g. `eng`).
   final String lang;
@@ -424,6 +428,7 @@ class SubtitleInfo {
         url: j['url'].toString(),
         lang: (j['lang'] ?? 'und').toString(),
         addonName: addonName,
+        fileName: j['subtitleFileName']?.toString(),
       );
 }
 

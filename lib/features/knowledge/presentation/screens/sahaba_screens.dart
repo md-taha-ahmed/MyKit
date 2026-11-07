@@ -6,7 +6,7 @@ import '../../domain/sahaba_models.dart';
 import '../../knowledge_routes.dart';
 import '../providers/knowledge_providers.dart';
 import '../providers/sahaba_providers.dart';
-import '../widgets/lesson_view.dart';
+import '../widgets/chapter_reader.dart';
 
 /// Who the section opens on, because they were asked for by name.
 const _featuredId = 'umar';
@@ -299,8 +299,10 @@ class _SahabaPersonScreenState extends ConsumerState<SahabaPersonScreen> {
             ),
             const SizedBox(height: 10),
             for (var i = 0; i < chapters.length; i++)
-              _ChapterRow(
-                chapter: chapters[i],
+              ChapterRow(
+                title: chapters[i].title,
+                main: chapters[i].level == 1,
+                hasText: chapters[i].hasText,
                 isRead: read.contains(sahabaKey(widget.id, book, i)),
                 onTap: () => context.push(
                   KnowledgeRoutes.sahabaChapter(widget.id, book.name, '$i'),
@@ -313,66 +315,8 @@ class _SahabaPersonScreenState extends ConsumerState<SahabaPersonScreen> {
   }
 }
 
-class _ChapterRow extends StatelessWidget {
-  const _ChapterRow({
-    required this.chapter,
-    required this.isRead,
-    required this.onTap,
-  });
-
-  final SahabaChapter chapter;
-  final bool isRead;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final main = chapter.level == 1;
-    final title = Text(
-      chapter.title,
-      style: main
-          ? theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)
-          : theme.textTheme.bodyMedium?.copyWith(height: 1.6),
-    );
-    if (!chapter.hasText) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
-        child: title,
-      );
-    }
-    return Padding(
-      padding: EdgeInsetsDirectional.only(start: main ? 0 : 14, bottom: 6),
-      child: Card(
-        margin: EdgeInsets.zero,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: title),
-                if (isRead) ...[
-                  const SizedBox(width: 10),
-                  const Icon(
-                    Icons.check_circle,
-                    size: 18,
-                    color: knowledgeAccent,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// One chapter, word for word. Remembers how far down you were, so a power
-/// cut doesn't lose your place.
-class SahabaReaderScreen extends ConsumerStatefulWidget {
+/// One chapter of a person, with the next and previous ones that have text.
+class SahabaReaderScreen extends ConsumerWidget {
   const SahabaReaderScreen({
     super.key,
     required this.id,
@@ -384,125 +328,26 @@ class SahabaReaderScreen extends ConsumerStatefulWidget {
   final SahabaBook book;
   final int index;
 
-  @override
-  ConsumerState<SahabaReaderScreen> createState() => _SahabaReaderScreenState();
-}
-
-class _SahabaReaderScreenState extends ConsumerState<SahabaReaderScreen> {
-  late final ScrollController _scroll;
-  late final String _key = sahabaKey(widget.id, widget.book, widget.index);
-  late double _lastSaved;
-
-  SahabaProgressNotifier get _progress =>
-      ref.read(sahabaProgressProvider.notifier);
+  void _open(BuildContext context, int target) => context.pushReplacement(
+    KnowledgeRoutes.sahabaChapter(id, book.name, '$target'),
+  );
 
   @override
-  void initState() {
-    super.initState();
-    _lastSaved = _progress.scroll(_key);
-    _scroll = ScrollController(initialScrollOffset: _lastSaved)
-      ..addListener(_onScroll);
-    Future.microtask(() => _progress.opened(_key));
-  }
-
-  void _onScroll() {
-    final position = _scroll.position;
-    if ((position.pixels - _lastSaved).abs() >= 200) {
-      _lastSaved = position.pixels;
-      _progress.saveScroll(_key, position.pixels);
-    }
-    _markIfAtEnd();
-  }
-
-  /// The reference and the helper sit under the text.
-  void _markIfAtEnd() {
-    if (!_scroll.hasClients) return;
-    final position = _scroll.position;
-    if (position.pixels >= position.maxScrollExtent - 500) {
-      _progress.markRead(_key);
-    }
-  }
-
-  @override
-  void dispose() {
-    _scroll.dispose();
-    super.dispose();
-  }
-
-  void _open(int index) {
-    context.pushReplacement(
-      KnowledgeRoutes.sahabaChapter(widget.id, widget.book.name, '$index'),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final person = _find(ref.watch(sahabaIndexProvider).value, widget.id);
-    final chapters = ref
-        .watch(sahabaPersonProvider(widget.id))
-        .value?[widget.book];
-    if (person == null || chapters == null || widget.index >= chapters.length) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final person = _find(ref.watch(sahabaIndexProvider).value, id);
+    final chapters = ref.watch(sahabaPersonProvider(id)).value?[book];
+    if (person == null || chapters == null || index >= chapters.length) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) => _markIfAtEnd());
-
-    int? nearest(Iterable<int> indexes) {
-      for (final i in indexes) {
-        if (chapters[i].hasText) return i;
-      }
-      return null;
-    }
-
-    final previous = nearest(
-      List.generate(widget.index, (i) => widget.index - 1 - i),
-    );
-    final next = nearest([
-      for (var i = widget.index + 1; i < chapters.length; i++) i,
-    ]);
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(title: Text(person.name)),
-        // Not a lazy list: the saved place has to be reachable on opening.
-        body: SingleChildScrollView(
-          controller: _scroll,
-          padding: const EdgeInsets.fromLTRB(18, 8, 18, 40),
-          child: LessonView(
-            lesson: chapters[widget.index].toLesson(
-              person,
-              widget.book,
-              widget.index,
-            ),
-            footer: Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                children: [
-                  if (previous != null)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _open(previous),
-                        child: const Text('السابق'),
-                      ),
-                    ),
-                  if (previous != null && next != null)
-                    const SizedBox(width: 10),
-                  if (next != null)
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          _progress.markRead(_key);
-                          _open(next);
-                        },
-                        child: const Text('الفصل التالي'),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    final hasText = [for (final c in chapters) c.hasText];
+    return ChapterReader(
+      appBarTitle: person.name,
+      lesson: chapters[index].toLesson(person, book, index),
+      progress: sahabaProgressProvider,
+      progressKey: sahabaKey(id, book, index),
+      previous: previousWithText(hasText, index),
+      next: nextWithText(hasText, index),
+      onOpen: (target) => _open(context, target),
     );
   }
 }

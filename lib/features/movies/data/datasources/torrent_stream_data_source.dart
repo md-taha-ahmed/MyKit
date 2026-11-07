@@ -44,6 +44,36 @@ class TorrentStreamDataSource {
 
   Future<void> stop(String id) => _call<void>('stop', {'id': id});
 
+  /// Downloads the whole video file into [dir] for offline viewing.
+  Future<TorrentDownloadStatus> download(
+    StreamSource source,
+    String dir,
+  ) async {
+    final raw = await _call<Map<Object?, Object?>>('download', {
+      'infoHash': source.infoHash,
+      'fileIdx': source.fileIdx,
+      'trackers': {...source.trackers, ..._extraTrackers}.toList(),
+      'filename': source.filename,
+      'dir': dir,
+    });
+    return TorrentDownloadStatus.fromMap(raw!);
+  }
+
+  /// Null if that download isn't running (paused, or the app restarted).
+  Future<TorrentDownloadStatus?> downloadStatus(String infoHash) async {
+    final raw = await _call<Map<Object?, Object?>>('downloadStatus', {
+      'infoHash': infoHash,
+    });
+    return raw == null ? null : TorrentDownloadStatus.fromMap(raw);
+  }
+
+  /// Pauses (keeping the files) or cancels a download.
+  Future<void> stopDownload(String infoHash, {bool deleteFiles = false}) =>
+      _call<void>('stopDownload', {
+        'infoHash': infoHash,
+        'deleteFiles': deleteFiles,
+      });
+
   /// Starts the engine (DHT, trackers) before the first stream is needed.
   Future<void> warmUp() => _call<void>('warmUp', const {});
 }

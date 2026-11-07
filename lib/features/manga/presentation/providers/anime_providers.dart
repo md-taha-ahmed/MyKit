@@ -9,6 +9,8 @@ import '../../domain/entities/manga_entities.dart';
 import '../../domain/repositories/anime_repository.dart';
 import '../../domain/repositories/manga_repository.dart';
 import 'manga_providers.dart';
+import '../../../downloads/domain/download_item.dart';
+import '../../../downloads/presentation/providers/downloads_providers.dart';
 
 /// A ready-made anime repository suggested in the UI.
 const yuzonoAnimeRepoUrl =
@@ -161,9 +163,25 @@ final animeEpisodesProvider = FutureProvider.autoDispose
     .family<List<AnimeEpisode>, String>((ref, key) async {
       final anime = ref.read(animeCacheProvider)[key];
       if (anime == null) throw MangaException(tr('Anime not found'));
-      final episodes = await ref.read(animeRepositoryProvider).episodes(anime);
-      ref.keepAlive();
-      return episodes;
+      try {
+        final episodes = await ref
+            .read(animeRepositoryProvider)
+            .episodes(anime);
+        ref.keepAlive();
+        return episodes;
+      } catch (_) {
+        // Offline: the downloaded episodes still play.
+        final saved = [
+          for (final d in ref.read(downloadsProvider))
+            if (d.kind == DownloadKind.anime && d.groupKey == key && d.isDone)
+              d,
+        ]..sort((a, b) => b.order.compareTo(a.order));
+        if (saved.isEmpty) rethrow;
+        return [
+          for (final d in saved)
+            AnimeEpisode.fromMap(d.source['episode'] as Map),
+        ];
+      }
     });
 
 final animeSeasonsProvider = FutureProvider.autoDispose
